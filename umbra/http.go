@@ -168,6 +168,7 @@ func (h *HTTP) GetDescription() (description map[string]interface{}) {
 	description = make(map[string]interface{})
 	description["type"] = TypeHTTP
 	description["url"] = h.URL
+	description["enableTrace"] = h.EnableTrace
 	if h.IP != "" {
 		description["ip"] = h.IP
 	}

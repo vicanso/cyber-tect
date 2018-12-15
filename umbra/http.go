@@ -35,31 +35,38 @@ type (
 	}
 	// HTTPTimeLineStats http timeline stats
 	HTTPTimeLineStats struct {
-		DNSLookup        string `json:"dnsLookup,omitempty"`
-		TCPConnection    string `json:"tcpConnection,omitempty"`
-		TLSHandshake     string `json:"tlsHandshake,omitempty"`
-		ServerProcessing string `json:"serverProcessing,omitempty"`
-		ContentTransfer  string `json:"contentTransfer,omitempty"`
-		Total            string `json:"total,omitempty"`
+		DNSLookup        time.Duration `json:"dnsLookup,omitempty"`
+		TCPConnection    time.Duration `json:"tcpConnection,omitempty"`
+		TLSHandshake     time.Duration `json:"tlsHandshake,omitempty"`
+		ServerProcessing time.Duration `json:"serverProcessing,omitempty"`
+		ContentTransfer  time.Duration `json:"contentTransfer,omitempty"`
+		Total            time.Duration `json:"total,omitempty"`
 	}
 )
 
 // Stats get the stats of time line
 func (tl *HTTPTimeLine) Stats() (stats *HTTPTimeLineStats) {
 	stats = &HTTPTimeLineStats{}
-	if !tl.DNSStart.IsZero() {
-		stats.DNSLookup = tl.DNSDone.Sub(tl.DNSStart).String()
+	if !tl.DNSStart.IsZero() && !tl.DNSDone.IsZero() {
+		stats.DNSLookup = tl.DNSDone.Sub(tl.DNSStart)
 	}
-	stats.TCPConnection = tl.ConnectDone.Sub(tl.ConnectStart).String()
-	if !tl.TLSHandshakeStart.IsZero() {
-		stats.TLSHandshake = tl.TLSHandshakeDone.Sub(tl.TLSHandshakeStart).String()
+	if !tl.ConnectStart.IsZero() && !tl.ConnectDone.IsZero() {
+		stats.TCPConnection = tl.ConnectDone.Sub(tl.ConnectStart)
 	}
-	stats.ServerProcessing = tl.GotFirstResponseByte.Sub(tl.GotConnect).String()
+	if !tl.TLSHandshakeStart.IsZero() && !tl.TLSHandshakeDone.IsZero() {
+		stats.TLSHandshake = tl.TLSHandshakeDone.Sub(tl.TLSHandshakeStart)
+	}
+
+	if !tl.GotConnect.IsZero() && !tl.GotFirstResponseByte.IsZero() {
+		stats.ServerProcessing = tl.GotFirstResponseByte.Sub(tl.GotConnect)
+	}
 	if tl.Done.IsZero() {
 		tl.Done = time.Now()
 	}
-	stats.ContentTransfer = tl.Done.Sub(tl.GotFirstResponseByte).String()
-	stats.Total = tl.Done.Sub(tl.Start).String()
+	if !tl.GotFirstResponseByte.IsZero() {
+		stats.ContentTransfer = tl.Done.Sub(tl.GotFirstResponseByte)
+	}
+	stats.Total = tl.Done.Sub(tl.Start)
 	return
 }
 

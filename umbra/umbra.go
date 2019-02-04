@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	defaultTimeout = 5 * time.Second
+	defaultTimeout = 10 * time.Second
 	// TypeHTTP http checker
 	TypeHTTP = "HTTP"
 	// TypePing  ping checker
@@ -18,17 +18,8 @@ const (
 	TypeDNS = "DNS"
 )
 
-type (
-	// Checker checker interface
-	Checker interface {
-		Check() (bool, map[string]interface{}, error)
-		GetDescription() map[string]interface{}
-	}
-)
-
 // portCheck the port check
-func portCheck(network, ip string, port int) (healthy bool, extra map[string]interface{}, err error) {
-	started := time.Now()
+func portCheck(network, ip string, port int) (healthy bool, err error) {
 	addr := ip
 	if port != 0 {
 		addr = net.JoinHostPort(ip, strconv.Itoa(port))
@@ -38,10 +29,6 @@ func portCheck(network, ip string, port int) (healthy bool, extra map[string]int
 		return
 	}
 	defer conn.Close()
-	extra = make(map[string]interface{})
-	extra["stats"] = map[string]string{
-		"total": time.Since(started).String(),
-	}
 	healthy = true
 	return
 }

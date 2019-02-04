@@ -19,6 +19,9 @@ type (
 		URL         string
 		Transport   *http.Transport
 		EnableTrace bool
+		statusCode  int
+		body        string
+		stats       *HTTPTimeLineStats
 	}
 	// HTTPTimeLine http timing
 	HTTPTimeLine struct {
@@ -105,19 +108,14 @@ func NewClientTrace() (trace *httptrace.ClientTrace, tl *HTTPTimeLine) {
 }
 
 // Check check the http is healthy
-func (h *HTTP) Check() (healthy bool, extra map[string]interface{}, err error) {
+func (h *HTTP) Check() (healthy bool, err error) {
 	if h.Transport == nil {
-		tlsConfig := &tls.Config{
-			InsecureSkipVerify: true,
-		}
-		transport := &http.Transport{
-			TLSClientConfig: tlsConfig,
-		}
+		transport := &http.Transport{}
 		// 如果指定了IP，则将检测url中的host解析至此IP
 		if h.IP != "" {
 			info, err := url.Parse(h.URL)
 			if err != nil {
-				return false, nil, err
+				return false, err
 			}
 			hostname := info.Hostname()
 			dialer := &net.Dialer{}
@@ -155,29 +153,25 @@ func (h *HTTP) Check() (healthy bool, extra map[string]interface{}, err error) {
 	if err != nil {
 		return
 	}
-	extra = make(map[string]interface{})
-	if tl != nil {
-		extra["stats"] = tl.Stats()
-	}
 	statusCode := resp.StatusCode
 	if statusCode >= http.StatusOK && statusCode < http.StatusBadRequest {
 		healthy = true
 	}
-	extra["status"] = statusCode
-	if !healthy {
-		extra["body"] = string(body)
+	h.statusCode = statusCode
+	h.body = string(body)
+	if tl != nil {
+		h.stats = tl.Stats()
 	}
 	return
 }
 
-// GetDescription get the description of http checker
 func (h *HTTP) GetDescription() (description map[string]interface{}) {
 	description = make(map[string]interface{})
 	description["type"] = TypeHTTP
+	description["ip"] = h.IP
 	description["url"] = h.URL
-	description["enableTrace"] = h.EnableTrace
-	if h.IP != "" {
-		description["ip"] = h.IP
-	}
+	description["statusCode"] = h.statusCode
+	description["body"] = h.body
+	description["stats"] = h.stats
 	return
 }

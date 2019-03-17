@@ -8,14 +8,6 @@ import (
 
 const (
 	defaultTimeout = 10 * time.Second
-	// TypeHTTP http checker
-	TypeHTTP = "HTTP"
-	// TypePing  ping checker
-	TypePing = "Ping"
-	// TypeTCP tcp checker
-	TypeTCP = "TCP"
-	// TypeDNS dns checker
-	TypeDNS = "DNS"
 )
 
 // portCheck the port check

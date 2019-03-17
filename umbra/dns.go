@@ -2,7 +2,6 @@ package umbra
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"strings"
 	"sync"
@@ -23,13 +22,14 @@ type (
 	}
 	// DNSCheckResult dns check result
 	DNSCheckResult struct {
-		Name          string
-		Addr          string
-		Hostname      string
-		IPAddr        []string
-		TimeConsuming time.Duration
-		Healthy       bool
-		Err           error
+		Name          string        `json:"name,omitempty"`
+		Server        string        `json:"server,omitempty"`
+		Hostname      string        `json:"hostname,omitempty"`
+		IPAddr        []string      `json:"ipAddr,omitempty"`
+		TimeConsuming time.Duration `json:"timeConsuming,omitempty"`
+		Healthy       bool          `json:"healthy,omitempty"`
+		Err           error         `json:"err,omitempty"`
+		Message       string        `json:"message,omitempty"`
 	}
 )
 
@@ -60,15 +60,18 @@ func (d *DNS) Check() (healthy bool, err error) {
 }
 
 // GetCheckResult get dns check result
-func (d *DNS) GetCheckResult(serverName string) (result *DNSCheckResult) {
+func (d *DNS) GetCheckResult(serverName string) (result DNSCheckResult) {
 	healthy, err := d.Check()
-	result = &DNSCheckResult{
+	result = DNSCheckResult{
 		Hostname:      d.Hostname,
-		Addr:          d.Server,
+		Server:        d.Server,
 		Name:          serverName,
 		Healthy:       healthy,
 		Err:           err,
 		TimeConsuming: d.TimeConsuming,
+	}
+	if err != nil {
+		result.Message = err.Error()
 	}
 	if len(d.IPAddr) != 0 {
 		ipAddr := make([]string, len(d.IPAddr))
@@ -81,22 +84,24 @@ func (d *DNS) GetCheckResult(serverName string) (result *DNSCheckResult) {
 }
 
 // CheckDNSServers check all dns servers
-func CheckDNSServers(hostname string, servers []*DNSServer) {
+func CheckDNSServers(hostname string, servers []*DNSServer) (resultList []DNSCheckResult) {
 	chs := make(chan bool, 5)
 	wg := new(sync.WaitGroup)
-	for _, item := range servers {
-		go func(server *DNSServer) {
-			wg.Add(1)
+	resultList = make([]DNSCheckResult, len(servers))
+	for index, item := range servers {
+		wg.Add(1)
+		go func(server *DNSServer, i int) {
+			defer wg.Done()
 			chs <- true
 			dns := DNS{
 				Hostname: hostname,
 				Server:   server.Addr,
 			}
 			result := dns.GetCheckResult(server.Name)
-			fmt.Println(result)
+			resultList[i] = result
 			<-chs
-			wg.Done()
-		}(item)
+		}(item, index)
 	}
 	wg.Wait()
+	return
 }

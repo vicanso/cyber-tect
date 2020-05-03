@@ -1,3 +1,17 @@
+// Copyright 2019 tree xie
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package util
 
 import (
@@ -19,8 +33,7 @@ func init() {
 	appPath = strings.Join(arr, fileDivide) + fileDivide
 }
 
-// GetStack 获取调用信息
-func GetStack(start, end int) []string {
+func getStack(length int, ignoreMod bool) []string {
 	size := 2 << 10
 	stack := make([]byte, size)
 	runtime.Stack(stack, true)
@@ -32,6 +45,9 @@ func GetStack(start, end int) []string {
 		if index+1 >= max {
 			break
 		}
+		if ignoreMod && !strings.Contains(arr[index+1], appPath) {
+			continue
+		}
 
 		file := strings.Replace(arr[index+1], appPath, "", 1)
 		tmpArr := strings.Split(arr[index], "/")
@@ -39,5 +55,15 @@ func GetStack(start, end int) []string {
 		str := fn + ": " + file
 		result = append(result, str)
 	}
-	return result[start:end]
+	if len(result) < length {
+		return result
+	}
+	return result[:length]
+}
+
+// GetStack 获取调用信息
+func GetStack(max int) []string {
+	// 去除get stack的两个函数调用
+	arr := getStack(max+2, true)
+	return arr[2:]
 }

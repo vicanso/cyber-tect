@@ -1,61 +1,72 @@
+// Copyright 2019 tree xie
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package config
 
 import (
-	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestGetListen(t *testing.T) {
-	if GetListen() != defaultListen {
-		t.Fatalf("get listen fail")
-	}
-}
+func TestConfigGet(t *testing.T) {
+	assert := assert.New(t)
+	originEnv := env
 
-func TestGetENV(t *testing.T) {
-	if GetENV() != "test" {
-		t.Fatalf("get env fail")
-	}
-}
+	env = "test"
+	assert.Equal(env, GetENV())
+	env = originEnv
 
-func TestGet(t *testing.T) {
-	randomKey := "xx_xx_xx"
-	if GetIntDefault("requestLimit", 0) != 1024 {
-		t.Fatalf("get int fail")
-	}
+	key := "my-config-test"
 
-	if GetIntDefault(randomKey, 1) != 1 {
-		t.Fatalf("get int default fail")
-	}
+	assert.Equal(0, GetInt(key))
+	defaultViper.Set(key, 1)
+	assert.Equal(1, GetInt(key))
 
-	if GetString("app") != "cyber-tect" {
-		t.Fatalf("get string fail")
-	}
+	assert.Equal(uint(1), GetUint(key))
+	assert.Equal(uint32(1), GetUint32(key))
 
-	if GetStringDefault(randomKey, "1") != "1" {
-		t.Fatalf("get string default fail")
-	}
+	defaultViper.Set(key, nil)
+	assert.Equal(2, GetIntDefault(key, 2))
+	assert.Equal(uint32(2), GetUint32Default(key, 2))
 
-	if GetDurationDefault(randomKey, time.Second) != time.Second {
-		t.Fatalf("get time duration default fail")
-	}
+	defaultViper.Set(key, "s")
+	assert.Equal("s", GetString(key))
+	defaultViper.Set(key, nil)
+	assert.Equal("ss", GetStringDefault(key, "ss"))
 
-	if strings.Join(GetStringSlice("keys"), ",") != "cuttlefish,secret" {
-		t.Fatalf("get string slice fail")
-	}
-}
+	defaultViper.Set(key, time.Second)
+	assert.Equal(time.Second, GetDuration(key))
+	defaultViper.Set(key, nil)
+	assert.Equal(time.Minute, GetDurationDefault(key, time.Minute))
 
-func TestGetTrackKey(t *testing.T) {
-	if GetTrackKey() != defaultTrackKey {
-		t.Fatalf("get track key fail")
-	}
-}
+	defaultViper.Set(key, []string{
+		"a",
+		"b",
+	})
+	assert.Equal([]string{
+		"a",
+		"b",
+	}, GetStringSlice(key))
 
-func TestGetSessionConfig(t *testing.T) {
-	scf := GetSessionConfig()
-	if scf.TTL != defaultSessionTTL ||
-		scf.Key != defaultSessionKey ||
-		scf.CookiePath != defaultCookiePath {
-		t.Fatalf("get session config fail")
-	}
+	defaultViper.Set(key, map[string]interface{}{
+		"a": "b",
+		"c": 1,
+	})
+	assert.Equal(map[string]interface{}{
+		"a": "b",
+		"c": 1,
+	}, GetStringMap(key))
 }

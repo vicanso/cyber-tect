@@ -1,209 +1,161 @@
+// Copyright 2019 tree xie
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package helper
 
 import (
+	"errors"
 	"net/http"
-	"net/url"
 	"time"
 
-	"github.com/vicanso/cod"
-	"github.com/vicanso/dusk"
-	"github.com/vicanso/cyber-tect/log"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/tidwall/gjson"
+	"github.com/vicanso/elton"
+
 	"github.com/vicanso/hes"
+
+	"github.com/vicanso/cyber-tect/cs"
+	"github.com/vicanso/go-axios"
 	"go.uber.org/zap"
-
-	jsoniter "github.com/json-iterator/go"
 )
 
-var (
-	json   = jsoniter.ConfigCompatibleWithStandardLibrary
-	logger = log.Default()
-	// DefaultHTTPClient default http client
-	DefaultHTTPClient = &http.Client{
-		Timeout: 10 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:           100,
-			IdleConnTimeout:        90 * time.Second,
-			TLSHandshakeTimeout:    5 * time.Second,
-			ExpectContinueTimeout:  1 * time.Second,
-			MaxResponseHeaderBytes: 5 * 1024,
-		},
-	}
-)
+func getHTTPStats(serviceName string, resp *axios.Response) (map[string]string, map[string]interface{}) {
+	conf := resp.Config
 
-const (
-	errCategoryHTTPRequest = "http-request"
-	contextID              = "cid"
+	ht := conf.HTTPTrace
 
-	xForwardedForHeader = "X-Forwarded-For"
-)
-
-// httpConvertResponse convert http response
-func httpConvertResponse(resp *http.Response, d *dusk.Dusk) (newResp *http.Response, newErr error) {
-	statusCode := resp.StatusCode
-	if statusCode < 400 {
-		return
-	}
-	// 对于状态码大于400的，转化为 hes.Error
-	he := &hes.Error{
-		StatusCode: statusCode,
-		Category:   json.Get(d.Body, "category").ToString(),
-		Message:    json.Get(d.Body, "message").ToString(),
-	}
-	if he.Category != "" {
-		he.Category = errCategoryHTTPRequest + "-" + he.Category
-	} else {
-		he.Category = errCategoryHTTPRequest
-	}
-	if he.Message == "" {
-		he.Message = "unknown error"
-	}
-	return nil, he
-}
-
-// httpDoneEvent http请求完成的触发，用于统计、日志等输出
-func httpDoneEvent(d *dusk.Dusk) error {
-	req := d.Request
-	resp := d.Response
-	err := d.Err
-	uri := req.URL.RequestURI()
-	ht := d.GetHTTPTrace()
+	reused := false
+	addr := ""
 	use := ""
+	ms := 0
 	if ht != nil {
+		reused = ht.Reused
+		addr = ht.Addr
 		use = ht.Stats().Total.String()
+		ms = int(ht.Stats().Total.Milliseconds())
 	}
-	statusCode := 0
-	if err != nil {
-		he, ok := err.(*hes.Error)
-		if ok {
-			statusCode = he.StatusCode
-		}
-	}
-	if resp != nil {
-		statusCode = resp.StatusCode
-	}
-	cid := ""
-	cidValue := d.GetValue(contextID)
-	if cidValue != nil {
-		cid = cidValue.(string)
-	}
-
-	// TODO 是否将POST参数也记录（有可能会有敏感信息）
-	// TODO 是否将响应数据输出（有可能敏感信息以及数据量较大），或者写入缓存数据库，保存较短时间方便排查
-	if resp == nil || err != nil {
-		logger.Error("http request fail",
-			zap.String("method", req.Method),
-			zap.String("host", req.Host),
-			zap.String("uri", uri),
-			zap.String("cid", cid),
-			zap.Int("status", statusCode),
-			zap.String("use", use),
-			zap.Error(err),
-		)
-		return nil
-	}
-	logger.Info("http request done",
-		zap.String("method", req.Method),
-		zap.String("host", req.Host),
-		zap.String("uri", uri),
-		zap.String("cid", cid),
-		zap.Int("status", statusCode),
+	logger.Info("http stats",
+		zap.String("service", serviceName),
+		zap.String("cid", conf.GetString(cs.CID)),
+		zap.String("method", conf.Method),
+		zap.String("route", conf.Route),
+		zap.String("url", conf.URL),
+		zap.Int("status", resp.Status),
+		zap.String("addr", addr),
+		zap.Bool("reused", reused),
 		zap.String("use", use),
 	)
-	return nil
+	tags := map[string]string{
+		"service": serviceName,
+		"route":   conf.Route,
+		"method":  conf.Method,
+	}
+	fields := map[string]interface{}{
+		"cid":    conf.GetString(cs.CID),
+		"url":    conf.URL,
+		"status": resp.Status,
+		"addr":   addr,
+		"reused": reused,
+		"use":    ms,
+	}
+	return tags, fields
 }
 
-// httpErrorConvert convert http error
-func httpErrorConvert(err error, d *dusk.Dusk) error {
-	he, ok := err.(*hes.Error)
-	resp := d.Response
-	req := d.Request
-	if !ok {
-		he = hes.NewWithError(err)
-		statusCode := http.StatusInternalServerError
-		if resp != nil {
-			statusCode = resp.StatusCode
+// newHTTPStats http stats
+func newHTTPStats(serviceName string) axios.ResponseInterceptor {
+	return func(resp *axios.Response) (err error) {
+		tags, fields := getHTTPStats(serviceName, resp)
+		GetInfluxSrv().Write(cs.MeasurementHTTPRequest, fields, tags)
+		return
+	}
+}
+
+// newConvertResponseToError convert http response(4xx, 5xx) to error
+func newConvertResponseToError(serviceName string) axios.ResponseInterceptor {
+	return func(resp *axios.Response) (err error) {
+		if resp.Status >= 400 {
+			message := gjson.GetBytes(resp.Data, "message").String()
+			if message == "" {
+				message = string(resp.Data)
+			}
+			err = errors.New(message)
 		}
-		if ue, ok := err.(*url.Error); ok {
-			// 请求超时中断
-			if ue.Timeout() {
-				statusCode = http.StatusRequestTimeout
+		return
+	}
+}
+
+// newOnError new an error listener
+func newOnError(serviceName string) axios.OnError {
+	return func(err error, conf *axios.Config) (newErr error) {
+		e, ok := err.(*axios.Error)
+		id := conf.GetString(cs.CID)
+		if !ok {
+			e = &axios.Error{
+				Message: err.Error(),
 			}
 		}
-		he.StatusCode = statusCode
-		he.Category = errCategoryHTTPRequest
-	}
-	// 仅在测试中输出请求 url至 hes中（避免将重要信息输出）
-	if !util.IsProduction() {
-		extra := he.Extra
-		if extra == nil {
-			extra = make(map[string]interface{})
+		code := e.Code
+
+		he := &hes.Error{
+			StatusCode: code,
+			Message:    e.Message,
+			ID:         id,
 		}
-		url := req.URL
-		extra["uri"] = url.RequestURI()
-		extra["host"] = url.Host
-		extra["method"] = req.Method
-		he.Extra = extra
-	}
-	return he
-}
-
-func initDusk(d *dusk.Dusk, c *cod.Context) {
-	if c != nil && c.ID != "" {
-		d.SetValue(contextID, c.ID)
-		// 设置x-forwarded-for
-		v := c.GetRequestHeader(xForwardedForHeader)
-		if v == "" {
-			v = c.RealIP()
+		if code < http.StatusBadRequest {
+			he.Exception = true
+			he.StatusCode = http.StatusInternalServerError
 		}
-		d.Set(xForwardedForHeader, v)
+
+		// 请求超时
+		if e.Timeout() {
+			he.Message = "Timeout"
+		}
+		if !isProduction() {
+			he.Extra = map[string]interface{}{
+				"route":   conf.Route,
+				"service": serviceName,
+			}
+		}
+		newErr = he
+		logger.Info("http error",
+			zap.String("service", serviceName),
+			zap.String("cid", id),
+			zap.String("method", conf.Method),
+			zap.String("url", conf.URL),
+			zap.String("error", err.Error()),
+		)
+		return
 	}
-	d.SetClient(DefaultHTTPClient)
-	d.EnableTrace()
-	d.OnResponseSuccess(httpConvertResponse)
-	d.OnError(httpErrorConvert)
-	d.OnDone(httpDoneEvent)
 }
 
-// NewRequestWithContext new request with context
-func NewRequestWithContext(method, url string, c *cod.Context) (d *dusk.Dusk) {
-	switch method {
-	case http.MethodGet:
-		d = dusk.Get(url)
-	case http.MethodPost:
-		d = dusk.Post(url)
-	case http.MethodPatch:
-		d = dusk.Patch(url)
-	case http.MethodDelete:
-		d = dusk.Delete(url)
+// NewInstance new an instance
+func NewInstance(serviceName, baseURL string, timeout time.Duration) *axios.Instance {
+	return axios.NewInstance(&axios.InstanceConfig{
+		EnableTrace: true,
+		Timeout:     timeout,
+		OnError:     newOnError(serviceName),
+		BaseURL:     baseURL,
+		ResponseInterceptors: []axios.ResponseInterceptor{
+			newHTTPStats(serviceName),
+			newConvertResponseToError(serviceName),
+		},
+	})
+}
+
+// AttachWithContext attach with context
+func AttachWithContext(conf *axios.Config, c *elton.Context) {
+	if c == nil || conf == nil {
+		return
 	}
-	if d != nil {
-		initDusk(d, c)
-	}
-	return d
-}
-
-// GetWithContext get request with context
-func GetWithContext(url string, c *cod.Context) *dusk.Dusk {
-	return NewRequestWithContext(http.MethodGet, url, c)
-}
-
-// PostWithContext post request with context
-func PostWithContext(url string, c *cod.Context) *dusk.Dusk {
-	return NewRequestWithContext(http.MethodPost, url, c)
-}
-
-// PutWithContext put request with context
-func PutWithContext(url string, c *cod.Context) *dusk.Dusk {
-	return NewRequestWithContext(http.MethodPut, url, c)
-}
-
-// PatchWithContext patch request with context
-func PatchWithContext(url string, c *cod.Context) *dusk.Dusk {
-	return NewRequestWithContext(http.MethodPatch, url, c)
-}
-
-// DeleteWithContext delete request with context
-func DeleteWithContext(url string, c *cod.Context) *dusk.Dusk {
-	return NewRequestWithContext(http.MethodDelete, url, c)
+	conf.Set(cs.CID, c.ID)
 }

@@ -1,4 +1,66 @@
-app: cyber-tect 
+app: cyber-tect
 requestLimit: 1024
 # apiPrefix: /api
 listen: ":7001"
+
+# cookie track key
+track: jt
+
+
+# redis 配置(pass从env中获取pass这个配置为密码，如果未配置则为空)
+redis:
+  addr: 127.0.0.1:6379
+  slow: 200ms
+  maxProcessing: 1000
+
+# postgres 配置 (pass从env中获取pass这个配置为密码，如果未配置则为空)
+postgres:
+  host: 127.0.0.1
+  port: 5432
+  user: vicanso 
+  dbname: cyber-tect
+  password: A123456
+  sslmode: disable
+  slow: 1s
+  maxQueryProcessing: 1000
+  maxUpdateProcessing: 500
+
+# influxdb 配置
+influxdb:
+  uri: http://127.0.0.1:9999
+  bucket: cyber-tect
+  org: bigtree
+  token: IwG5FptH6wx2NfE1G6lqAiXYnxuKh-NPRhsnOYi0xL2PXYQdHoe85wTQUT8paIQQ3oGxt3r0qlxGnPx19br2IA==
+  batchSize: 100
+  flushInterval: 10s
+
+# session的相关配置
+session:
+  path: /
+  key: cyber-tect
+  ttl: 24h
+
+# key for sign cookie
+keys:
+  - cuttlefish
+  - secret
+
+location:
+  baseURL: https://ip.aslant.site/
+
+# router limit
+routerLimit:
+  # 限制路由访问并发数
+  GET /users/v1/me/login: 50
+
+# mail相关配置
+mail:
+  host: smtp.office365.com
+  port: 587
+  user: tree.xie@outlook.com
+  password: EMAIL_PASS
+
+# 告警接收邮件列表
+alarm:
+  receiver:
+  - tree.xie@outlook.com

@@ -1,25 +1,41 @@
+// Copyright 2019 tree xie
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package middleware
 
 import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/vicanso/cod"
+	"github.com/vicanso/elton"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewEntry(t *testing.T) {
+	assert := assert.New(t)
+
 	fn := NewEntry()
-	req := httptest.NewRequest("GET", "/users/me", nil)
-	res := httptest.NewRecorder()
-	c := cod.NewContext(res, req)
+	req := httptest.NewRequest("GET", "/", nil)
+	resp := httptest.NewRecorder()
+	c := elton.NewContext(resp, req)
+	c.ID = "context id"
 	c.Next = func() error {
 		return nil
 	}
 	err := fn(c)
-	if err != nil {
-		t.Fatalf("new entry middleware fail, %v", err)
-	}
-	if c.GetHeader(xResponseID) != c.ID {
-		t.Fatalf("set response id fail")
-	}
+	assert.Nil(err)
+	assert.Equal(c.ID, c.GetHeader(xResponseID))
+	assert.Equal("no-cache", c.GetHeader(elton.HeaderCacheControl))
 }

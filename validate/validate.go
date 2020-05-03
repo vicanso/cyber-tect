@@ -1,98 +1,127 @@
+// Copyright 2019 tree xie
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package validate
 
 import (
-	"net/http"
-	"regexp"
-	"strings"
+	"encoding/json"
+	"reflect"
 
-	"github.com/asaskevich/govalidator"
-	jsoniter "github.com/json-iterator/go"
+	"github.com/go-playground/validator/v10"
 	"github.com/vicanso/hes"
 )
 
 var (
-	paramTagRegexMap = govalidator.ParamTagRegexMap
-	paramTagMap      = govalidator.ParamTagMap
-	customTypeTagMap = govalidator.CustomTypeTagMap
-	json             = jsoniter.ConfigCompatibleWithStandardLibrary
+	defaultValidator = validator.New()
+
+	errCategory          = "validate"
+	errJSONParseCategory = "json-parse"
 )
 
-func init() {
-	govalidator.SetFieldsRequiredByDefault(true)
-	AddRegex("xIntRange", "^xIntRange\\((\\d+)\\|(\\d+)\\)$", func(value string, params ...string) bool {
-		return govalidator.InRangeInt(value, params[0], params[1])
-	})
-
-	AddRegex("xIntIn", `^xIntIn\((.*)\)$`, func(value string, params ...string) bool {
-		if len(params) == 1 {
-			rawParams := params[0]
-			parsedParams := strings.Split(rawParams, "|")
-			return govalidator.IsIn(value, parsedParams...)
-		}
-		return false
-	})
-
-	methods := []string{
-		"GET",
-		"POST",
-		"PUT",
-		"DELETE",
-		"HEAD",
+func toString(fl validator.FieldLevel) (string, bool) {
+	value := fl.Field()
+	if value.Kind() != reflect.String {
+		return "", false
 	}
-	Add("xMethods", func(i interface{}, _ interface{}) bool {
-		value, ok := i.(string)
-		if !ok {
-			return false
+	return value.String(), true
+}
+func toInt(fl validator.FieldLevel) (int, bool) {
+	value := fl.Field()
+	if value.Kind() != reflect.Int {
+		return 0, false
+	}
+	return int(value.Int()), true
+}
+func isInInt(fl validator.FieldLevel, values []int) bool {
+	value, ok := toInt(fl)
+	if !ok {
+		return false
+	}
+	exists := false
+	for _, v := range values {
+		if v == value {
+			exists = true
 		}
-		return govalidator.IsIn(value, methods...)
-	})
+	}
+	return exists
+}
+func isInString(fl validator.FieldLevel, values []string) bool {
+	value, ok := toString(fl)
+	if !ok {
+		return false
+	}
+	exists := false
+	for _, v := range values {
+		if v == value {
+			exists = true
+		}
+	}
+	return exists
+}
+func isZero(fl validator.FieldLevel) bool {
+	return fl.Field().IsZero()
+}
+
+func doValidate(s interface{}, data interface{}) (err error) {
+	// statusCode := http.StatusBadRequest
+	if data != nil {
+		switch data := data.(type) {
+		case []byte:
+			err = json.Unmarshal(data, s)
+			if err != nil {
+				he := hes.Wrap(err)
+				he.Category = errJSONParseCategory
+				err = he
+				return
+			}
+		default:
+			buf, err := json.Marshal(data)
+			if err != nil {
+				return err
+			}
+			err = json.Unmarshal(buf, s)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	err = defaultValidator.Struct(s)
+	return
 }
 
 // Do do validate
 func Do(s interface{}, data interface{}) (err error) {
-	statusCode := http.StatusBadRequest
-	if data != nil {
-		switch data.(type) {
-		case []byte:
-			e := json.Unmarshal(data.([]byte), s)
-			if e != nil {
-				err = hes.NewWithErrorStatusCode(e, statusCode)
-				return
-			}
-		default:
-			buf, e := json.Marshal(data)
-			if e != nil {
-				err = hes.NewWithErrorStatusCode(e, statusCode)
-				return
-			}
-			e = json.Unmarshal(buf, s)
-			if e != nil {
-				err = hes.NewWithErrorStatusCode(e, statusCode)
-				return
-			}
-		}
-	}
-	_, err = govalidator.ValidateStruct(s)
+	err = doValidate(s, data)
 	if err != nil {
-		err = hes.NewWithErrorStatusCode(err, statusCode)
+		he := hes.Wrap(err)
+		if he.Category == "" {
+			he.Category = errCategory
+		}
+		err = he
 	}
 	return
 }
 
-// AddRegex add a regexp validate
-func AddRegex(name, reg string, fn govalidator.ParamValidator) {
-	if paramTagMap[name] != nil {
-		panic(name + ", reg:" + reg + " is duplicated")
+// Add add validate
+func Add(tag string, fn validator.Func, args ...bool) {
+	err := defaultValidator.RegisterValidation(tag, fn, args...)
+	if err != nil {
+		panic(err)
 	}
-	paramTagRegexMap[name] = regexp.MustCompile(reg)
-	paramTagMap[name] = fn
 }
 
-// Add add validate
-func Add(name string, fn govalidator.CustomTypeValidator) {
-	_, exists := customTypeTagMap.Get(name)
-	if exists {
-		panic(name + " is duplicated")
-	}
-	customTypeTagMap.Set(name, fn)
+// AddAlias add alias
+func AddAlias(alias, tags string) {
+	defaultValidator.RegisterAlias(alias, tags)
 }

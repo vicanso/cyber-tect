@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/vicanso/elton"
-	"github.com/vicanso/cyber-tect/helper"
-	"github.com/vicanso/cyber-tect/log"
+	"github.com/vicanso/cybertect/helper"
+	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/hes"
 	"go.uber.org/zap"
 

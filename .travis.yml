@@ -10,9 +10,9 @@ services:
   - redis
 
 before_script:
-  - psql -c "CREATE DATABASE 'cyber-tect';" -U postgres
+  - psql -c "CREATE DATABASE cybertect;" -U postgres
   - psql -c "CREATE USER vicanso WITH PASSWORD 'A123456';" -U postgres
-  - psql -c "GRANT ALL PRIVILEGES ON DATABASE 'cyber-tect' to vicanso;" -U postgres
+  - psql -c "GRANT ALL PRIVILEGES ON DATABASE cybertect to vicanso;" -U postgres
 
 script:
   - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
@@ -20,8 +20,8 @@ script:
   - make test
 
 after_success:
-  - docker build -t cyber-tect .
-  - docker tag cyber-tect $DOCKER_USERNAME/cyber-tect:latest
+  - docker build -t cybertect .
+  - docker tag cybertect $DOCKER_USERNAME/cybertect:latest
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker push $DOCKER_USERNAME/cyber-tect:latest
+  - docker push $DOCKER_USERNAME/cybertect:latest
   - docker images

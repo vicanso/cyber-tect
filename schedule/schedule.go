@@ -15,13 +15,13 @@
 package schedule
 
 import (
-	"github.com/vicanso/cyber-tect/cs"
-	"github.com/vicanso/cyber-tect/detector"
+	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/detector"
 
 	"github.com/robfig/cron/v3"
-	"github.com/vicanso/cyber-tect/helper"
-	"github.com/vicanso/cyber-tect/log"
-	"github.com/vicanso/cyber-tect/service"
+	"github.com/vicanso/cybertect/helper"
+	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/cybertect/service"
 
 	"go.uber.org/zap"
 )

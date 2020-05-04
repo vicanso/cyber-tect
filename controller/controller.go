@@ -18,11 +18,11 @@ import (
 	"net/http"
 
 	"github.com/vicanso/elton"
-	"github.com/vicanso/cyber-tect/cs"
-	"github.com/vicanso/cyber-tect/log"
-	"github.com/vicanso/cyber-tect/middleware"
-	"github.com/vicanso/cyber-tect/service"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/cybertect/middleware"
+	"github.com/vicanso/cybertect/service"
+	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/hes"
 
 	"go.uber.org/zap"

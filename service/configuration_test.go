@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cyber-tect/cs"
+	"github.com/vicanso/cybertect/cs"
 )
 
 func TestConfigurationService(t *testing.T) {

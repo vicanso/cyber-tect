@@ -15,7 +15,7 @@
 package util
 
 import (
-	"github.com/vicanso/cyber-tect/config"
+	"github.com/vicanso/cybertect/config"
 )
 
 // IsDevelopment 判断是否开发环境

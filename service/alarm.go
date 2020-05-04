@@ -17,7 +17,7 @@ package service
 import (
 	"crypto/tls"
 
-	"github.com/vicanso/cyber-tect/config"
+	"github.com/vicanso/cybertect/config"
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 )

@@ -1,4 +1,4 @@
-# cyber-tect
+# cybertect
 
 基于`elton`的脚手架，实现了数据校验、行为统计等功能。
 

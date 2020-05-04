@@ -22,7 +22,7 @@ import (
 
 	"github.com/gobuffalo/packr/v2"
 	"github.com/spf13/viper"
-	"github.com/vicanso/cyber-tect/validate"
+	"github.com/vicanso/cybertect/validate"
 )
 
 var (

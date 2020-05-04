@@ -18,10 +18,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/vicanso/cyber-tect/cs"
-	"github.com/vicanso/cyber-tect/router"
-	"github.com/vicanso/cyber-tect/service"
-	"github.com/vicanso/cyber-tect/validate"
+	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/service"
+	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/elton"
 )
 

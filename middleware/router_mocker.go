@@ -18,7 +18,7 @@ import (
 	"bytes"
 
 	"github.com/vicanso/elton"
-	"github.com/vicanso/cyber-tect/service"
+	"github.com/vicanso/cybertect/service"
 )
 
 // NewRouterMocker create a router mocker

@@ -2,7 +2,7 @@
 set -e
 
 if [ "${1:0:1}" = '-' ]; then
-    set -- cyber-tect "$@"
+    set -- cybertect "$@"
 fi
 
 exec "$@"

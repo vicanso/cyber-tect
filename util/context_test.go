@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/vicanso/elton"
-	"github.com/vicanso/cyber-tect/config"
+	"github.com/vicanso/cybertect/config"
 
 	"github.com/stretchr/testify/assert"
 )

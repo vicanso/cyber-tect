@@ -20,15 +20,15 @@ import (
 	"time"
 
 	"github.com/tidwall/gjson"
-	"github.com/vicanso/cyber-tect/middleware"
-	"github.com/vicanso/cyber-tect/validate"
+	"github.com/vicanso/cybertect/middleware"
+	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/hes"
 
-	"github.com/vicanso/cyber-tect/config"
-	"github.com/vicanso/cyber-tect/cs"
-	"github.com/vicanso/cyber-tect/router"
-	"github.com/vicanso/cyber-tect/service"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/service"
+	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
 )
 

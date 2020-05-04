@@ -17,9 +17,9 @@ package middleware
 import (
 	"github.com/vicanso/elton"
 	session "github.com/vicanso/elton-session"
-	"github.com/vicanso/cyber-tect/config"
-	"github.com/vicanso/cyber-tect/helper"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/helper"
+	"github.com/vicanso/cybertect/util"
 )
 
 // NewSession new session middleware

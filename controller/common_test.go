@@ -21,7 +21,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/elton"
-	"github.com/vicanso/cyber-tect/service"
+	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/go-axios"
 )
 

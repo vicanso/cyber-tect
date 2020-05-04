@@ -20,7 +20,7 @@ import (
 
 	"github.com/go-redis/redis/v7"
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/vicanso/cybertect/util"
 )
 
 func TestIsRedisNilError(t *testing.T) {

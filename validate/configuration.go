@@ -16,7 +16,7 @@ package validate
 
 import (
 	"github.com/go-playground/validator/v10"
-	"github.com/vicanso/cyber-tect/cs"
+	"github.com/vicanso/cybertect/cs"
 )
 
 func init() {

@@ -18,12 +18,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/vicanso/cyber-tect/cs"
+	"github.com/vicanso/cybertect/cs"
 
 	"github.com/lib/pq"
-	"github.com/vicanso/cyber-tect/detector"
-	"github.com/vicanso/cyber-tect/router"
-	"github.com/vicanso/cyber-tect/validate"
+	"github.com/vicanso/cybertect/detector"
+	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )

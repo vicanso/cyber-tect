@@ -22,9 +22,9 @@ import (
 
 	"github.com/golang/groupcache/lru"
 	"github.com/lib/pq"
-	"github.com/vicanso/cyber-tect/helper"
-	"github.com/vicanso/cyber-tect/log"
-	"github.com/vicanso/cyber-tect/service"
+	"github.com/vicanso/cybertect/helper"
+	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/hes"
 	"go.uber.org/zap"
 )

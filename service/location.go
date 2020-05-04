@@ -21,8 +21,8 @@ import (
 
 	"github.com/vicanso/go-axios"
 
-	"github.com/vicanso/cyber-tect/config"
-	"github.com/vicanso/cyber-tect/helper"
+	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/helper"
 )
 
 var (

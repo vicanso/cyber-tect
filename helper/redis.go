@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v7"
-	"github.com/vicanso/cyber-tect/config"
-	"github.com/vicanso/cyber-tect/cs"
+	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/hes"
 	"go.uber.org/zap"
 )

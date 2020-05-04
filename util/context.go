@@ -17,7 +17,7 @@ package util
 import (
 	"github.com/vicanso/elton"
 
-	"github.com/vicanso/cyber-tect/config"
+	"github.com/vicanso/cybertect/config"
 )
 
 // GetTrackID get track id

@@ -21,7 +21,7 @@ import (
 
 	"github.com/gobuffalo/packr/v2"
 	"github.com/vicanso/elton"
-	"github.com/vicanso/cyber-tect/router"
+	"github.com/vicanso/cybertect/router"
 
 	M "github.com/vicanso/elton/middleware"
 )

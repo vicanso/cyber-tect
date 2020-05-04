@@ -19,8 +19,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/lib/pq"
-	"github.com/vicanso/cyber-tect/cs"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
 	session "github.com/vicanso/elton-session"
 	"github.com/vicanso/hes"

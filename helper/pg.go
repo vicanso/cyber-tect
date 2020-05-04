@@ -24,9 +24,9 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/vicanso/cyber-tect/config"
-	"github.com/vicanso/cyber-tect/cs"
-	"github.com/vicanso/cyber-tect/log"
+	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/hes"
 	"go.uber.org/zap"
 )

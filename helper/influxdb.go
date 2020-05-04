@@ -18,7 +18,7 @@ import (
 	"time"
 
 	influxdb "github.com/influxdata/influxdb-client-go"
-	"github.com/vicanso/cyber-tect/config"
+	"github.com/vicanso/cybertect/config"
 )
 
 var (

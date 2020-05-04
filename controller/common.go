@@ -18,11 +18,11 @@ import (
 	"bytes"
 	"strconv"
 
-	"github.com/vicanso/cyber-tect/service"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/vicanso/cybertect/service"
+	"github.com/vicanso/cybertect/util"
 
 	"github.com/vicanso/elton"
-	"github.com/vicanso/cyber-tect/router"
+	"github.com/vicanso/cybertect/router"
 )
 
 type (

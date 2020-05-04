@@ -24,7 +24,7 @@ import (
 
 	"github.com/vicanso/hes"
 
-	"github.com/vicanso/cyber-tect/cs"
+	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/go-axios"
 	"go.uber.org/zap"
 )

@@ -26,7 +26,7 @@ import (
 
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/hes"
 	"golang.org/x/image/font/gofont/goregular"
 )

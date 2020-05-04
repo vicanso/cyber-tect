@@ -1,4 +1,4 @@
-app: cyber-tect
+app: cybertect
 requestLimit: 1024
 # apiPrefix: /api
 listen: ":7001"
@@ -18,7 +18,7 @@ postgres:
   host: 127.0.0.1
   port: 5432
   user: vicanso 
-  dbname: cyber-tect
+  dbname: cybertect
   password: A123456
   sslmode: disable
   slow: 1s
@@ -28,7 +28,7 @@ postgres:
 # influxdb 配置
 influxdb:
   uri: http://127.0.0.1:9999
-  bucket: cyber-tect
+  bucket: cybertect
   org: bigtree
   token: IwG5FptH6wx2NfE1G6lqAiXYnxuKh-NPRhsnOYi0xL2PXYQdHoe85wTQUT8paIQQ3oGxt3r0qlxGnPx19br2IA==
   batchSize: 100
@@ -37,7 +37,7 @@ influxdb:
 # session的相关配置
 session:
   path: /
-  key: cyber-tect
+  key: cybertect
   ttl: 24h
 
 # key for sign cookie

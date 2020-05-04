@@ -1,4 +1,4 @@
-module github.com/vicanso/cyber-tect
+module github.com/vicanso/cybertect
 
 go 1.14
 

@@ -1,19 +1,19 @@
 FROM node:12-alpine as webbuilder
 
-COPY . /cyber-tect
-RUN cd /cyber-tect/web \
+COPY . /cybertect
+RUN cd /cybertect/web \
   && yarn \
   && yarn build \
   && rm -rf node_module
 
 FROM golang:1.14-alpine as builder
 
-COPY --from=webbuilder /cyber-tect /cyber-tect
+COPY --from=webbuilder /cybertect /cybertect
 
 RUN apk update \
   && apk add git make \
   && go get -u github.com/gobuffalo/packr/v2/packr2 \
-  && cd /cyber-tect \
+  && cd /cybertect \
   && make build
 
 FROM alpine 
@@ -26,8 +26,8 @@ RUN addgroup -g 1000 go \
   && adduser -u 1000 -G go -s /bin/sh -D go \
   && apk add --no-cache ca-certificates tzdata
 
-COPY --from=builder /cyber-tect/cyber-tect /usr/local/bin/cyber-tect
-COPY --from=builder /cyber-tect/entrypoint.sh /entrypoint.sh
+COPY --from=builder /cybertect/cybertect /usr/local/bin/cybertect
+COPY --from=builder /cybertect/entrypoint.sh /entrypoint.sh
 
 USER go
 
@@ -35,6 +35,6 @@ WORKDIR /home/go
 
 HEALTHCHECK --timeout=10s CMD [ "wget", "http://127.0.0.1:7001/ping", "-q", "-O", "-"]
 
-CMD ["cyber-tect"]
+CMD ["cybertect"]
 
 ENTRYPOINT ["/entrypoint.sh"]

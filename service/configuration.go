@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/vicanso/elton"
-	"github.com/vicanso/cyber-tect/config"
-	"github.com/vicanso/cyber-tect/cs"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/util"
 )
 
 const (

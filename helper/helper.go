@@ -15,8 +15,8 @@
 package helper
 
 import (
-	"github.com/vicanso/cyber-tect/log"
-	"github.com/vicanso/cyber-tect/util"
+	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/cybertect/util"
 )
 
 var (

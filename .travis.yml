@@ -1,0 +1,27 @@
+language: go
+sudo: required
+
+go:
+  - "1.14"
+
+services:
+  - docker
+  - postgresql
+  - redis
+
+before_script:
+  - psql -c "CREATE DATABASE cyber-tect;" -U postgres
+  - psql -c "CREATE USER vicanso WITH PASSWORD 'A123456';" -U postgres
+  - psql -c "GRANT ALL PRIVILEGES ON DATABASE cyber-tect to vicanso;" -U postgres
+
+script:
+  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin latest
+  - make lint
+  - make test
+
+after_success:
+  - docker build -t cyber-tect .
+  - docker tag cyber-tect $DOCKER_USERNAME/cyber-tect:latest
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push $DOCKER_USERNAME/cyber-tect:latest
+  - docker images

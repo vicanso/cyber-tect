@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/tidwall/gjson"
 	"github.com/vicanso/cybertect/middleware"
 	"github.com/vicanso/cybertect/validate"
@@ -470,7 +471,7 @@ func (ctrl userCtrl) update(c *elton.Context) (err error) {
 	err = userSrv.Update(service.User{
 		ID: uint(id),
 	}, map[string]interface{}{
-		"roles": params.Roles,
+		"roles": pq.StringArray(params.Roles),
 	})
 	if err != nil {
 		return

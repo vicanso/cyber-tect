@@ -33,7 +33,7 @@ func init() {
 		})
 	})
 	Add("xUserRoles", func(fl validator.FieldLevel) bool {
-		if fl.Field().Kind() != reflect.Array {
+		if fl.Field().Kind() != reflect.Slice {
 			return false
 		}
 		v := fl.Field().Interface()
@@ -41,8 +41,9 @@ func init() {
 		if !ok {
 			return false
 		}
-		exists := false
+		valid := true
 		for _, item := range value {
+			exists := false
 			for _, role := range []string{
 				cs.UserRoleSu,
 				cs.UserRoleAdmin,
@@ -51,7 +52,10 @@ func init() {
 					exists = true
 				}
 			}
+			if !exists {
+				valid = false
+			}
 		}
-		return exists
+		return valid
 	})
 }

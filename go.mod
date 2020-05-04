@@ -13,7 +13,7 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/influxdata/influxdb-client-go v1.1.0
 	github.com/jinzhu/gorm v1.9.12
-	github.com/lib/pq v1.4.0
+	github.com/lib/pq v1.5.0
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/viper v1.6.3

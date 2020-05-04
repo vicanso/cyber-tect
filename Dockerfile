@@ -1,14 +1,6 @@
-FROM node:12-alpine as webbuilder
-
-COPY . /cybertect
-RUN cd /cybertect/web \
-  && yarn \
-  && yarn build \
-  && rm -rf node_module
-
 FROM golang:1.14-alpine as builder
 
-COPY --from=webbuilder /cybertect /cybertect
+COPY . /cybertect
 
 RUN apk update \
   && apk add git make \

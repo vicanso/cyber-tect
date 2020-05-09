@@ -17,12 +17,12 @@ package controller
 import (
 	"net/http"
 
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/middleware"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 
 	"go.uber.org/zap"
@@ -51,7 +51,7 @@ var (
 	userSrv = new(service.UserSrv)
 
 	// 创建新的并发控制中间件
-	newConcurrentLimit = middleware.NewConcurrentLimit
+	// newConcurrentLimit = middleware.NewConcurrentLimit
 	// 创建IP限制中间件
 	newIPLimit = middleware.NewIPLimit
 	// 创建出错限制中间件

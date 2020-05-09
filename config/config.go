@@ -133,6 +133,15 @@ func validatePanic(v interface{}) {
 	}
 }
 
+func GetFromEnvIfExists(key string) string {
+	value := GetString(key)
+	v := os.Getenv(value)
+	if v != "" {
+		return v
+	}
+	return value
+}
+
 func GetAppName() string {
 	return appName
 }
@@ -231,7 +240,7 @@ func GetRedisConfig() (options RedisOptions, err error) {
 	prefix := "redis."
 	options = RedisOptions{
 		Addr:          GetString(prefix + "addr"),
-		Password:      GetString(prefix + "password"),
+		Password:      GetFromEnvIfExists(prefix + "password"),
 		DB:            GetInt(prefix + "db"),
 		Slow:          GetDurationDefault(prefix+"slow", 300*time.Millisecond),
 		MaxProcessing: GetUint32Default(prefix+"maxProcessing", 1000),
@@ -242,8 +251,9 @@ func GetRedisConfig() (options RedisOptions, err error) {
 
 // GetPostgresConnectString get postgres connect string
 func GetPostgresConnectString() string {
+	prefix := "postgres."
 	getPostgresConfig := func(key string) string {
-		return GetString("postgres." + key)
+		return GetString(prefix + key)
 	}
 	keys := []string{
 		"host",
@@ -258,10 +268,7 @@ func GetPostgresConnectString() string {
 		value := getPostgresConfig(key)
 		// 密码与用户名支持env中获取
 		if key == "password" || key == "user" {
-			v := os.Getenv(value)
-			if v != "" {
-				value = v
-			}
+			value = GetFromEnvIfExists(prefix + key)
 		}
 		if value != "" {
 			arr = append(arr, key+"="+value)

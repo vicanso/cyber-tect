@@ -36,15 +36,10 @@ import (
 type userCtrl struct{}
 type (
 	userInfoResp struct {
+		service.User
 		// 是否匿名
 		// Example: true
 		Anonymous bool `json:"anonymous,omitempty"`
-		// 账号
-		// Example: vicanso
-		Account string `json:"account,omitempty"`
-		// 角色
-		// Example: ["su", "admin"]
-		Roles []string `json:"roles,omitempty"`
 		// 系统时间
 		// Example: 2019-10-26T10:11:25+08:00
 		Date string `json:"date,omitempty"`
@@ -151,16 +146,11 @@ func init() {
 	)
 
 	// 用户登录
-	// 限制3秒只能登录一次（无论成功还是失败）
-	loginLimit := newConcurrentLimit([]string{
-		"account",
-	}, 3*time.Second, cs.ActionLogin)
 	g.POST(
 		"/v1/me/login",
 		middleware.WaitFor(time.Second),
 		newTracker(cs.ActionLogin),
 		shouldAnonymous,
-		loginLimit,
 		// 限制相同IP在60秒之内只能调用10次
 		newIPLimit(10, 60*time.Second, cs.ActionLogin),
 		// 限制10分钟内，相同的账号只允许出错5次
@@ -187,7 +177,7 @@ func init() {
 }
 
 // get user info from session
-func pickUserInfo(c *elton.Context) (userInfo *userInfoResp) {
+func pickUserInfo(c *elton.Context) (userInfo *userInfoResp, err error) {
 	us := getUserSession(c)
 	userInfo = &userInfoResp{
 		Anonymous: true,
@@ -196,11 +186,15 @@ func pickUserInfo(c *elton.Context) (userInfo *userInfoResp) {
 		TrackID:   getTrackID(c),
 	}
 	account := us.GetAccount()
-	if account != "" {
-		userInfo.Account = account
-		userInfo.Roles = us.GetRoles()
-		userInfo.Anonymous = false
+	if account == "" {
+		return
 	}
+	user, err := userSrv.FindByAccount(account)
+	if err != nil {
+		return
+	}
+	userInfo.User = *user
+	userInfo.Anonymous = false
 	return
 }
 
@@ -238,7 +232,11 @@ func (ctrl userCtrl) me(c *elton.Context) (err error) {
 		}
 		_ = userSrv.AddTrackRecord(trackRecord, c)
 	}
-	c.Body = pickUserInfo(c)
+	user, err := pickUserInfo(c)
+	if err != nil {
+		return
+	}
+	c.Body = user
 	return
 }
 
@@ -326,7 +324,7 @@ type usersLoginResponse struct {
 }
 
 // swagger:route POST /users/v1/me/login users usersMeLogin
-// userLogin
+// login
 //
 // 用户登录，需要使用通用图形验证码
 // responses:

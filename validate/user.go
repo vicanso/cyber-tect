@@ -23,8 +23,8 @@ import (
 
 func init() {
 	// 账号
-	AddAlias("xUserAccount", "ascii,len=0|min=4,max=10")
-	AddAlias("xUserPassword", "ascii,len=0|len=44")
+	AddAlias("xUserAccount", "ascii,min=4,max=10")
+	AddAlias("xUserPassword", "ascii,len=44")
 	AddAlias("xUserAccountKeyword", "ascii,min=0,max=10")
 	Add("xUserRole", func(fl validator.FieldLevel) bool {
 		return isZero(fl) || isInString(fl, []string{

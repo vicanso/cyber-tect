@@ -19,8 +19,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/service"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )
 
@@ -37,6 +37,7 @@ var (
 	}
 	errCaptchIsInvalid = &hes.Error{
 		StatusCode: http.StatusBadRequest,
+		Code:       "captchaInvalid",
 		Message:    "captcha is invalid",
 		Category:   errCategory,
 	}

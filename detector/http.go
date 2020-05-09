@@ -25,6 +25,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/vicanso/cybertect/helper"
+
 	"github.com/lib/pq"
 	HT "github.com/vicanso/http-trace"
 	"go.uber.org/zap"
@@ -40,10 +42,10 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
-		Owner       string        `json:"owner,omitempty" gorm:"index:idx_http_owner"`
-		Status      int           `json:"status,omitempty" gorm:"index:idx_http_status"`
-		Description string        `json:"description,omitempty"`
-		Receivers   pq.Int64Array `json:"receivers,omitempty" gorm:"type:int[]"`
+		Owner       string         `json:"owner,omitempty" gorm:"index:idx_http_owner"`
+		Status      int            `json:"status,omitempty" gorm:"index:idx_http_status"`
+		Description string         `json:"description,omitempty"`
+		Receivers   pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
 
 		// IP 如果配置此IP，则将dns对域名解析为此IP
 		IP      string `json:"ip,omitempty"`
@@ -57,10 +59,10 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
-		Receivers pq.Int64Array `json:"receivers,omitempty" gorm:"type:int[]"`
-		Duration  int           `json:"duration,omitempty"`
-		Result    int           `json:"result,omitempty"`
-		Message   string        `json:"message,omitempty"`
+		Receivers pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
+		Duration  int            `json:"duration,omitempty"`
+		Result    int            `json:"result,omitempty"`
+		Message   string         `json:"message,omitempty"`
 
 		Task       uint   `json:"task,omitempty" gorm:"index:idx_http_detect_result_task"`
 		IP         string `json:"ip,omitempty"`
@@ -174,6 +176,18 @@ func (srv *HTTPSrv) FindByID(id uint) (data *HTTP, err error) {
 		return
 	}
 	return
+}
+
+// List list the http detector
+func (srv *HTTPSrv) List(params helper.PGQueryParams, args ...interface{}) (data []*HTTP, err error) {
+	data = make([]*HTTP, 0)
+	err = pgQuery(params).Find(&data).Error
+	return
+}
+
+// Count count the http detector
+func (srv *HTTPSrv) Count(args ...interface{}) (count int, err error) {
+	return pgCount(&HTTP{}, args...)
 }
 
 // Detect do the tcp detect

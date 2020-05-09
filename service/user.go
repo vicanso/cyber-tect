@@ -69,7 +69,7 @@ type (
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
 		Account  string         `json:"account,omitempty" gorm:"type:varchar(20);not null;unique_index:idx_users_account"`
-		Password string         `json:"-,omitempty" gorm:"type:varchar(128);not null;"`
+		Password string         `json:"-" gorm:"type:varchar(128);not null;"`
 		Roles    pq.StringArray `json:"roles,omitempty" gorm:"type:text[]"`
 		Email    string         `json:"email,omitempty"`
 	}
@@ -108,10 +108,11 @@ type (
 	}
 	// UserQueryParams user query params
 	UserQueryParams struct {
-		Keyword string
-		Role    string
-		Limit   int
-		IDList  []uint
+		Keyword  string
+		Role     string
+		Limit    int
+		IDList   []uint
+		Accounts []string
 	}
 	// UserLoginRecordQueryParams user login record query params
 	UserLoginRecordQueryParams struct {
@@ -248,7 +249,17 @@ func (srv *UserSrv) List(params UserQueryParams) (result []*User, err error) {
 	if len(params.IDList) != 0 {
 		db = db.Where("id in (?)", params.IDList)
 	}
+	if len(params.Accounts) != 0 {
+		db = db.Where("account in (?)", params.Accounts)
+	}
 	err = db.Find(&result).Error
+	return
+}
+
+// FindByAccount find by account
+func (srv *UserSrv) FindByAccount(account string) (result *User, err error) {
+	result = new(User)
+	err = pgGetClient().Where("account = ?", account).First(result).Error
 	return
 }
 

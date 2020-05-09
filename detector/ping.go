@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
+	"github.com/vicanso/cybertect/helper"
 	"go.uber.org/zap"
 )
 
@@ -29,10 +30,10 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
-		Owner       string        `json:"owner,omitempty" gorm:"index:idx_ping_owner"`
-		Status      int           `json:"status,omitempty" gorm:"index:idx_ping_status"`
-		Description string        `json:"description,omitempty"`
-		Receivers   pq.Int64Array `json:"receivers,omitempty" gorm:"type:int[]"`
+		Owner       string         `json:"owner,omitempty" gorm:"index:idx_ping_owner"`
+		Status      int            `json:"status,omitempty" gorm:"index:idx_ping_status"`
+		Description string         `json:"description,omitempty"`
+		Receivers   pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
 
 		Network string `json:"network,omitempty"`
 		IP      string `json:"ip,omitempty"`
@@ -45,10 +46,10 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
-		Receivers pq.Int64Array `json:"receivers,omitempty" gorm:"type:int[]"`
-		Duration  int           `json:"duration,omitempty"`
-		Result    int           `json:"result,omitempty"`
-		Message   string        `json:"message,omitempty"`
+		Receivers pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
+		Duration  int            `json:"duration,omitempty"`
+		Result    int            `json:"result,omitempty"`
+		Message   string         `json:"message,omitempty"`
 
 		Task    uint   `json:"task,omitempty" grom:"index:idx_ping_detect_result_task"`
 		Network string `json:"network,omitempty"`
@@ -98,6 +99,18 @@ func (srv *PingSrv) FindByID(id uint) (data *Ping, err error) {
 		return
 	}
 	return
+}
+
+// List list the ping detector
+func (srv *PingSrv) List(params helper.PGQueryParams, args ...interface{}) (data []*Ping, err error) {
+	data = make([]*Ping, 0)
+	err = pgQuery(params).Find(&data).Error
+	return
+}
+
+// Count count the ping detector
+func (srv *PingSrv) Count(args ...interface{}) (count int, err error) {
+	return pgCount(&Ping{}, args...)
 }
 
 // ValidateOwner validate the owner

@@ -32,6 +32,8 @@ import (
 var (
 	pgCreate    = helper.PGCreate
 	pgGetClient = helper.PGGetClient
+	pgQuery     = helper.PGQuery
+	pgCount     = helper.PGCount
 
 	logger = log.Default()
 
@@ -73,7 +75,7 @@ func isDetectResultChange(task string, currentStatus int) bool {
 		return true
 	}
 	status, ok := value.(int)
-	// 如果转换失败，则认为未变化
+	// 如果转换失败，则认为未变string化
 	if !ok {
 		return false
 	}
@@ -119,14 +121,14 @@ func emailAlarm(alarm Alarm, emails []string) {
 }
 
 // getReceivers get receivers by id
-func getReceivers(receivers pq.Int64Array) (users []*service.User, err error) {
-	ids := make([]uint, len(receivers))
-	for index, id := range receivers {
-		ids[index] = uint(id)
+func getReceivers(receivers pq.StringArray) (users []*service.User, err error) {
+	accounts := make([]string, len(receivers))
+	for index, item := range receivers {
+		accounts[index] = string(item)
 	}
 
 	users, err = userSrv.List(service.UserQueryParams{
-		IDList: ids,
+		Accounts: accounts,
 	})
 	return
 }

@@ -9,6 +9,7 @@ request.interceptors.response.use(null, err => {
   if (response) {
     if (response.data && response.data.message) {
       err.message = response.data.message
+      err.code = response.data.code
     } else {
       err.message = `unknown error[${response.statusCode || -1}]`
     }

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
+	"github.com/vicanso/cybertect/helper"
 	"go.uber.org/zap"
 )
 
@@ -32,10 +33,10 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
-		Owner       string        `json:"owner,omitempty" gorm:"index:idx_dns_owner"`
-		Status      int           `json:"status,omitempty" gorm:"index:idx_dns_status"`
-		Description string        `json:"description,omitempty"`
-		Receivers   pq.Int64Array `json:"receivers,omitempty" gorm:"type:int[]"`
+		Owner       string         `json:"owner,omitempty" gorm:"index:idx_dns_owner"`
+		Status      int            `json:"status,omitempty" gorm:"index:idx_dns_status"`
+		Description string         `json:"description,omitempty"`
+		Receivers   pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
 
 		// Server dns server(ip:port)
 		Server   string `json:"server,omitempty" gorm:"type:varchar(64);not null;"`
@@ -48,10 +49,10 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
-		Receivers pq.Int64Array `json:"receivers,omitempty" gorm:"type:int[]"`
-		Duration  int           `json:"duration,omitempty"`
-		Result    int           `json:"result,omitempty"`
-		Message   string        `json:"message,omitempty"`
+		Receivers pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
+		Duration  int            `json:"duration,omitempty"`
+		Result    int            `json:"result,omitempty"`
+		Message   string         `json:"message,omitempty"`
 
 		Task     uint           `json:"task,omitempty" gorm:"index:idx_dns_detect_result_task"`
 		Server   string         `json:"server,omitempty" gorm:"type:varchar(64)"`
@@ -111,6 +112,18 @@ func (srv *DNSSrv) FindByID(id uint) (data *DNS, err error) {
 		return
 	}
 	return
+}
+
+// List list the dns detector
+func (srv *DNSSrv) List(params helper.PGQueryParams, args ...interface{}) (data []*DNS, err error) {
+	data = make([]*DNS, 0)
+	err = pgQuery(params).Find(&data).Error
+	return
+}
+
+// Count count the dns detector
+func (srv *DNSSrv) Count(args ...interface{}) (count int, err error) {
+	return pgCount(&DNS{}, args...)
 }
 
 // Detect do the dns detect

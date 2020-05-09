@@ -19,6 +19,7 @@ import (
 	"strconv"
 
 	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/helper"
 
 	"github.com/lib/pq"
 	"github.com/vicanso/cybertect/detector"
@@ -38,17 +39,22 @@ var (
 type detectorCtrl struct{}
 
 type (
+	queryDetectorParams struct {
+		Limit  string `json:"limit,omitempty" validate:"xLimit"`
+		Offset string `json:"offset,omitempty" validate:"xOffset"`
+		Order  string `json:"order,omitempty"`
+	}
 	addDetectorParams struct {
-		Timeout     string        `json:"timeout,omitempty" validate:"xDuration"`
-		Status      int           `json:"status,omitempty" validate:"xDetectorStatus,required"`
-		Description string        `json:"description,omitempty" validate:"xDetectorDescription"`
-		Receivers   pq.Int64Array `json:"receivers,omitempty" validate:"-"`
+		Timeout     string         `json:"timeout,omitempty" validate:"xDuration"`
+		Status      int            `json:"status,omitempty" validate:"xDetectorStatus,required"`
+		Description string         `json:"description,omitempty" validate:"xDetectorDescription"`
+		Receivers   pq.StringArray `json:"receivers,omitempty" validate:"required"`
 	}
 	updateDetectorParams struct {
-		Timeout     string        `json:"timeout,omitempty" validate:"xDuration"`
-		Status      int           `json:"status,omitempty" validate:"xDetectorStatus"`
-		Description string        `json:"description,omitempty" validate:"xDetectorDescription"`
-		Receivers   pq.Int64Array `json:"receivers,omitempty" validate:"-"`
+		Timeout     string         `json:"timeout,omitempty" validate:"xDuration"`
+		Status      int            `json:"status,omitempty" validate:"xDetectorStatus"`
+		Description string         `json:"description,omitempty" validate:"xDetectorDescription"`
+		Receivers   pq.StringArray `json:"receivers,omitempty" validate:"-"`
 	}
 	addDNSParams struct {
 		addDetectorParams
@@ -65,40 +71,40 @@ type (
 	addTCPParams struct {
 		addDetectorParams
 
-		Network string `json:"network,omitempty" validate:"xTCPNetwork,required"`
+		Network string `json:"network,omitempty" validate:"xTCPNetwork"`
 		IP      string `json:"ip,omitempty" validate:"ip,required"`
-		Port    int    `json:"port,omitempty" validate:"port,required"`
+		Port    int    `json:"port,omitempty" validate:"required"`
 	}
 	updateTCPParams struct {
 		updateDetectorParams
 
 		Network string `json:"network,omitempty" validate:"xTCPNetwork"`
-		IP      string `json:"ip,omitempty" validate:"ip"`
-		Port    int    `json:"port,omitempty" validate:"port"`
+		IP      string `json:"ip,omitempty" validate:"isdefault|ip"`
+		Port    int    `json:"port,omitempty"`
 	}
 	addPingParams struct {
 		addDetectorParams
 
-		Network string `json:"network,omitempty" validate:"xTCPNetwork,required"`
+		Network string `json:"network,omitempty" validate:"xTCPNetwork"`
 		IP      string `json:"ip,omitempty" validate:"ip,required"`
 	}
 	updatePingParams struct {
 		updateDetectorParams
 
 		Network string `json:"network,omitempty" validate:"xTCPNetwork"`
-		IP      string `json:"ip,omitempty" validate:"ip"`
+		IP      string `json:"ip,omitempty" validate:"isdefault|ip"`
 	}
 	addHTTPParams struct {
 		addDetectorParams
 
 		URL string `json:"url,omitempty" validate:"url,required"`
-		IP  string `json:"ip,omitempty" validate:"ip"`
+		IP  string `json:"ip,omitempty" validate:"isdefault|ip"`
 	}
 	updateHTTPParams struct {
 		updateDetectorParams
 
-		URL string `json:"url,omitempty" validate:"url"`
-		IP  string `json:"ip,omitempty" validate:"ip"`
+		URL string `json:"url,omitempty" validate:"isdefault|url"`
+		IP  string `json:"ip,omitempty" validate:"isdefault|ip"`
 	}
 )
 
@@ -109,31 +115,81 @@ const (
 	catHTTP = "http"
 )
 
+var (
+	addDetectors    map[string]func(*elton.Context) (interface{}, error)
+	updateDetectors map[string]func(uint, *elton.Context) error
+	getDetectors    map[string]func(uint) (interface{}, error)
+	countDetectors  map[string]func(queryDetectorParams) (int, error)
+	listDetectors   map[string]func(helper.PGQueryParams) (interface{}, error)
+)
+
 func init() {
 	ctrl := detectorCtrl{}
+	addDetectors = map[string]func(*elton.Context) (interface{}, error){
+		catDNS:  ctrl.addDNS,
+		catTCP:  ctrl.addTCP,
+		catPing: ctrl.addPing,
+		catHTTP: ctrl.addHTTP,
+	}
+	updateDetectors = map[string]func(uint, *elton.Context) error{
+		catDNS:  ctrl.updateDNS,
+		catTCP:  ctrl.updateTCP,
+		catPing: ctrl.updatePing,
+		catHTTP: ctrl.updateHTTP,
+	}
+	getDetectors = map[string]func(uint) (interface{}, error){
+		catDNS:  ctrl.findDNS,
+		catTCP:  ctrl.findTCP,
+		catPing: ctrl.findPing,
+		catHTTP: ctrl.findHTTP,
+	}
+	countDetectors = map[string]func(queryDetectorParams) (int, error){
+		catDNS:  ctrl.countDNS,
+		catTCP:  ctrl.countTCP,
+		catPing: ctrl.countPing,
+		catHTTP: ctrl.countHTTP,
+	}
+	listDetectors = map[string]func(helper.PGQueryParams) (interface{}, error){
+		catDNS:  ctrl.listDNS,
+		catTCP:  ctrl.listTCP,
+		catPing: ctrl.listPing,
+		catHTTP: ctrl.listHTTP,
+	}
 	g := router.NewGroup("/detectors", loadUserSession, shouldLogined)
 
 	g.POST(
 		"/v1/{category}",
 		newTracker(cs.ActionDetectorAdd),
+		ctrl.checkCategory,
 		ctrl.add,
+	)
+	g.GET(
+		"/v1/{category}",
+		ctrl.checkCategory,
+		ctrl.list,
 	)
 	g.PATCH(
 		"/v1/{category}/{id}",
+		ctrl.checkCategory,
 		newTracker(cs.ActionDetectorUpdate),
 		ctrl.update,
 	)
+	g.GET(
+		"/v1/{category}/{id}",
+		ctrl.checkCategory,
+		ctrl.getByID,
+	)
 }
 
-// addDNSDetector 添加dns detector
-func addDNSDetector(c *elton.Context) (data *detector.DNS, err error) {
+// addDNS 添加dns detector
+func (ctrl detectorCtrl) addDNS(c *elton.Context) (data interface{}, err error) {
 	params := addDNSParams{}
 	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
 		return
 	}
 	us := getUserSession(c)
-	data = &detector.DNS{
+	d := &detector.DNS{
 		Owner:       us.GetAccount(),
 		Server:      params.Server,
 		Hostname:    params.Hostname,
@@ -142,12 +198,16 @@ func addDNSDetector(c *elton.Context) (data *detector.DNS, err error) {
 		Description: params.Description,
 		Receivers:   params.Receivers,
 	}
-	err = dnsSrv.Add(data)
+	err = dnsSrv.Add(d)
+	if err != nil {
+		return
+	}
+	data = d
 	return
 }
 
-// updateDNSDetector 更新dns detector
-func updateDNSDetector(id uint, c *elton.Context) (err error) {
+// updateDNS 更新dns detector
+func (ctrl detectorCtrl) updateDNS(id uint, c *elton.Context) (err error) {
 	us := getUserSession(c)
 	err = dnsSrv.ValidateOwner(id, us.GetAccount())
 	if err != nil {
@@ -169,15 +229,40 @@ func updateDNSDetector(id uint, c *elton.Context) (err error) {
 	return
 }
 
-// addTCPDetector add tcp detector
-func addTCPDetector(c *elton.Context) (data *detector.TCP, err error) {
+// findDNS find dns detector
+func (ctrl detectorCtrl) findDNS(id uint) (data interface{}, err error) {
+	d, err := dnsSrv.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	data = d
+	return
+}
+
+// countDNS count dns detector
+func (ctrl detectorCtrl) countDNS(params queryDetectorParams) (count int, err error) {
+	return dnsSrv.Count()
+}
+
+// listDNS list dns detector
+func (ctrl detectorCtrl) listDNS(queryParams helper.PGQueryParams) (data interface{}, err error) {
+	detectors, err := dnsSrv.List(queryParams)
+	if err != nil {
+		return
+	}
+	data = detectors
+	return
+}
+
+// addTCP add tcp detector
+func (ctrl detectorCtrl) addTCP(c *elton.Context) (data interface{}, err error) {
 	params := addTCPParams{}
 	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
 		return
 	}
 	us := getUserSession(c)
-	data = &detector.TCP{
+	t := &detector.TCP{
 		Owner:       us.GetAccount(),
 		Status:      params.Status,
 		Description: params.Description,
@@ -187,12 +272,16 @@ func addTCPDetector(c *elton.Context) (data *detector.TCP, err error) {
 		IP:          params.IP,
 		Port:        params.Port,
 	}
-	err = tcpSrv.Add(data)
+	err = tcpSrv.Add(t)
+	if err != nil {
+		return
+	}
+	data = t
 	return
 }
 
-// updateTCPDetector update tcp detector
-func updateTCPDetector(id uint, c *elton.Context) (err error) {
+// updateTCP update tcp detector
+func (ctrl detectorCtrl) updateTCP(id uint, c *elton.Context) (err error) {
 	us := getUserSession(c)
 	err = tcpSrv.ValidateOwner(id, us.GetAccount())
 	if err != nil {
@@ -215,15 +304,40 @@ func updateTCPDetector(id uint, c *elton.Context) (err error) {
 	return
 }
 
-// addPingDetector add ping detector
-func addPingDetector(c *elton.Context) (data *detector.Ping, err error) {
+// findTCP find tcp detector
+func (ctrl detectorCtrl) findTCP(id uint) (data interface{}, err error) {
+	t, err := tcpSrv.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	data = t
+	return
+}
+
+// countTCP count tcp detector
+func (ctrl detectorCtrl) countTCP(params queryDetectorParams) (count int, err error) {
+	return tcpSrv.Count()
+}
+
+// listTCP list tcp detector
+func (ctrl detectorCtrl) listTCP(queryParams helper.PGQueryParams) (data interface{}, err error) {
+	detectors, err := tcpSrv.List(queryParams)
+	if err != nil {
+		return
+	}
+	data = detectors
+	return
+}
+
+// addPing add ping detector
+func (ctrl detectorCtrl) addPing(c *elton.Context) (data interface{}, err error) {
 	params := addPingParams{}
 	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
 		return
 	}
 	us := getUserSession(c)
-	data = &detector.Ping{
+	p := &detector.Ping{
 		Owner:       us.GetAccount(),
 		Status:      params.Status,
 		Description: params.Description,
@@ -232,12 +346,16 @@ func addPingDetector(c *elton.Context) (data *detector.Ping, err error) {
 		Network:     params.Network,
 		IP:          params.IP,
 	}
-	err = pingSrv.Add(data)
+	err = pingSrv.Add(p)
+	if err != nil {
+		return
+	}
+	data = p
 	return
 }
 
-// updatePingDetector update ping detector
-func updatePingDetector(id uint, c *elton.Context) (err error) {
+// updatePing update ping detector
+func (ctrl detectorCtrl) updatePing(id uint, c *elton.Context) (err error) {
 	us := getUserSession(c)
 	err = pingSrv.ValidateOwner(id, us.GetAccount())
 	if err != nil {
@@ -259,15 +377,40 @@ func updatePingDetector(id uint, c *elton.Context) (err error) {
 	return
 }
 
-// addHTTPDetector add http detector
-func addHTTPDetector(c *elton.Context) (data *detector.HTTP, err error) {
+// findPing find ping detector
+func (ctrl detectorCtrl) findPing(id uint) (data interface{}, err error) {
+	p, err := pingSrv.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	data = p
+	return
+}
+
+// countPing count ping detector
+func (ctrl detectorCtrl) countPing(params queryDetectorParams) (count int, err error) {
+	return pingSrv.Count()
+}
+
+// listPing list ping detector
+func (ctrl detectorCtrl) listPing(queryParams helper.PGQueryParams) (data interface{}, err error) {
+	detectors, err := pingSrv.List(queryParams)
+	if err != nil {
+		return
+	}
+	data = detectors
+	return
+}
+
+// addHTTP add http detector
+func (ctrl detectorCtrl) addHTTP(c *elton.Context) (data interface{}, err error) {
 	params := addHTTPParams{}
 	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
 		return
 	}
 	us := getUserSession(c)
-	data = &detector.HTTP{
+	h := &detector.HTTP{
 		Owner:       us.GetAccount(),
 		Status:      params.Status,
 		Description: params.Description,
@@ -276,12 +419,16 @@ func addHTTPDetector(c *elton.Context) (data *detector.HTTP, err error) {
 		IP:          params.IP,
 		URL:         params.URL,
 	}
-	err = httpSrv.Add(data)
+	err = httpSrv.Add(h)
+	if err != nil {
+		return
+	}
+	data = h
 	return
 }
 
-// updateHTTPDetector update http detector
-func updateHTTPDetector(id uint, c *elton.Context) (err error) {
+// updateHTTP update http detector
+func (ctrl detectorCtrl) updateHTTP(id uint, c *elton.Context) (err error) {
 	us := getUserSession(c)
 	err = httpSrv.ValidateOwner(id, us.GetAccount())
 	if err != nil {
@@ -317,21 +464,50 @@ func updateHTTPDetector(id uint, c *elton.Context) (err error) {
 	return
 }
 
-func (ctrl detectorCtrl) add(c *elton.Context) (err error) {
+// findHTTP find http detector
+func (ctrl detectorCtrl) findHTTP(id uint) (data interface{}, err error) {
+	h, err := httpSrv.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+	data = h
+	return
+}
+
+// countHTTP count http detector
+func (ctrl detectorCtrl) countHTTP(params queryDetectorParams) (count int, err error) {
+	return httpSrv.Count()
+}
+
+// listHTTP list http detector
+func (ctrl detectorCtrl) listHTTP(queryParams helper.PGQueryParams) (data interface{}, err error) {
+	detectors, err := httpSrv.List(queryParams)
+	if err != nil {
+		return
+	}
+	data = detectors
+	return
+}
+
+func (ctrl detectorCtrl) checkCategory(c *elton.Context) (err error) {
 	cat := c.Param("category")
-	var data interface{}
 	switch cat {
 	case catDNS:
-		data, err = addDNSDetector(c)
 	case catTCP:
-		data, err = addTCPDetector(c)
 	case catPing:
-		data, err = addPingDetector(c)
 	case catHTTP:
-		data, err = addHTTPDetector(c)
 	default:
 		err = hes.New(fmt.Sprintf("Not support category:%s", cat))
 	}
+	if err != nil {
+		return
+	}
+	return c.Next()
+}
+
+func (ctrl detectorCtrl) add(c *elton.Context) (err error) {
+	fn := addDetectors[c.Param("category")]
+	data, err := fn(c)
 
 	if err != nil {
 		return
@@ -348,22 +524,59 @@ func (ctrl detectorCtrl) update(c *elton.Context) (err error) {
 	}
 
 	id := uint(v)
-	switch cat {
-	case catDNS:
-		err = updateDNSDetector(id, c)
-	case catTCP:
-		err = updateTCPDetector(id, c)
-	case catPing:
-		err = updatePingDetector(id, c)
-	case catHTTP:
-		err = updateHTTPDetector(id, c)
-	default:
-		err = hes.New(fmt.Sprintf("Not support category:%s", cat))
-	}
-
+	fn := updateDetectors[cat]
+	err = fn(id, c)
 	if err != nil {
 		return
 	}
 	c.NoContent()
+	return
+}
+
+func (ctrl detectorCtrl) list(c *elton.Context) (err error) {
+	cat := c.Param("category")
+
+	params := queryDetectorParams{}
+	err = validate.Do(&params, c.Query())
+	if err != nil {
+		return
+	}
+
+	queryParams := helper.PGQueryParams{}
+	queryParams.Limit, _ = strconv.Atoi(params.Limit)
+	queryParams.Offset, _ = strconv.Atoi(params.Offset)
+	queryParams.Order = params.Order
+
+	count := -1
+	if queryParams.Offset == 0 {
+		count, err = countDetectors[cat](params)
+		if err != nil {
+			return
+		}
+	}
+
+	data, err := listDetectors[cat](queryParams)
+	if err != nil {
+		return
+	}
+	c.Body = map[string]interface{}{
+		"count":     count,
+		"detectors": data,
+	}
+	return
+}
+
+func (ctrl detectorCtrl) getByID(c *elton.Context) (err error) {
+	cat := c.Param("category")
+	v, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+	fn := getDetectors[cat]
+	data, err := fn(uint(v))
+	if err != nil {
+		return
+	}
+	c.Body = data
 	return
 }

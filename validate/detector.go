@@ -27,9 +27,9 @@ func init() {
 	})
 	AddAlias("xDetectorDescription", "min=0,max=1000")
 
-	AddAlias("xDNSServer", "ip|hostname_port")
+	AddAlias("xDNSServer", "isdefault|ip|hostname_port")
 
-	AddAlias("xDNSHostname", "hostname")
+	AddAlias("xDNSHostname", "isdefault|hostname")
 
 	Add("xTCPNetwork", func(fl validator.FieldLevel) bool {
 		return isZero(fl) || isInString(fl, []string{

@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/lib/pq"
+	"github.com/vicanso/cybertect/helper"
 	"go.uber.org/zap"
 )
 
@@ -29,10 +30,10 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
-		Owner       string        `json:"owner,omitempty" gorm:"index:idx_tcp_owner"`
-		Status      int           `json:"status,omitempty" gorm:"index:idx_tcp_status"`
-		Description string        `json:"description,omitempty"`
-		Receivers   pq.Int64Array `json:"receivers,omitempty" gorm:"type:int[]"`
+		Owner       string         `json:"owner,omitempty" gorm:"index:idx_tcp_owner"`
+		Status      int            `json:"status,omitempty" gorm:"index:idx_tcp_status"`
+		Description string         `json:"description,omitempty"`
+		Receivers   pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
 
 		Network string `json:"network,omitempty"`
 		IP      string `json:"ip,omitempty"`
@@ -46,10 +47,10 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
-		Receivers pq.Int64Array `json:"receivers,omitempty" gorm:"type:int[]"`
-		Duration  int           `json:"duration,omitempty"`
-		Result    int           `json:"result,omitempty"`
-		Message   string        `json:"message,omitempty"`
+		Receivers pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
+		Duration  int            `json:"duration,omitempty"`
+		Result    int            `json:"result,omitempty"`
+		Message   string         `json:"message,omitempty"`
 
 		Task    uint   `json:"task,omitempty" gorm:"index:idx_tcp_detect_result_task"`
 		Network string `json:"network,omitempty"`
@@ -100,6 +101,18 @@ func (srv *TCPSrv) FindByID(id uint) (data *TCP, err error) {
 		return
 	}
 	return
+}
+
+// List list the tcp detector
+func (srv *TCPSrv) List(params helper.PGQueryParams, args ...interface{}) (data []*TCP, err error) {
+	data = make([]*TCP, 0)
+	err = pgQuery(params).Find(&data).Error
+	return
+}
+
+// Count count the http detector
+func (srv *TCPSrv) Count(args ...interface{}) (count int, err error) {
+	return pgCount(&TCP{}, args...)
 }
 
 // Detect do the tcp detect

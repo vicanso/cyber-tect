@@ -92,13 +92,14 @@ var (
 
 func init() {
 	configType := "yml"
+	v := viper.New()
+	defaultViper.SetConfigType(configType)
+	v.SetConfigType(configType)
 	configExt := "." + configType
 	data, err := box.Find("default" + configExt)
 	if err != nil {
 		panic(err)
 	}
-	viper.SetConfigType(configType)
-	v := viper.New()
 	v.SetConfigType(configType)
 	// 读取默认配置中的所有配置
 	err = v.ReadConfig(bytes.NewReader(data))

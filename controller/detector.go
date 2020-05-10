@@ -44,6 +44,11 @@ type (
 		Offset string `json:"offset,omitempty" validate:"xOffset"`
 		Order  string `json:"order,omitempty"`
 	}
+	queryDetectorResultParams struct {
+		Limit  string `json:"limit,omitempty" validate:"xLimit"`
+		Offset string `json:"offset,omitempty" validate:"xOffset"`
+		Order  string `json:"order,omitempty"`
+	}
 	addDetectorParams struct {
 		Timeout     string         `json:"timeout,omitempty" validate:"xDuration"`
 		Status      int            `json:"status,omitempty" validate:"xDetectorStatus,required"`
@@ -116,11 +121,13 @@ const (
 )
 
 var (
-	addDetectors    map[string]func(*elton.Context) (interface{}, error)
-	updateDetectors map[string]func(uint, *elton.Context) error
-	getDetectors    map[string]func(uint) (interface{}, error)
-	countDetectors  map[string]func(queryDetectorParams) (int, error)
-	listDetectors   map[string]func(helper.PGQueryParams) (interface{}, error)
+	addDetectors         map[string]func(*elton.Context) (interface{}, error)
+	updateDetectors      map[string]func(uint, *elton.Context) error
+	getDetectors         map[string]func(uint) (interface{}, error)
+	countDetectors       map[string]func(queryDetectorParams) (int, error)
+	listDetectors        map[string]func(helper.PGQueryParams) (interface{}, error)
+	countDetectorResults map[string]func(queryDetectorResultParams) (int, error)
+	listDetectorResults  map[string]func(helper.PGQueryParams) (interface{}, error)
 )
 
 func init() {
@@ -155,6 +162,13 @@ func init() {
 		catPing: ctrl.listPing,
 		catHTTP: ctrl.listHTTP,
 	}
+
+	countDetectorResults = map[string]func(queryDetectorResultParams) (int, error){
+		catHTTP: ctrl.countHTTPResult,
+	}
+	listDetectorResults = map[string]func(helper.PGQueryParams) (interface{}, error){
+		catHTTP: ctrl.listHTTPResult,
+	}
 	g := router.NewGroup("/detectors", loadUserSession, shouldLogined)
 
 	g.POST(
@@ -178,6 +192,12 @@ func init() {
 		"/v1/{category}/{id}",
 		ctrl.checkCategory,
 		ctrl.getByID,
+	)
+
+	g.GET(
+		"/v1/results/{category}",
+		ctrl.checkCategory,
+		ctrl.listResult,
 	)
 }
 
@@ -578,5 +598,51 @@ func (ctrl detectorCtrl) getByID(c *elton.Context) (err error) {
 		return
 	}
 	c.Body = data
+	return
+}
+
+func (ctrl detectorCtrl) listHTTPResult(queryParams helper.PGQueryParams) (data interface{}, err error) {
+	results, err := httpSrv.ListResult(queryParams)
+	if err != nil {
+		return
+	}
+	data = results
+	return
+}
+func (ctrl detectorCtrl) countHTTPResult(params queryDetectorResultParams) (count int, err error) {
+	return httpSrv.CountResult()
+}
+
+func (ctrl detectorCtrl) listResult(c *elton.Context) (err error) {
+	cat := c.Param("category")
+
+	params := queryDetectorResultParams{}
+	err = validate.Do(&params, c.Query())
+	if err != nil {
+		return
+	}
+
+	queryParams := helper.PGQueryParams{}
+	queryParams.Limit, _ = strconv.Atoi(params.Limit)
+	queryParams.Offset, _ = strconv.Atoi(params.Offset)
+	queryParams.Order = params.Order
+
+	count := -1
+	if queryParams.Offset == 0 {
+		count, err = countDetectorResults[cat](params)
+		if err != nil {
+			return
+		}
+	}
+
+	fn := listDetectorResults[cat]
+	data, err := fn(queryParams)
+	if err != nil {
+		return
+	}
+	c.Body = map[string]interface{}{
+		"count":   count,
+		"results": data,
+	}
 	return
 }

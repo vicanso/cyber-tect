@@ -190,7 +190,19 @@ func (srv *HTTPSrv) Count(args ...interface{}) (count int, err error) {
 	return pgCount(&HTTP{}, args...)
 }
 
-// Detect do the tcp detect
+// ListResult list the http detect result
+func (srv *HTTPSrv) ListResult(params helper.PGQueryParams, args ...interface{}) (data []*HTTPDetectResult, err error) {
+	data = make([]*HTTPDetectResult, 0)
+	err = pgQuery(params, args...).Find(&data).Error
+	return
+}
+
+// CountResult count the http detect result
+func (srv *HTTPSrv) CountResult(args ...interface{}) (count int, err error) {
+	return pgCount(&HTTPDetectResult{}, args...)
+}
+
+// Detect do the http detect
 func (srv *HTTPSrv) Detect() {
 	result := make([]*HTTP, 0)
 	err := pgGetClient().Where("status = ?", StatusEnabled).Find(&result).Error

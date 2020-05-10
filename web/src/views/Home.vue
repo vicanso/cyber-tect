@@ -4,10 +4,12 @@
       div(
         slot="header"
       )
-        | HTTP
+        | 最新HTTP检测
         router-link.more(
           :to="moreHTTPResult"
-        ) 查看更多
+        )
+          | 查看更多
+          i.el-icon-more
       ListHTTPResult(
         :limit="5"
         :simplify="true"
@@ -38,4 +40,7 @@ export default {
 .more
   font-size: 12px
   float: right
+  color: $darkBlue
+  i
+    margin-left: 2px
 </style>

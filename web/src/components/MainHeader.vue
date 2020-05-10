@@ -69,7 +69,7 @@ export default {
 @import "@/common.sass"
 .header
   height: $mainHeaderHeight
-  background-color: $darkBlue
+  background-color: $dark
   line-height: $mainHeaderHeight
   color: $white
 h3

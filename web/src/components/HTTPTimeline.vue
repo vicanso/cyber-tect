@@ -90,12 +90,17 @@ export default {
     durations.forEach(item => {
       tips.push(`${item.name}：${item.duration} 毫秒`)
     })
+    let percentCount = 0
     durations.forEach((item, index) => {
-      const percent = Math.round(100 * item.duration / duration)
+      let percent = Math.round(100 * item.duration / duration)
+      if (index === durations.length - 1) {
+        percent = 100 - percentCount
+      }
       item.style = {
         width: `${percent}px`,
         backgroundColor: item.color
       }
+      percentCount += percent
     })
     return {
       tips: tips.join('<br />'),

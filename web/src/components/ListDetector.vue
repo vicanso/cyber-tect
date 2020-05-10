@@ -146,9 +146,9 @@ export default {
     },
     detectors: state => {
       if (!state.detector.currentCategory) {
-        return
+        return []
       }
-      return state.detector.currentDetectors
+      return state.detector.currentDetectors || []
     }
   }),
   methods: {

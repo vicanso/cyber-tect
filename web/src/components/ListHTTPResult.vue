@@ -127,7 +127,7 @@ export default {
   computed: mapState({
     processing: state => state.detector.httpListResult.processing,
     count: state => state.detector.httpListResult.count,
-    results: state => state.detector.httpListResult.results
+    results: state => state.detector.httpListResult.results || []
   }),
   methods: {
     ...mapActions([

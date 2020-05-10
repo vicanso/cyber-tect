@@ -123,4 +123,5 @@ export default {
     height: 10px
 .durationDesc
   float: left
+  margin-left: 5px
 </style>

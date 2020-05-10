@@ -18,9 +18,9 @@ export function formatDuration (d) {
     if (Number.parseInt(v) % 10 === 0) {
       fix = 0
     }
-    return `${(d / 1000).toFixed(fix)} 秒`
+    return `${(d / 1000).toFixed(fix)}秒`
   }
-  return `${d} 毫秒`
+  return `${d}毫秒`
 }
 
 export function delay (ms) {

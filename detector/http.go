@@ -284,7 +284,7 @@ func (srv *HTTPSrv) alarm(result HTTPDetectResult) {
 		status = "Fail"
 	}
 	data := Alarm{
-		Title: fmt.Sprintf("%s: http detect %s", status, result.URL),
+		Title: fmt.Sprintf("%s: http detect", status),
 		Content: fmt.Sprintf(`url: %s
 ip: %s
 statusCode: %d

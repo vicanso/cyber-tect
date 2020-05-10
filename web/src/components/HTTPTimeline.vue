@@ -91,10 +91,11 @@ export default {
       tips.push(`${item.name}：${item.duration} 毫秒`)
     })
     let percentCount = 0
+    const max = 200
     durations.forEach((item, index) => {
-      let percent = Math.round(100 * item.duration / duration)
+      let percent = Math.round(max * item.duration / duration)
       if (index === durations.length - 1) {
-        percent = 100 - percentCount
+        percent = max - percentCount
       }
       item.style = {
         width: `${percent}px`,
@@ -113,11 +114,11 @@ export default {
 <style lang="sass" scoped>
 @import "@/common.sass"
 .timelineWrapper
-  border: 1px solid $darkGray
+  border: 1px solid $lightBlue
   float: left
   margin-top: 6px
   margin-right: 3px
-  min-width: 100px
+  min-width: 200px
   .timeline
     float: left
     height: 10px

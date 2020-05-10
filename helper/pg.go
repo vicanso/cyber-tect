@@ -64,11 +64,10 @@ type (
 
 	// PGQueryParams pg query params
 	PGQueryParams struct {
-		Limit     int           `json:"limit,omitempty" validate:"xLimit"`
-		Offset    int           `json:"offset,omitempty" validate:"xOffset,optional"`
-		Fields    string        `json:"fields,omitempty" validate:"runelength(1|100),optional"`
-		Order     string        `json:"order,omitempty" validate:"runelength(1|100),optional"`
-		QueryArgs []interface{} `json:"-"`
+		Limit  int    `json:"limit,omitempty" validate:"xLimit"`
+		Offset int    `json:"offset,omitempty" validate:"xOffset"`
+		Fields string `json:"fields,omitempty" validate:"min=0,max=100"`
+		Order  string `json:"order,omitempty" validate:"min=0,max=100"`
 	}
 )
 
@@ -226,7 +225,7 @@ func PGStats() map[string]interface{} {
 }
 
 // PGQuery pg query
-func PGQuery(params PGQueryParams) *gorm.DB {
+func PGQuery(params PGQueryParams, args ...interface{}) *gorm.DB {
 	db := PGGetClient()
 	if params.Limit != 0 {
 		db = db.Limit(params.Limit)
@@ -240,12 +239,12 @@ func PGQuery(params PGQueryParams) *gorm.DB {
 	if params.Order != "" {
 		db = db.Order(PGFormatOrder(params.Order))
 	}
-	argsLen := len(params.QueryArgs)
+	argsLen := len(args)
 	if argsLen != 0 {
 		if argsLen == 1 {
-			db = db.Where(params.QueryArgs[0])
+			db = db.Where(args[0])
 		} else {
-			db = db.Where(params.QueryArgs[0], params.QueryArgs[1:]...)
+			db = db.Where(args[0], args[1:]...)
 		}
 	}
 	return db

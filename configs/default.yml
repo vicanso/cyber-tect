@@ -15,6 +15,8 @@ redis:
 
 # postgres 配置 (pass从env中获取pass这个配置为密码，如果未配置则为空)
 postgres:
+  # 如果配置了uri连接串，直接使用
+  # uri: host=127.0.0.1 port=5432
   host: 127.0.0.1
   port: 5432
   user: vicanso 
@@ -33,6 +35,7 @@ influxdb:
   token: IwG5FptH6wx2NfE1G6lqAiXYnxuKh-NPRhsnOYi0xL2PXYQdHoe85wTQUT8paIQQ3oGxt3r0qlxGnPx19br2IA==
   batchSize: 100
   flushInterval: 10s
+  disabled: true
 
 # session的相关配置
 session:

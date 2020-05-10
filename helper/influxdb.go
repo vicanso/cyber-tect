@@ -34,6 +34,10 @@ type (
 
 func init() {
 	influxbConfig := config.GetInfluxdbConfig()
+	if influxbConfig.Disabled {
+		defaultInfluxSrv = new(InfluxSrv)
+		return
+	}
 	opts := influxdb.DefaultOptions()
 	opts.SetBatchSize(influxbConfig.BatchSize)
 	if influxbConfig.FlushInterval > time.Millisecond {
@@ -55,15 +59,24 @@ func GetInfluxSrv() *InfluxSrv {
 
 // Write write metric to influxdb
 func (srv *InfluxSrv) Write(measurement string, fields map[string]interface{}, tags map[string]string) {
+	if srv.writer == nil {
+		return
+	}
 	srv.writer.WritePoint(influxdb.NewPoint(measurement, tags, fields, time.Now()))
 }
 
 // Flush flush metric list
 func (srv *InfluxSrv) Flush() {
+	if srv.writer == nil {
+		return
+	}
 	srv.writer.Flush()
 }
 
 // Close flush the point to influxdb and close client
 func (srv *InfluxSrv) Close() {
+	if srv.client == nil {
+		return
+	}
 	srv.client.Close()
 }

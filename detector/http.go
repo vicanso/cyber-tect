@@ -181,7 +181,7 @@ func (srv *HTTPSrv) FindByID(id uint) (data *HTTP, err error) {
 // List list the http detector
 func (srv *HTTPSrv) List(params helper.PGQueryParams, args ...interface{}) (data []*HTTP, err error) {
 	data = make([]*HTTP, 0)
-	err = pgQuery(params).Find(&data).Error
+	err = pgQuery(params, args...).Find(&data).Error
 	return
 }
 
@@ -284,7 +284,7 @@ func (srv *HTTPSrv) alarm(result HTTPDetectResult) {
 		status = "Fail"
 	}
 	data := Alarm{
-		Title: fmt.Sprintf("%s: http detect", status),
+		Title: fmt.Sprintf("%s: http detect %s", status, result.URL),
 		Content: fmt.Sprintf(`url: %s
 ip: %s
 statusCode: %d

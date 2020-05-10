@@ -6,7 +6,7 @@
       router-view
 </template>
 <script>
-import { mapActions } from 'vuex'
+import { mapActions, mapState } from 'vuex'
 
 import MainHeader from '@/components/MainHeader'
 import MainNav from '@/components/MainNav'
@@ -16,12 +16,25 @@ export default {
     MainNav
   },
   name: 'App',
+  computed: mapState({
+    userAccount: state => state.user.account
+  }),
   methods: {
     ...mapActions([
-      'fetchUser'
-    ])
+      'fetchUser',
+      'updateUser'
+    ]),
+    refreshSessionTTL () {
+      if (!this.userAccount) {
+        return
+      }
+      this.updateUser({})
+    }
   },
   async mounted () {
+    setInterval(() => {
+      this.refreshSessionTTL()
+    }, 5 * 60 * 1000)
     try {
       await this.fetchUser()
     } catch (err) {

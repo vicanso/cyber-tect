@@ -25,7 +25,8 @@ const receiversField = {
 }
 const descriptionField = {
   key: 'description',
-  name: '描述'
+  name: '描述',
+  width: '80'
 }
 const updatedAtField = {
   key: 'updatedAtDesc',

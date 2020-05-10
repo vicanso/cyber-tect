@@ -2,6 +2,45 @@
   .httpDetectorResults(
     v-loading="processing"
   )
+    el-dialog(
+      title="更多信息"
+      :visible.sync="showingDetail"
+    )
+      ul.detail(
+        v-if="currentResult"
+      )
+        li
+          span 状态码：
+          | {{currentResult.statusCode}}
+        li
+          span IP地址：
+          | {{currentResult.addrs.join(',')}}
+        li
+          span 协议：
+          | {{currentResult.protocol}}
+        li(
+          v-if="currentResult.tlsVersion"
+        )
+          span TLS版本：
+          | {{currentResult.tlsVersion}}
+        li(
+          v-if="currentResult.tlsCipherSuite"
+        )
+          span TLS加密套件：
+          | {{currentResult.tlsCipherSuite}}
+        li(
+          v-if="currentResult.expirationDate"
+        )
+          span 证件有效期：
+          | {{currentResult.expirationDate}}
+        li.dnsNames(
+          v-if="currentResult.certificateDNSNames && currentResult.certificateDNSNames.length"
+        )
+          span 证书域名：
+          ul
+            li(
+              v-for="name in currentResult.certificateDNSNames"
+            ) {{name}}
     el-table(
       :data="results"
       row-key="id"
@@ -69,6 +108,17 @@
         prop="updatedAtDesc"
         label="更新于"
       )
+      el-table-column(
+        label="操作"
+        width="100"
+      )
+        template(
+          slot-scope="scope"
+        )
+          el-link(
+            @click="showDetail(scope.row)"
+          )
+            i.el-icon-more
     .pagination(
       v-if="!simplify"
     ): el-pagination(
@@ -88,6 +138,9 @@ import {
   CAT_HTTP
 } from '@/constants/category'
 import HTTPTimeline from '@/components/HTTPTimeline.vue'
+import {
+  formatDate
+} from '@/helpers/util'
 
 export default {
   name: 'ListHTTPResult',
@@ -116,11 +169,13 @@ export default {
       pageSizes.unshift(limit)
     }
     return {
+      showingDetail: false,
+      currentResult: null,
       pageSizes,
       currentPage: 1,
       query: {
         limit,
-        order: '-updatedAt'
+        order: '-id'
       }
     }
   },
@@ -157,6 +212,15 @@ export default {
       } catch (err) {
         this.$message.error(err.message)
       }
+    },
+    showDetail (data) {
+      if (data.certificateExpirationDates && data.certificateExpirationDates.length === 2) {
+        const start = formatDate(data.certificateExpirationDates[0])
+        const end = formatDate(data.certificateExpirationDates[1])
+        data.expirationDate = `${start} 至 ${end}`
+      }
+      this.currentResult = data
+      this.showingDetail = true
     }
   },
   mounted () {
@@ -173,4 +237,20 @@ export default {
 .pagination
   margin-top: 10px
   text-align: right
+.detail
+  margin: 0
+  padding: 0
+  li
+    list-style: none
+    padding: 5px 0
+    span
+      display: inline-block
+      width: 100px
+      text-align: right
+.dnsNames
+  span
+    float: left
+  ul
+    margin-left: 100px
+    margin-top: -5px
 </style>

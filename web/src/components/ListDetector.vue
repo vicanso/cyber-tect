@@ -29,6 +29,19 @@
               v-for="account in scope.row[field.key]"
               :key="account"
             ) {{account}}
+          div(
+            v-else-if="field.key === 'description'"
+          )
+            el-tooltip.tac(
+              v-if="scope.row.description"
+            )
+              div(
+                slot="content"
+              ) {{scope.row.description}}
+              i.el-icon-warning-outline
+            span(
+              v-else
+            ) --
           span(v-else) {{scope.row[field.key]}}
       el-table-column(
         label="操作"

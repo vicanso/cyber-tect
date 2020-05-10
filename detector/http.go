@@ -141,9 +141,9 @@ func (h *HTTP) Check() (resp *http.Response, ht *HT.HTTPTrace, err error) {
 	if err != nil {
 		return
 	}
+	defer resp.Body.Close()
+	buf, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode >= http.StatusBadRequest {
-		defer resp.Body.Close()
-		buf, _ := ioutil.ReadAll(resp.Body)
 		body := string(buf)
 		if len(body) > 500 {
 			body = body[:500]

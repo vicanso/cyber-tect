@@ -11,6 +11,18 @@ export function formatDate (str) {
   return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
 }
 
+export function formatDuration (d) {
+  if (d > 1000) {
+    const v = d / 100
+    let fix = 1
+    if (Number.parseInt(v) % 10 === 0) {
+      fix = 0
+    }
+    return `${(d / 1000).toFixed(fix)} 秒`
+  }
+  return `${d} 毫秒`
+}
+
 export function delay (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }

@@ -9,6 +9,7 @@
       span.category {{$props.category}}
     el-table(
       :data="detectors"
+      row-key="id"
       stripe
     )
       el-table-column(

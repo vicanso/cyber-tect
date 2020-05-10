@@ -25,6 +25,7 @@
 import {
   ADD_HTTP,
   LIST_HTTP,
+  LIST_HTTP_RESULT,
   ADD_DNS,
   LIST_DNS,
   ADD_TCP,
@@ -42,8 +43,12 @@ export default {
           name: 'HTTP',
           children: [
             {
-              name: 'HTTP检测列表',
+              name: 'HTTP检测配置',
               path: LIST_HTTP
+            },
+            {
+              name: 'HTTP检测结果',
+              path: LIST_HTTP_RESULT
             },
             {
               name: '添加HTTP检测',
@@ -55,7 +60,7 @@ export default {
           name: 'DNS',
           children: [
             {
-              name: 'DNS检测列表',
+              name: 'DNS检测配置',
               path: LIST_DNS
             },
             {
@@ -68,7 +73,7 @@ export default {
           name: 'TCP',
           children: [
             {
-              name: 'TCP检测列表',
+              name: 'TCP检测配置',
               path: LIST_TCP
             },
             {
@@ -81,7 +86,7 @@ export default {
           name: 'PING',
           children: [
             {
-              name: 'Ping检测列表',
+              name: 'PING检测配置',
               path: LIST_PING
             },
             {

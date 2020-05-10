@@ -6,6 +6,7 @@ export const USER_INFO = '/user-info'
 export const ADD_HTTP = '/add-http'
 export const LIST_HTTP = '/list-http'
 export const UPDATE_HTTP = '/update-http/:id'
+export const LIST_HTTP_RESULT = '/list-http-detector-result'
 
 export const ADD_DNS = '/add-dns'
 export const LIST_DNS = '/list-dns'

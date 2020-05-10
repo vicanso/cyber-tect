@@ -11,6 +11,7 @@ import UserInfo from '@/views/UserInfo.vue'
 import AddHTTP from '@/views/AddHTTP.vue'
 import ListHTTP from '@/views/ListHTTP.vue'
 import UpdateHTTP from '@/views/UpdateHTTP.vue'
+import ListHTTPDetectorResult from '@/views/ListHTTPDetectorResult.vue'
 
 import AddDNS from '@/views/AddDNS.vue'
 import ListDNS from '@/views/ListDNS.vue'
@@ -32,6 +33,7 @@ import {
   ADD_HTTP,
   LIST_HTTP,
   UPDATE_HTTP,
+  LIST_HTTP_RESULT,
   ADD_DNS,
   LIST_DNS,
   UPDATE_DNS,
@@ -53,6 +55,7 @@ export const ROUTE_USER_INFO = 'userInfo'
 export const ROUTE_ADD_HTTP = 'addHTTP'
 export const ROUTE_LIST_HTTP = 'listHTTP'
 export const ROUTE_UPDATE_HTTP = 'updateHTTP'
+export const ROUTE_LIST_HTTP_DETECTOR_RESULT = 'listHTTPDetectorResult'
 
 export const ROUTE_ADD_DNS = 'addDNS'
 export const ROUTE_LIST_DNS = 'listDNS'
@@ -110,6 +113,14 @@ const routes = [
     path: UPDATE_HTTP,
     name: ROUTE_UPDATE_HTTP,
     component: UpdateHTTP,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: LIST_HTTP_RESULT,
+    name: ROUTE_LIST_HTTP_DETECTOR_RESULT,
+    component: ListHTTPDetectorResult,
     meta: {
       requiresAuth: true
     }

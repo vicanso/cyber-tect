@@ -1,9 +1,11 @@
 import request from '@/request'
 import {
   DETECTORS,
-  DETECTOR
+  DETECTOR,
+  DETECT_RESULTS
 } from '@/constants/url'
 import {
+  formatDuration,
   formatDate,
   delay
 } from '@/helpers/util'
@@ -13,8 +15,11 @@ const mutationDetectorReset = 'detector.reset'
 const mutationDetectorList = 'detector.list'
 const mutationDetectorChangeCurrent = 'detector.changeCurrent'
 const mutationDetectorUpdate = 'detector.update'
+const mutationDtectorResultProcessing = 'detector.result.processing'
+const mutationDtectorResultList = 'detector.result.list'
 
 const statusDescList = ['未知', '启用', '禁用']
+const resultDescList = ['未知', '成功', '失败']
 
 const state = {
   processing: false,
@@ -36,6 +41,26 @@ const state = {
   tcp: {
     count: -1,
     detectors: null
+  },
+  httpListResult: {
+    count: -1,
+    results: null,
+    processing: false
+  },
+  dnsListResult: {
+    count: -1,
+    results: null,
+    processing: false
+  },
+  pingListResult: {
+    count: -1,
+    results: null,
+    processing: false
+  },
+  tcpListResult: {
+    count: -1,
+    results: null,
+    processing: false
   }
 }
 export default {
@@ -66,6 +91,21 @@ export default {
     },
     [mutationDetectorUpdate] (state, data) {
       state.updateDetector = data
+    },
+    [mutationDtectorResultProcessing] (state, { category, processing }) {
+      state[`${category}ListResult`].processing = processing
+    },
+    [mutationDtectorResultList] (state, { category, data }) {
+      const listResult = state[`${category}ListResult`]
+      if (data.count >= 0) {
+        listResult.count = data.count
+      }
+      data.results.forEach((item) => {
+        item.updatedAtDesc = formatDate(item.updatedAt)
+        item.resultDesc = resultDescList[item.result]
+        item.durationDesc = formatDuration(item.duration)
+      })
+      listResult.results = data.results
     }
   },
   actions: {
@@ -155,6 +195,31 @@ export default {
         commit(mutationDetectorUpdate, data)
       } finally {
         commit(mutationDetectorProcessing, false)
+      }
+    },
+    async listDetectorResult ({ commit }, { category, params }) {
+      commit(mutationDtectorResultProcessing, {
+        category,
+        processing: true
+      })
+      try {
+        const {
+          data
+        } = await request.get(DETECT_RESULTS.replace(':category', category), {
+          params
+        })
+        if (!data.count) {
+          data.count = 0
+        }
+        commit(mutationDtectorResultList, {
+          category,
+          data
+        })
+      } finally {
+        commit(mutationDtectorResultProcessing, {
+          category,
+          processing: false
+        })
       }
     }
   }

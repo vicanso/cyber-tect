@@ -37,4 +37,6 @@ func init() {
 			"tcp",
 		})
 	})
+
+	AddAlias("xTask", "number")
 }

@@ -9,6 +9,14 @@ import '@/main.sass'
 
 Vue.use(Element)
 Vue.config.productionTip = false
+Vue.config.errorHandler = function (err, vm, info) {
+  // TODO 错误异常上报
+  console.error(err)
+}
+window.onerror = function (msg, url, lineNo, columnNo, err) {
+  // TODO 错误异常上报
+  this.console.error(err)
+}
 
 new Vue({
   router,

@@ -16,14 +16,17 @@ import ListHTTPDetectorResult from '@/views/ListHTTPDetectorResult.vue'
 import AddDNS from '@/views/AddDNS.vue'
 import ListDNS from '@/views/ListDNS.vue'
 import UpdateDNS from '@/views/UpdateDNS.vue'
+import ListDNSDetectorResult from '@/views/ListDNSDetectorResult.vue'
 
 import AddTCP from '@/views/AddTCP.vue'
 import ListTCP from '@/views/ListTCP.vue'
 import UpdateTCP from '@/views/UpdateTCP.vue'
+import ListTCPDetectorResult from '@/views/ListTCPDetectorResult.vue'
 
 import AddPing from '@/views/AddPing.vue'
 import ListPing from '@/views/ListPing.vue'
 import UpdatePing from '@/views/UpdatePing.vue'
+import ListPingDetectorResult from '@/views/ListPingDetectorResult.vue'
 
 import {
   HOME,
@@ -37,12 +40,15 @@ import {
   ADD_DNS,
   LIST_DNS,
   UPDATE_DNS,
+  LIST_DNS_RESULT,
   ADD_TCP,
   LIST_TCP,
   UPDATE_TCP,
+  LIST_TCP_RESULT,
   ADD_PING,
   LIST_PING,
-  UPDATE_PING
+  UPDATE_PING,
+  LIST_PING_RESULT
 } from '@/paths'
 
 Vue.use(VueRouter)
@@ -60,14 +66,17 @@ export const ROUTE_LIST_HTTP_DETECTOR_RESULT = 'listHTTPDetectorResult'
 export const ROUTE_ADD_DNS = 'addDNS'
 export const ROUTE_LIST_DNS = 'listDNS'
 export const ROUTE_UPDATE_DNS = 'updateDNS'
+export const ROUTE_LIST_DNS_DETECTOR_RESULT = 'listDNSDetectorResult'
 
 export const ROUTE_ADD_PING = 'addPing'
 export const ROUTE_LIST_PING = 'listPing'
 export const ROUTE_UPDATE_PING = 'updatePing'
+export const ROUTE_LIST_PING_DETECTOR_RESULT = 'listPingDetectorResult'
 
 export const ROUTE_ADD_TCP = 'addTCP'
 export const ROUTE_LIST_TCP = 'listTCP'
 export const ROUTE_UPDATE_TCP = 'updateTCP'
+export const ROUTE_LIST_TCP_DETECTOR_RESULT = 'listTCPDetectorResult'
 
 const routes = [
   {
@@ -142,6 +151,14 @@ const routes = [
     }
   },
   {
+    path: LIST_DNS_RESULT,
+    name: ROUTE_LIST_DNS_DETECTOR_RESULT,
+    component: ListDNSDetectorResult,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
     path: UPDATE_DNS,
     name: ROUTE_UPDATE_DNS,
     component: UpdateDNS,
@@ -174,6 +191,14 @@ const routes = [
     }
   },
   {
+    path: LIST_TCP_RESULT,
+    name: ROUTE_LIST_TCP_DETECTOR_RESULT,
+    component: ListTCPDetectorResult,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
     path: ADD_PING,
     name: ROUTE_ADD_PING,
     component: AddPing,
@@ -193,6 +218,14 @@ const routes = [
     path: UPDATE_PING,
     name: ROUTE_UPDATE_PING,
     component: UpdatePing,
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: LIST_PING_RESULT,
+    name: ROUTE_LIST_PING_DETECTOR_RESULT,
+    component: ListPingDetectorResult,
     meta: {
       requiresAuth: true
     }

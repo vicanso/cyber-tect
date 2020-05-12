@@ -115,6 +115,18 @@ func (srv *TCPSrv) Count(args ...interface{}) (count int, err error) {
 	return pgCount(&TCP{}, args...)
 }
 
+// ListResult list the tcp detect result
+func (srv *TCPSrv) ListResult(params helper.PGQueryParams, args ...interface{}) (data []*TCPDetectResult, err error) {
+	data = make([]*TCPDetectResult, 0)
+	err = pgQuery(params, args...).Find(&data).Error
+	return
+}
+
+// CountResult count the tcp detect result
+func (srv *TCPSrv) CountResult(args ...interface{}) (count int, err error) {
+	return pgCount(&TCPDetectResult{}, args...)
+}
+
 // Detect do the tcp detect
 func (srv *TCPSrv) Detect() {
 	result := make([]*TCP, 0)

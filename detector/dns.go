@@ -126,6 +126,18 @@ func (srv *DNSSrv) Count(args ...interface{}) (count int, err error) {
 	return pgCount(&DNS{}, args...)
 }
 
+// ListResult list the dns detect result
+func (srv *DNSSrv) ListResult(params helper.PGQueryParams, args ...interface{}) (data []*DNSDetectResult, err error) {
+	data = make([]*DNSDetectResult, 0)
+	err = pgQuery(params, args...).Find(&data).Error
+	return
+}
+
+// CountResult count the dns detect result
+func (srv *DNSSrv) CountResult(args ...interface{}) (count int, err error) {
+	return pgCount(&DNSDetectResult{}, args...)
+}
+
 // Detect do the dns detect
 func (srv *DNSSrv) Detect() {
 	result := make([]*DNS, 0)

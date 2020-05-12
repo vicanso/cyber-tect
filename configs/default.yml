@@ -49,7 +49,7 @@ keys:
   - secret
 
 location:
-  baseURL: https://ip.aslant.site/
+  baseURL: https://ip.npmtrend.com/
 
 # router limit
 routerLimit:

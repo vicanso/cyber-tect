@@ -12,6 +12,9 @@ export function formatDate (str) {
 }
 
 export function formatDuration (d) {
+  if (!d) {
+    return '--'
+  }
   if (d > 1000) {
     const v = d / 100
     let fix = 1

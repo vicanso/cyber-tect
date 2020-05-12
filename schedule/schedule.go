@@ -32,7 +32,8 @@ func init() {
 	_, _ = c.AddFunc("@every 1m", configRefresh)
 	_, _ = c.AddFunc("@every 5m", redisStats)
 	_, _ = c.AddFunc("@every 1m", pgStats)
-	_, _ = c.AddFunc("@every 1m", dnsCheck)
+	// DNS检测5分钟一次则可
+	_, _ = c.AddFunc("@every 5m", dnsCheck)
 	_, _ = c.AddFunc("@every 1m", tcpCheck)
 	_, _ = c.AddFunc("@every 1m", pingCheck)
 	_, _ = c.AddFunc("@every 1m", httpCheck)

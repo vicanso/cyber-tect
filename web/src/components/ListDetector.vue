@@ -45,6 +45,7 @@
           span(v-else) {{scope.row[field.key]}}
       el-table-column(
         label="操作"
+        width="160"
       )
         template(
           slot-scope="scope"
@@ -58,6 +59,12 @@
             )
               i.el-icon-edit-outline
               | 更新
+            a.op(
+              href="#"
+              @click.prevent="handlerView(scope.row.id)"
+            )
+              i.el-icon-view
+              | 查看结果
           div(
             v-else
           ) --
@@ -76,9 +83,13 @@ import { mapState, mapActions } from 'vuex'
 
 import {
   ROUTE_UPDATE_HTTP,
+  ROUTE_LIST_HTTP_DETECTOR_RESULT,
   ROUTE_UPDATE_DNS,
+  ROUTE_LIST_DNS_DETECTOR_RESULT,
   ROUTE_UPDATE_TCP,
-  ROUTE_UPDATE_PING
+  ROUTE_LIST_TCP_DETECTOR_RESULT,
+  ROUTE_UPDATE_PING,
+  ROUTE_LIST_PING_DETECTOR_RESULT
 } from '@/router'
 import {
   CAT_DNS,
@@ -118,6 +129,19 @@ function getUpdateRoute (category) {
   }
 }
 
+function getListRoute (category) {
+  switch (category) {
+    case CAT_DNS:
+      return ROUTE_LIST_DNS_DETECTOR_RESULT
+    case CAT_HTTP:
+      return ROUTE_LIST_HTTP_DETECTOR_RESULT
+    case CAT_TCP:
+      return ROUTE_LIST_TCP_DETECTOR_RESULT
+    default:
+      return ROUTE_LIST_PING_DETECTOR_RESULT
+  }
+}
+
 export default {
   name: 'ListDetector',
   props: {
@@ -140,6 +164,7 @@ export default {
     return {
       fields: getFields(category),
       updateRoute: getUpdateRoute(category),
+      listRoute: getListRoute(category),
       pageSizes,
       query: {
         limit: pageSizes[0],
@@ -185,6 +210,14 @@ export default {
         }
       })
     },
+    handlerView (id) {
+      this.$router.push({
+        name: this.listRoute,
+        query: {
+          task: id
+        }
+      })
+    },
     async fetch () {
       if (this.processing) {
         return
@@ -220,6 +253,9 @@ export default {
   list-style: inside
 .op
   color: $darkBlue
+  margin-right: 10px
+  &:last-child
+    margin-right: 0
   i
     margin-right: 3px
 </style>

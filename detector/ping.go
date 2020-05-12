@@ -113,6 +113,18 @@ func (srv *PingSrv) Count(args ...interface{}) (count int, err error) {
 	return pgCount(&Ping{}, args...)
 }
 
+// ListResult list the ping detect result
+func (srv *PingSrv) ListResult(params helper.PGQueryParams, args ...interface{}) (data []*PingDetectResult, err error) {
+	data = make([]*PingDetectResult, 0)
+	err = pgQuery(params, args...).Find(&data).Error
+	return
+}
+
+// CountResult count the ping detect result
+func (srv *PingSrv) CountResult(args ...interface{}) (count int, err error) {
+	return pgCount(&PingDetectResult{}, args...)
+}
+
 // ValidateOwner validate the owner
 func (srv *PingSrv) ValidateOwner(id uint, owner string) (err error) {
 	data, err := srv.FindByID(id)

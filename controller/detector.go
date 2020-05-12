@@ -48,6 +48,7 @@ type (
 		Limit  string `json:"limit,omitempty" validate:"xLimit"`
 		Offset string `json:"offset,omitempty" validate:"xOffset"`
 		Order  string `json:"order,omitempty"`
+		Task   string `json:"task,omitempty" validate:"omitempty,xTask"`
 	}
 	addDetectorParams struct {
 		Timeout     string         `json:"timeout,omitempty" validate:"xDuration"`
@@ -127,7 +128,7 @@ var (
 	countDetectors       map[string]func(queryDetectorParams) (int, error)
 	listDetectors        map[string]func(helper.PGQueryParams) (interface{}, error)
 	countDetectorResults map[string]func(queryDetectorResultParams) (int, error)
-	listDetectorResults  map[string]func(helper.PGQueryParams) (interface{}, error)
+	listDetectorResults  map[string]func(queryDetectorResultParams) (interface{}, error)
 )
 
 func init() {
@@ -164,9 +165,15 @@ func init() {
 	}
 
 	countDetectorResults = map[string]func(queryDetectorResultParams) (int, error){
+		catDNS:  ctrl.countDNSResult,
+		catTCP:  ctrl.countTCPResult,
+		catPing: ctrl.countPingResult,
 		catHTTP: ctrl.countHTTPResult,
 	}
-	listDetectorResults = map[string]func(helper.PGQueryParams) (interface{}, error){
+	listDetectorResults = map[string]func(queryDetectorResultParams) (interface{}, error){
+		catDNS:  ctrl.listDNSResult,
+		catTCP:  ctrl.listTCPResult,
+		catPing: ctrl.listPingResult,
 		catHTTP: ctrl.listHTTPResult,
 	}
 	g := router.NewGroup("/detectors", loadUserSession, shouldLogined)
@@ -199,6 +206,21 @@ func init() {
 		ctrl.checkCategory,
 		ctrl.listResult,
 	)
+}
+
+func (params *queryDetectorResultParams) toConditions() (args []interface{}) {
+	args = make([]interface{}, 0)
+	if params.Task != "" {
+		args = append(args, "task = ?", params.Task)
+	}
+	return args
+}
+
+func (params *queryDetectorResultParams) toQueryParams() (queryParams helper.PGQueryParams) {
+	queryParams.Limit, _ = strconv.Atoi(params.Limit)
+	queryParams.Offset, _ = strconv.Atoi(params.Offset)
+	queryParams.Order = params.Order
+	return queryParams
 }
 
 // addDNS 添加dns detector
@@ -601,8 +623,8 @@ func (ctrl detectorCtrl) getByID(c *elton.Context) (err error) {
 	return
 }
 
-func (ctrl detectorCtrl) listHTTPResult(queryParams helper.PGQueryParams) (data interface{}, err error) {
-	results, err := httpSrv.ListResult(queryParams)
+func (ctrl detectorCtrl) listHTTPResult(params queryDetectorResultParams) (data interface{}, err error) {
+	results, err := httpSrv.ListResult(params.toQueryParams(), params.toConditions()...)
 	if err != nil {
 		return
 	}
@@ -610,7 +632,43 @@ func (ctrl detectorCtrl) listHTTPResult(queryParams helper.PGQueryParams) (data 
 	return
 }
 func (ctrl detectorCtrl) countHTTPResult(params queryDetectorResultParams) (count int, err error) {
-	return httpSrv.CountResult()
+	return httpSrv.CountResult(params.toConditions()...)
+}
+
+func (ctrl detectorCtrl) listDNSResult(params queryDetectorResultParams) (data interface{}, err error) {
+	results, err := dnsSrv.ListResult(params.toQueryParams(), params.toConditions()...)
+	if err != nil {
+		return
+	}
+	data = results
+	return
+}
+func (ctrl detectorCtrl) countDNSResult(params queryDetectorResultParams) (count int, err error) {
+	return dnsSrv.CountResult(params.toConditions()...)
+}
+
+func (ctrl detectorCtrl) listPingResult(params queryDetectorResultParams) (data interface{}, err error) {
+	results, err := pingSrv.ListResult(params.toQueryParams(), params.toConditions()...)
+	if err != nil {
+		return
+	}
+	data = results
+	return
+}
+func (ctrl detectorCtrl) countPingResult(params queryDetectorResultParams) (count int, err error) {
+	return pingSrv.CountResult(params.toConditions()...)
+}
+
+func (ctrl detectorCtrl) listTCPResult(params queryDetectorResultParams) (data interface{}, err error) {
+	results, err := tcpSrv.ListResult(params.toQueryParams(), params.toConditions()...)
+	if err != nil {
+		return
+	}
+	data = results
+	return
+}
+func (ctrl detectorCtrl) countTCPResult(params queryDetectorResultParams) (count int, err error) {
+	return tcpSrv.CountResult(params.toConditions()...)
 }
 
 func (ctrl detectorCtrl) listResult(c *elton.Context) (err error) {
@@ -622,13 +680,10 @@ func (ctrl detectorCtrl) listResult(c *elton.Context) (err error) {
 		return
 	}
 
-	queryParams := helper.PGQueryParams{}
-	queryParams.Limit, _ = strconv.Atoi(params.Limit)
-	queryParams.Offset, _ = strconv.Atoi(params.Offset)
-	queryParams.Order = params.Order
+	offset, _ := strconv.Atoi(params.Offset)
 
 	count := -1
-	if queryParams.Offset == 0 {
+	if offset == 0 {
 		count, err = countDetectorResults[cat](params)
 		if err != nil {
 			return
@@ -636,7 +691,7 @@ func (ctrl detectorCtrl) listResult(c *elton.Context) (err error) {
 	}
 
 	fn := listDetectorResults[cat]
-	data, err := fn(queryParams)
+	data, err := fn(params)
 	if err != nil {
 		return
 	}

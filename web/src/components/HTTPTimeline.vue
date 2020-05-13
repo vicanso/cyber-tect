@@ -63,27 +63,27 @@ export default {
       {
         name: 'dns lookup',
         duration: dnsLookup,
-        color: '#419488'
+        color: '#aad576'
       },
       {
         name: 'tcp connection',
         duration: tcpConnection,
-        color: '#f29c38'
+        color: '#73a942'
       },
       {
         name: 'tls handshake',
         duration: tlsHandshake,
-        color: '#9035aa'
+        color: '#538d22'
       },
       {
         name: 'server processing',
         duration: serverProcessing,
-        color: '#5ac462'
+        color: '#245501'
       },
       {
         name: 'content transfer',
         duration: contentTransfer,
-        color: '#3d7cab'
+        color: '#143601'
       }
     ]
     const tips = []
@@ -91,7 +91,7 @@ export default {
       tips.push(`${item.name}：${item.duration} 毫秒`)
     })
     let percentCount = 0
-    const max = 200
+    const max = 250
     durations.forEach((item, index) => {
       let percent = Math.round(max * item.duration / duration)
       if (index === durations.length - 1) {

@@ -214,7 +214,7 @@ export default {
       this.$router.push({
         name: this.listRoute,
         query: {
-          task: id
+          task: `${id}`
         }
       })
     },

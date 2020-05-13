@@ -1,6 +1,8 @@
 <template lang="pug">
   nav.mainNav
-    el-menu
+    el-menu(
+      :default-active="active"
+    )
       el-submenu(
         v-for="(nav, i) in navs"
         :index="`${i}`"
@@ -41,6 +43,7 @@ export default {
   name: 'MainNav',
   data () {
     return {
+      active: '',
       navs: [
         {
           name: 'HTTP',
@@ -112,12 +115,34 @@ export default {
         }
       ]
     }
+  },
+  watch: {
+    '$route' (to, from) {
+      const {
+        navs
+      } = this
+      let active = ''
+      navs.forEach((nav, i) => {
+        nav.children.forEach((item, j) => {
+          if (item.path === to.path) {
+            active = `${i}-${j}`
+          }
+        })
+      })
+      this.active = active
+    }
+  },
+  beforeRouteUpdate (to, from, next) {
+    console.dir(to)
+    next()
   }
 }
 </script>
 
 <style lang="sass" scoped>
 @import "@/common.sass"
+.mainNav
+  overflow-y: auto
 .link
   display: block
   color: $darkGray

@@ -2,6 +2,10 @@
   .pingDetectorResults(
     v-loading="processing"
   )
+    FilterResult(
+      :onFilter="filter"
+      :task="query.task"
+    )
     el-table(
       :data="results"
       row-key="id"
@@ -78,13 +82,15 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapState } from 'vuex'
 
 import {
   CAT_PING
 } from '@/constants/category'
 import DetectorResult from '@/components/DetectorResult.vue'
 import DetectorMessage from '@/components/DetectorMessage.vue'
+import FilterResult from '@/components/FilterResult.vue'
+import BaseListResult from '@/components/BaseListResult.vue'
 import {
   ROUTE_UPDATE_PING
 } from '@/router'
@@ -98,9 +104,11 @@ export default {
     },
     simplify: Boolean
   },
+  extends: BaseListResult,
   components: {
     DetectorResult,
-    DetectorMessage
+    DetectorMessage,
+    FilterResult
   },
   data () {
     const {
@@ -121,6 +129,7 @@ export default {
       order: '-id'
     }, this.$route.query)
     return {
+      category: CAT_PING,
       updateRoute: ROUTE_UPDATE_PING,
       pageSizes,
       currentPage: 1,
@@ -132,36 +141,6 @@ export default {
     count: state => state.detector.pingListResult.count,
     results: state => state.detector.pingListResult.results || []
   }),
-  methods: {
-    ...mapActions([
-      'listDetectorResult'
-    ]),
-    handleSizeChange (pageSize) {
-      this.query.limit = pageSize
-      this.currentPage = 1
-      this.fetch()
-    },
-    handleCurrentChange (page) {
-      this.currentPage = page
-      this.fetch()
-    },
-    async fetch () {
-      const {
-        query,
-        currentPage
-      } = this
-      try {
-        await this.listDetectorResult({
-          category: CAT_PING,
-          params: Object.assign({
-            offset: (currentPage - 1) * query.limit
-          }, query)
-        })
-      } catch (err) {
-        this.$message.error(err.message)
-      }
-    }
-  },
   mounted () {
     this.fetch()
   }

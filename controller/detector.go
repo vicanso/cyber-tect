@@ -17,6 +17,8 @@ package controller
 import (
 	"fmt"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/helper"
@@ -45,19 +47,21 @@ type (
 		Order  string `json:"order,omitempty"`
 	}
 	queryDetectorResultParams struct {
-		Limit  string `json:"limit,omitempty" validate:"xLimit"`
-		Offset string `json:"offset,omitempty" validate:"xOffset"`
-		Order  string `json:"order,omitempty"`
-		Task   string `json:"task,omitempty" validate:"omitempty,xTask"`
+		Limit    string `json:"limit,omitempty" validate:"xLimit"`
+		Offset   string `json:"offset,omitempty" validate:"xOffset"`
+		Order    string `json:"order,omitempty"`
+		Task     string `json:"task,omitempty" validate:"omitempty,xDetectorTask"`
+		Result   string `json:"result,omitempty" validate:"omitempty,xDetectorResult"`
+		Duration string `json:"duration,omitempty" validate:"omitempty,xDuration"`
 	}
 	addDetectorParams struct {
-		Timeout     string         `json:"timeout,omitempty" validate:"xDuration"`
+		Timeout     string         `json:"timeout,omitempty" validate:"omitempty,xDuration"`
 		Status      int            `json:"status,omitempty" validate:"xDetectorStatus,required"`
 		Description string         `json:"description,omitempty" validate:"xDetectorDescription"`
 		Receivers   pq.StringArray `json:"receivers,omitempty" validate:"required"`
 	}
 	updateDetectorParams struct {
-		Timeout     string         `json:"timeout,omitempty" validate:"xDuration"`
+		Timeout     string         `json:"timeout,omitempty" validate:"omitempty,xDuration"`
 		Status      int            `json:"status,omitempty" validate:"xDetectorStatus"`
 		Description string         `json:"description,omitempty" validate:"xDetectorDescription"`
 		Receivers   pq.StringArray `json:"receivers,omitempty" validate:"-"`
@@ -208,12 +212,34 @@ func init() {
 	)
 }
 
-func (params *queryDetectorResultParams) toConditions() (args []interface{}) {
-	args = make([]interface{}, 0)
+func (params *queryDetectorResultParams) toConditions() (conditions []interface{}) {
+	queryList := make([]string, 0)
+	args := make([]interface{}, 0)
+
 	if params.Task != "" {
-		args = append(args, "task = ?", params.Task)
+		queryList = append(queryList, "task = ?")
+		args = append(args, params.Task)
 	}
-	return args
+
+	if params.Result != "" {
+		queryList = append(queryList, "result = ?")
+		args = append(args, params.Result)
+	}
+	if params.Duration != "" {
+		d, _ := time.ParseDuration(params.Duration)
+		if d.Milliseconds() != 0 {
+			queryList = append(queryList, "duration >= ?")
+			args = append(args, d.Milliseconds())
+		}
+	}
+
+	conditions = make([]interface{}, 0)
+	if len(queryList) != 0 {
+		conditions = append(conditions, strings.Join(queryList, " AND "))
+		conditions = append(conditions, args...)
+	}
+
+	return
 }
 
 func (params *queryDetectorResultParams) toQueryParams() (queryParams helper.PGQueryParams) {

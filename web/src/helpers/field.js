@@ -109,13 +109,11 @@ export function getDNSListFields () {
     statusField,
     {
       key: 'hostname',
-      name: '域名',
-      width: '150'
+      name: '域名'
     },
     {
       key: 'server',
-      name: 'DNS服务器',
-      width: '100'
+      name: 'DNS服务器'
     },
     timeoutField,
     ownerField,

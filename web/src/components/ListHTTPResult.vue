@@ -2,6 +2,10 @@
   .httpDetectorResults(
     v-loading="processing"
   )
+    FilterResult(
+      :onFilter="filter"
+      :task="query.task"
+    )
     el-dialog(
       title="更多信息"
       :visible.sync="showingDetail"
@@ -73,7 +77,7 @@
       el-table-column(
         prop="durationDesc"
         label="耗时"
-        width="300"
+        width="350"
       )
         template(
           slot-scope="scope"
@@ -115,10 +119,10 @@
           )
             i.el-icon-more
           router-link.op(
-            title="查看任务"
+            title="更新任务"
             :to="{name: updateRoute, params: { id: scope.row.task }}"
           )
-            i.el-icon-view
+            i.el-icon-edit-outline
     .pagination(
       v-if="!simplify"
     ): el-pagination(
@@ -132,7 +136,7 @@
     )
 </template>
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapState } from 'vuex'
 
 import {
   CAT_HTTP
@@ -140,6 +144,8 @@ import {
 import HTTPTimeline from '@/components/HTTPTimeline.vue'
 import DetectorResult from '@/components/DetectorResult.vue'
 import DetectorMessage from '@/components/DetectorMessage.vue'
+import FilterResult from '@/components/FilterResult.vue'
+import BaseListResult from '@/components/BaseListResult.vue'
 import {
   formatDate
 } from '@/helpers/util'
@@ -156,10 +162,12 @@ export default {
     },
     simplify: Boolean
   },
+  extends: BaseListResult,
   components: {
     HTTPTimeline,
     DetectorMessage,
-    DetectorResult
+    DetectorResult,
+    FilterResult
   },
   data () {
     const {
@@ -180,6 +188,7 @@ export default {
       order: '-id'
     }, this.$route.query)
     return {
+      category: CAT_HTTP,
       updateRoute: ROUTE_UPDATE_HTTP,
       showingDetail: false,
       currentResult: null,
@@ -194,34 +203,6 @@ export default {
     results: state => state.detector.httpListResult.results || []
   }),
   methods: {
-    ...mapActions([
-      'listDetectorResult'
-    ]),
-    handleSizeChange (pageSize) {
-      this.query.limit = pageSize
-      this.currentPage = 1
-      this.fetch()
-    },
-    handleCurrentChange (page) {
-      this.currentPage = page
-      this.fetch()
-    },
-    async fetch () {
-      const {
-        query,
-        currentPage
-      } = this
-      try {
-        await this.listDetectorResult({
-          category: CAT_HTTP,
-          params: Object.assign({
-            offset: (currentPage - 1) * query.limit
-          }, query)
-        })
-      } catch (err) {
-        this.$message.error(err.message)
-      }
-    },
     showDetail (data) {
       if (data.certificateExpirationDates && data.certificateExpirationDates.length === 2) {
         const start = formatDate(data.certificateExpirationDates[0])

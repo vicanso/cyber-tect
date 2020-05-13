@@ -187,7 +187,7 @@ func PGGetClient() *gorm.DB {
 func PGCount(model interface{}, args ...interface{}) (count int, err error) {
 	db := pgClient.Model(model)
 	if len(args) > 1 {
-		db = db.Where(args[0], args[1:])
+		db = db.Where(args[0], args[1:]...)
 	} else if len(args) == 1 {
 		db = db.Where(args[0])
 	}

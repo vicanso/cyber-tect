@@ -26,9 +26,6 @@ func init() {
 
 	durationRegexp := regexp.MustCompile("^[1-9][0-9]*[smh]$")
 	Add("xDuration", func(fl validator.FieldLevel) bool {
-		if isZero(fl) {
-			return true
-		}
 		value, ok := toString(fl)
 		if !ok {
 			return false

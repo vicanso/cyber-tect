@@ -38,5 +38,6 @@ func init() {
 		})
 	})
 
-	AddAlias("xTask", "number")
+	AddAlias("xDetectorTask", "number")
+	AddAlias("xDetectorResult", "eq=1|eq=2")
 }

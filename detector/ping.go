@@ -48,7 +48,7 @@ type (
 
 		Receivers pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
 		Duration  int            `json:"duration,omitempty"`
-		Result    int            `json:"result,omitempty"`
+		Result    int            `json:"result,omitempty" gorm:"index:idx_ping_detect_result_result"`
 		Message   string         `json:"message,omitempty"`
 
 		Task    uint   `json:"task,omitempty" grom:"index:idx_ping_detect_result_task"`

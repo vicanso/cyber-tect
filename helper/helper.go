@@ -24,7 +24,9 @@ var (
 	isProduction = util.IsProduction
 )
 
+type ContextKey string
+
 const (
 	// 记录命令开始时间
-	startedAtKey = "startedAt"
+	startedAtKey ContextKey = "startedAt"
 )

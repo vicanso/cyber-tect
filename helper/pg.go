@@ -95,7 +95,7 @@ func (ps *pgStats) Before(category string) (callback func(scope *gorm.Scope)) {
 				_ = scope.Err(ErrPGTooManyUpdateProcessing)
 			}
 		}
-		scope.InstanceSet(startedAtKey, time.Now())
+		scope.InstanceSet(string(startedAtKey), time.Now())
 	}
 }
 
@@ -109,7 +109,7 @@ func (ps *pgStats) After(category string) func(*gorm.Scope) {
 			atomic.AddUint32(&ps.updateProcessing, ^uint32(0))
 		}
 
-		value, ok := scope.InstanceGet(startedAtKey)
+		value, ok := scope.InstanceGet(string(startedAtKey))
 		if !ok {
 			return
 		}

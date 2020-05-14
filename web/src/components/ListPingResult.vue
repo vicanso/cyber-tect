@@ -64,10 +64,10 @@
           slot-scope="scope"
         )
           router-link.op(
-            title="查看任务"
+            title="更新任务"
             :to="{name: updateRoute, params: { id: scope.row.task }}"
           )
-            i.el-icon-view
+            i.el-icon-edit-outline
     .pagination(
       v-if="!simplify"
     ): el-pagination(

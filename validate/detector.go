@@ -25,6 +25,7 @@ func init() {
 			2,
 		})
 	})
+	AddAlias("xDetectorName", "min=1,max=20")
 	AddAlias("xDetectorDescription", "min=0,max=1000")
 
 	AddAlias("xDNSServer", "isdefault|ip|hostname_port")

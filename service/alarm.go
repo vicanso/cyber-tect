@@ -16,6 +16,7 @@ package service
 
 import (
 	"crypto/tls"
+	"sync"
 
 	"github.com/vicanso/cybertect/config"
 	"go.uber.org/zap"
@@ -25,6 +26,8 @@ import (
 var (
 	mailDialer *gomail.Dialer
 	mailSender string
+
+	sendingMailMutex = new(sync.Mutex)
 )
 
 func init() {
@@ -44,6 +47,9 @@ func SendMail(subject, content string, receivers []string) {
 	m.SetBody("text/plain", content)
 	// 避免发送邮件时太慢影响现有流程
 	go func() {
+		// 只允许一次一个邮件发送，避免邮件服务拦截
+		sendingMailMutex.Lock()
+		defer sendingMailMutex.Unlock()
 		err := mailDialer.DialAndSend(m)
 		if err != nil {
 			logger.Error("send mail fail",

@@ -46,10 +46,7 @@ export default {
         return
       }
       if (!email) {
-        this.$message({
-          message: '邮箱不能为空',
-          type: 'warning'
-        })
+        this.$message.warning('邮箱不能为空')
         return
       }
       this.submitting = true
@@ -57,10 +54,8 @@ export default {
         await this.updateUser({
           email
         })
-        this.$message({
-          message: '已成功更新信息',
-          type: 'success'
-        })
+        this.$message.success('已成功更新信息')
+        this.$router.back()
       } catch (err) {
         this.$message.error(err.message)
       } finally {

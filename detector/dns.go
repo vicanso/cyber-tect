@@ -33,6 +33,7 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
+		Name        string         `json:"name,omitempty"`
 		Owner       string         `json:"owner,omitempty" gorm:"index:idx_dns_owner"`
 		Status      int            `json:"status,omitempty" gorm:"index:idx_dns_status"`
 		Description string         `json:"description,omitempty"`

@@ -111,10 +111,7 @@ export default {
         captcha
       } = this.form
       if (!account || !password || !captcha) {
-        this.$message({
-          message: '账号、密码以及验证码不能为空',
-          type: 'warning'
-        })
+        this.$message.warning('账号、密码以及验证码不能为空')
         return
       }
       if (this.submitting) {

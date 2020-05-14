@@ -55,12 +55,14 @@ type (
 		Duration string `json:"duration,omitempty" validate:"omitempty,xDuration"`
 	}
 	addDetectorParams struct {
+		Name        string         `json:"name,omitempty" validate:"xDetectorName"`
 		Timeout     string         `json:"timeout,omitempty" validate:"omitempty,xDuration"`
 		Status      int            `json:"status,omitempty" validate:"xDetectorStatus,required"`
 		Description string         `json:"description,omitempty" validate:"xDetectorDescription"`
 		Receivers   pq.StringArray `json:"receivers,omitempty" validate:"required"`
 	}
 	updateDetectorParams struct {
+		Name        string         `json:"name,omitempty" validate:"omitempty,xDetectorName"`
 		Timeout     string         `json:"timeout,omitempty" validate:"omitempty,xDuration"`
 		Status      int            `json:"status,omitempty" validate:"xDetectorStatus"`
 		Description string         `json:"description,omitempty" validate:"xDetectorDescription"`
@@ -258,6 +260,7 @@ func (ctrl detectorCtrl) addDNS(c *elton.Context) (data interface{}, err error) 
 	}
 	us := getUserSession(c)
 	d := &detector.DNS{
+		Name:        params.Name,
 		Owner:       us.GetAccount(),
 		Server:      params.Server,
 		Hostname:    params.Hostname,
@@ -287,6 +290,7 @@ func (ctrl detectorCtrl) updateDNS(id uint, c *elton.Context) (err error) {
 		return
 	}
 	err = dnsSrv.UpdateByID(id, &detector.DNS{
+		Name:        params.Name,
 		Server:      params.Server,
 		Hostname:    params.Hostname,
 		Timeout:     params.Timeout,
@@ -331,6 +335,7 @@ func (ctrl detectorCtrl) addTCP(c *elton.Context) (data interface{}, err error) 
 	}
 	us := getUserSession(c)
 	t := &detector.TCP{
+		Name:        params.Name,
 		Owner:       us.GetAccount(),
 		Status:      params.Status,
 		Description: params.Description,
@@ -361,6 +366,7 @@ func (ctrl detectorCtrl) updateTCP(id uint, c *elton.Context) (err error) {
 		return
 	}
 	err = tcpSrv.UpdateByID(id, &detector.TCP{
+		Name:        params.Name,
 		Status:      params.Status,
 		Description: params.Description,
 		Receivers:   params.Receivers,
@@ -406,6 +412,7 @@ func (ctrl detectorCtrl) addPing(c *elton.Context) (data interface{}, err error)
 	}
 	us := getUserSession(c)
 	p := &detector.Ping{
+		Name:        params.Name,
 		Owner:       us.GetAccount(),
 		Status:      params.Status,
 		Description: params.Description,
@@ -435,6 +442,7 @@ func (ctrl detectorCtrl) updatePing(id uint, c *elton.Context) (err error) {
 		return
 	}
 	err = pingSrv.UpdateByID(id, &detector.Ping{
+		Name:        params.Name,
 		Status:      params.Status,
 		Description: params.Description,
 		Receivers:   params.Receivers,
@@ -479,6 +487,7 @@ func (ctrl detectorCtrl) addHTTP(c *elton.Context) (data interface{}, err error)
 	}
 	us := getUserSession(c)
 	h := &detector.HTTP{
+		Name:        params.Name,
 		Owner:       us.GetAccount(),
 		Status:      params.Status,
 		Description: params.Description,
@@ -508,6 +517,7 @@ func (ctrl detectorCtrl) updateHTTP(id uint, c *elton.Context) (err error) {
 		return
 	}
 	updateParams := &detector.HTTP{
+		Name:        params.Name,
 		Status:      params.Status,
 		Description: params.Description,
 		Receivers:   params.Receivers,

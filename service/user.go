@@ -169,9 +169,17 @@ func (srv *UserSrv) Login(account, password, token string) (u *User, err error) 
 	return
 }
 
-// Update update user
-func (srv *UserSrv) Update(user User, attrs ...interface{}) (err error) {
-	err = pgGetClient().Model(user).Update(attrs...).Error
+// UpdateByID update user by id
+func (srv *UserSrv) UpdateByID(id uint, value interface{}) (err error) {
+	err = pgGetClient().Model(&User{
+		ID: id,
+	}).Updates(value).Error
+	return
+}
+
+// UpdateByAccount update user by account
+func (srv *UserSrv) UpdateByAccount(account string, value interface{}) (err error) {
+	err = pgGetClient().Model(&User{}).Where("account = ?", account).Updates(value).Error
 	return
 }
 

@@ -30,6 +30,7 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
+		Name        string         `json:"name,omitempty"`
 		Owner       string         `json:"owner,omitempty" gorm:"index:idx_ping_owner"`
 		Status      int            `json:"status,omitempty" gorm:"index:idx_ping_status"`
 		Description string         `json:"description,omitempty"`
@@ -168,7 +169,7 @@ func (srv *PingSrv) detectOne(ping *Ping) {
 		result.Result = DetectSuccess
 	}
 	result.Duration = duration
-	task := fmt.Sprintf("dns-%d", result.Task)
+	task := fmt.Sprintf("ping-%d", result.Task)
 	if isDetectResultChange(task, result.Result) {
 		result.Receivers = ping.Receivers
 		go srv.alarm(result)

@@ -42,6 +42,7 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
+		Name        string         `json:"name,omitempty"`
 		Owner       string         `json:"owner,omitempty" gorm:"index:idx_http_owner"`
 		Status      int            `json:"status,omitempty" gorm:"index:idx_http_status"`
 		Description string         `json:"description,omitempty"`
@@ -246,6 +247,7 @@ func (srv *HTTPSrv) detectOne(h *HTTP) {
 	result.Duration = duration
 	if resp != nil {
 		result.StatusCode = resp.StatusCode
+		result.Protocol = resp.Proto
 	}
 	if ht != nil {
 		stats := ht.Stats()
@@ -257,7 +259,6 @@ func (srv *HTTPSrv) detectOne(h *HTTP) {
 
 		result.Addrs = ht.Addrs
 		result.Addr = ht.Addr
-		result.Protocol = ht.Protocol
 		result.TLSVersion = ht.TLSVersion
 		result.TLSCipherSuite = ht.TLSCipherSuite
 		if len(ht.Certificates) != 0 {

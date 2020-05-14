@@ -105,9 +105,7 @@ export default {
           category,
           detector
         })
-        this.$message({
-          message: `添加${category.toUpperCase()}检测成功`
-        })
+        this.$message.info(`添加${category.toUpperCase()}检测成功`)
         this.$router.push({
           name: this.routerName
         })
@@ -125,9 +123,7 @@ export default {
         modifiedCount
       } = diff(detector, originalDetector)
       if (modifiedCount === 0) {
-        this.$message({
-          message: '相关配置未修改，请修改后再提交'
-        })
+        this.$message.info('相关配置未修改，请修改后再提交')
         return
       }
       try {

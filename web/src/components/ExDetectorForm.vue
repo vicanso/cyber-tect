@@ -171,10 +171,7 @@ export default {
         }
       })
       if (emptyFields.length !== 0) {
-        this.$message({
-          type: 'warning',
-          message: `${emptyFields.join('，')}不能为空`
-        })
+        this.$message.warning(`${emptyFields.join('，')}不能为空`)
         return
       }
       this.$props.submit(data)

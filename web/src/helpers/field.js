@@ -87,14 +87,25 @@ function getDetectorDescriptionField (options) {
 export function getDNSFields () {
   return [
     {
+      label: '名称',
+      name: 'name',
+      required: true,
+      span: 8,
+      placeholder: '请输入名称'
+    },
+    {
       label: '域名',
       name: 'hostname',
-      required: true
+      required: true,
+      span: 8,
+      placeholder: '请输入要检测的域名'
     },
     {
       label: 'DNS服务器',
       name: 'server',
-      required: true
+      required: true,
+      span: 8,
+      placeholder: '请输入DNS服务器IP'
     },
     getDetectorStatusField(),
     getDetectorTimeoutField(),
@@ -107,6 +118,10 @@ export function getDNSListFields () {
   return [
     idField,
     statusField,
+    {
+      key: 'name',
+      name: '名称'
+    },
     {
       key: 'hostname',
       name: '域名'
@@ -126,14 +141,23 @@ export function getDNSListFields () {
 export function getHTTPFields () {
   return [
     {
+      label: '名称',
+      name: 'name',
+      required: true,
+      span: 8,
+      placeholder: '请输入名称'
+    },
+    {
       label: 'URL',
       name: 'url',
       required: true,
+      span: 8,
       placeholder: '请输入要检测的网址'
     },
     {
       label: 'IP',
       name: 'ip',
+      span: 8,
       placeholder: '请输入要指定的域名IP解析，可选'
     },
     getDetectorStatusField(),
@@ -147,6 +171,10 @@ export function getHTTPListFields () {
   return [
     idField,
     statusField,
+    {
+      key: 'name',
+      name: '名称'
+    },
     {
       key: 'url',
       name: '检测地址'
@@ -166,9 +194,17 @@ export function getHTTPListFields () {
 export function getTCPFields () {
   return [
     {
+      label: '名称',
+      name: 'name',
+      required: true,
+      span: 8,
+      placeholder: '请输入名称'
+    },
+    {
       label: 'IP',
       name: 'ip',
       required: true,
+      span: 8,
       placeholder: '请输入要检测的IP地址'
     },
     {
@@ -176,6 +212,7 @@ export function getTCPFields () {
       name: 'port',
       inputType: 'number',
       required: true,
+      span: 8,
       placeholder: '请输入要检测的端口'
     },
     getDetectorStatusField(),
@@ -194,6 +231,10 @@ export function getTCPListFields () {
   return [
     idField,
     statusField,
+    {
+      key: 'name',
+      name: '名称'
+    },
     {
       key: 'ip',
       name: 'IP'
@@ -217,14 +258,23 @@ export function getTCPListFields () {
 export function getPingFields () {
   return [
     {
+      label: '名称',
+      name: 'name',
+      required: true,
+      span: 8,
+      placeholder: '请输入名称'
+    },
+    {
       label: 'IP',
       name: 'ip',
       required: true,
+      span: 8,
       placeholder: '请输入要检测的IP地址'
     },
     {
       label: '网络类型',
       name: 'network',
+      span: 8,
       placeholder: '请输入网络类型，可选'
     },
     getDetectorStatusField(),
@@ -238,6 +288,10 @@ export function getPingListFields () {
   return [
     idField,
     statusField,
+    {
+      key: 'name',
+      name: '名称'
+    },
     {
       key: 'ip',
       name: 'IP'

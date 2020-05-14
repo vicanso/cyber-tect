@@ -30,6 +30,7 @@ type (
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
+		Name        string         `json:"name,omitempty"`
 		Owner       string         `json:"owner,omitempty" gorm:"index:idx_tcp_owner"`
 		Status      int            `json:"status,omitempty" gorm:"index:idx_tcp_status"`
 		Description string         `json:"description,omitempty"`
@@ -171,7 +172,7 @@ func (srv *TCPSrv) detectOne(tcp *TCP) {
 		result.Result = DetectSuccess
 	}
 	result.Duration = duration
-	task := fmt.Sprintf("dns-%d", result.Task)
+	task := fmt.Sprintf("tcp-%d", result.Task)
 	if isDetectResultChange(task, result.Result) {
 		result.Receivers = tcp.Receivers
 		go srv.alarm(result)

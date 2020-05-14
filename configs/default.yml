@@ -58,9 +58,9 @@ routerLimit:
 
 # mail相关配置
 mail:
-  host: smtp.aliyun.com
-  port: 465
-  user: vicanso@aliyun.com
+  host: smtp.office365.com
+  port: 587
+  user: tree.xie@outlook.com
   password: EMAIL_PASS
 
 # 告警接收邮件列表

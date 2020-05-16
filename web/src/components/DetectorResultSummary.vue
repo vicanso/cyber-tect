@@ -142,6 +142,14 @@ export default {
     } else {
       this.fetchDetectorSummary()
     }
+  },
+  beforeDestroy () {
+    const {
+      category
+    } = this.$props
+    this.resetDetectorResults({
+      category
+    })
   }
 }
 </script>
@@ -158,9 +166,11 @@ $summaryWidth: 30px
   float: left
   cursor: pointer
   &.success
-    background-color: #26a0fc
+    background-color: #54b4fc
+    border: 1px solid #2ba2fc
   &.fail
     background-color: #c1c3c7
+    border: 1px solid #c1c3c7
 .tips
   font-size: 13px
   i

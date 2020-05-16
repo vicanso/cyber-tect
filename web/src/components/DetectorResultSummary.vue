@@ -173,8 +173,10 @@ export default {
 @import '@/common'
 $summaryWidth: 20px
 .detectorResultSummary
-  padding: 15px
-  padding-right: 0
+  margin: 15px
+  margin-right: 0
+  height: 66px
+  overflow: hidden
 .summary
   width: $summaryWidth
   height: $summaryWidth

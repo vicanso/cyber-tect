@@ -6,7 +6,7 @@ el-card.listDetector(
     slot="header"
   )
     | 服务检测
-    span.category {{$props.category}}
+    span.category {{$props.category.toUpperCase()}}
   el-form(
     label-width="80px"
   )

@@ -25,16 +25,12 @@ nav.mainNav
 
 <script>
 import {
-  ADD_HTTP,
   LIST_HTTP,
   LIST_HTTP_RESULT,
-  ADD_DNS,
   LIST_DNS,
   LIST_DNS_RESULT,
-  ADD_TCP,
   LIST_TCP,
   LIST_TCP_RESULT,
-  ADD_PING,
   LIST_PING,
   LIST_PING_RESULT
 } from '@/paths'
@@ -55,10 +51,6 @@ export default {
             {
               name: 'HTTP检测结果',
               path: LIST_HTTP_RESULT
-            },
-            {
-              name: '添加HTTP检测',
-              path: ADD_HTTP
             }
           ]
         },
@@ -72,10 +64,6 @@ export default {
             {
               name: 'DNS检测结果',
               path: LIST_DNS_RESULT
-            },
-            {
-              name: '添加DNS检测',
-              path: ADD_DNS
             }
           ]
         },
@@ -89,10 +77,6 @@ export default {
             {
               name: 'TCP检测结果',
               path: LIST_TCP_RESULT
-            },
-            {
-              name: '添加TCP检测',
-              path: ADD_TCP
             }
           ]
         },
@@ -106,10 +90,6 @@ export default {
             {
               name: 'Ping检测结果',
               path: LIST_PING_RESULT
-            },
-            {
-              name: '添加PING检测',
-              path: ADD_PING
             }
           ]
         }

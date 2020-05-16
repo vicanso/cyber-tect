@@ -1,26 +1,26 @@
 <template lang="pug">
-  nav.mainNav
-    el-menu(
-      :default-active="active"
+nav.mainNav
+  el-menu(
+    :default-active="active"
+  )
+    el-submenu(
+      v-for="(nav, i) in navs"
+      :index="`${i}`"
+      :key="`${i}`"
     )
-      el-submenu(
-        v-for="(nav, i) in navs"
-        :index="`${i}`"
-        :key="`${i}`"
+      template(
+        slot="title"
       )
-        template(
-          slot="title"
+        span {{nav.name}}
+      el-menu-item.menu(
+        v-for="(subItem, j) in nav.children"
+        :index="`${i}-${j}`"
+        :key="`${i}-${j}`"
+      )
+        router-link.link(
+          :to="subItem.path"
         )
-          span {{nav.name}}
-        el-menu-item.menu(
-          v-for="(subItem, j) in nav.children"
-          :index="`${i}-${j}`"
-          :key="`${i}-${j}`"
-        )
-          router-link.link(
-            :to="subItem.path"
-          )
-            span {{subItem.name}}
+          span {{subItem.name}}
 </template>
 
 <script>
@@ -133,7 +133,6 @@ export default {
     }
   },
   beforeRouteUpdate (to, from, next) {
-    console.dir(to)
     next()
   }
 }

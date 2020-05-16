@@ -1,121 +1,121 @@
 <template lang="pug">
-  el-card.listDetector(
-    v-loading='processing'
+el-card.listDetector(
+  v-loading='processing'
+)
+  div(
+    slot="header"
   )
-    div(
-      slot="header"
+    | 服务检测
+    span.category {{$props.category}}
+  el-form(
+    label-width="80px"
+  )
+    el-row(
+      :gutter="20"
     )
-      | 服务检测
-      span.category {{$props.category}}
-    el-form(
-      label-width="80px"
+      el-col(
+        :span="6"
+      )
+        el-form-item(
+          label="状态："
+        )
+          el-select(
+            v-model="query.status"
+          )
+            el-option(
+              v-for="item in statusOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            )
+      el-col(
+        :span="6"
+      )
+        el-form-item(
+          label="拥有者："
+        )
+          el-checkbox(
+            v-model="query.mine"
+          ) 仅展示我的
+      el-col(
+        :span="12"
+      )
+        el-form-item(
+          label-width="0"
+        )
+          el-button.submit(
+            @click="search"
+          ) 查询
+  el-table(
+    :data="detectors"
+    row-key="id"
+    stripe
+  )
+    el-table-column(
+      v-for="field in fields"
+      :key="field.key"
+      :prop="field.key"
+      :label="field.name"
+      :width="field.width"
     )
-      el-row(
-        :gutter="20"
+      template(
+        slot-scope="scope"
       )
-        el-col(
-          :span="6"
+        ul.receivers(
+          v-if="field.key === 'receivers'"
         )
-          el-form-item(
-            label="状态："
-          )
-            el-select(
-              v-model="query.status"
-            )
-              el-option(
-                v-for="item in statusOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              )
-        el-col(
-          :span="6"
+          li(
+            v-for="account in scope.row[field.key]"
+            :key="account"
+          ) {{account}}
+        div(
+          v-else-if="field.key === 'description'"
         )
-          el-form-item(
-            label="拥有者："
+          el-tooltip.tac(
+            v-if="scope.row.description"
           )
-            el-checkbox(
-              v-model="query.mine"
-            ) 仅展示我的
-        el-col(
-          :span="12"
-        )
-          el-form-item(
-            label-width="0"
-          )
-            el-button.submit(
-              @click="search"
-            ) 查询
-    el-table(
-      :data="detectors"
-      row-key="id"
-      stripe
-    )
-      el-table-column(
-        v-for="field in fields"
-        :key="field.key"
-        :prop="field.key"
-        :label="field.name"
-        :width="field.width"
-      )
-        template(
-          slot-scope="scope"
-        )
-          ul.receivers(
-            v-if="field.key === 'receivers'"
-          )
-            li(
-              v-for="account in scope.row[field.key]"
-              :key="account"
-            ) {{account}}
-          div(
-            v-else-if="field.key === 'description'"
-          )
-            el-tooltip.tac(
-              v-if="scope.row.description"
-            )
-              div(
-                slot="content"
-              ) {{scope.row.description}}
-              i.el-icon-warning-outline
-            span(
-              v-else
-            ) --
-          span(v-else) {{scope.row[field.key]}}
-      el-table-column(
-        label="操作"
-        width="160"
-        fixed="right"
-      )
-        template(
-          slot-scope="scope"
-        )
-          div(
-            v-if="scope.row.owner == userAccount"
-          )
-            a.op(
-              href="#"
-              @click.prevent="handleUpdate(scope.row.id)"
-            )
-              i.el-icon-edit-outline
-              | 更新
-            a.op(
-              href="#"
-              @click.prevent="handlerView(scope.row.id)"
-            )
-              i.el-icon-view
-              | 查看结果
-          div(
+            div(
+              slot="content"
+            ) {{scope.row.description}}
+            i.el-icon-warning-outline
+          span(
             v-else
           ) --
-    .pagination: el-pagination(
-      layout="prev, pager, next, sizes"
-      :page-size="query.limit"
-      :total="detectorCount"
-      :page-sizes="pageSizes"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
+        span(v-else) {{scope.row[field.key]}}
+    el-table-column(
+      label="操作"
+      width="160"
+      fixed="right"
     )
+      template(
+        slot-scope="scope"
+      )
+        div(
+          v-if="scope.row.owner == userAccount"
+        )
+          a.op(
+            href="#"
+            @click.prevent="handleUpdate(scope.row.id)"
+          )
+            i.el-icon-edit-outline
+            | 更新
+          a.op(
+            href="#"
+            @click.prevent="handlerView(scope.row.id)"
+          )
+            i.el-icon-view
+            | 查看结果
+        div(
+          v-else
+        ) --
+  .pagination: el-pagination(
+    layout="prev, pager, next, sizes"
+    :page-size="query.limit"
+    :total="detectorCount"
+    :page-sizes="pageSizes"
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+  )
 </template>
 
 <script>

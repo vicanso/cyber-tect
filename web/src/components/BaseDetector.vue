@@ -1,11 +1,11 @@
 <template lang="pug">
-  ExDetectorForm(
-    :fields="fields"
-    :submit="submit"
-    :originalDetector="$props.originalDetector"
-    :labelWidth="$props.labelWidth"
-    v-loading="processing"
-  )
+ExDetectorForm(
+  :fields="fields"
+  :submit="submit"
+  :originalDetector="$props.originalDetector"
+  :labelWidth="$props.labelWidth"
+  v-loading="processing"
+)
 </template>
 
 <script>

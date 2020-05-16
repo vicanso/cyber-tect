@@ -1,43 +1,43 @@
 <template lang="pug">
-  header.header
-    .userInfo
-      span(
-        v-if="fetchingUserInfo"
-      ) 加载用户信息...
-      div(
-        v-else-if="!userAccount"
-      )
-        router-link(
-          :to="LOGIN"
-        )
-          el-link(type="primary") 登录
-        span.divided |
-        router-link(
-          :to="REGISTER"
-        )
-          el-link(type="info") 注册
-      .functions(
-        v-else
-      )
-        router-link.userinfoUpdate(
-          :to="USER_INFO"
-          title="用户信息"
-        )
-          span {{userAccount}}
-          i.el-icon-user
-        span.divided |
-        a.logout(
-          href="#"
-          title="退出登录"
-          @click="logout"
-        )
-          i.el-icon-switch-button
-    h3
+header.header
+  .userInfo
+    span(
+      v-if="fetchingUserInfo"
+    ) 加载用户信息...
+    div(
+      v-else-if="!userAccount"
+    )
       router-link(
-        :to="HOME"
+        :to="LOGIN"
       )
-        i.el-icon-cpu
-        | Cyber Detect
+        el-link(type="primary") 登录
+      span.divided |
+      router-link(
+        :to="REGISTER"
+      )
+        el-link(type="info") 注册
+    .functions(
+      v-else
+    )
+      router-link.userinfoUpdate(
+        :to="USER_INFO"
+        title="用户信息"
+      )
+        span {{userAccount}}
+        i.el-icon-user
+      span.divided |
+      a.logout(
+        href="#"
+        title="退出登录"
+        @click="logout"
+      )
+        i.el-icon-switch-button
+  h3
+    router-link(
+      :to="HOME"
+    )
+      i.el-icon-cpu
+      | Cyber Detect
 </template>
 
 <script>

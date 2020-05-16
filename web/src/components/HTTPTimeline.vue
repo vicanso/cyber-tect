@@ -1,20 +1,20 @@
 <template lang="pug">
-  .httpTimeline.clearfix
-    el-tooltip(
-      placement="right"
+.httpTimeline.clearfix
+  el-tooltip(
+    placement="right"
+  )
+    div(
+      slot="content"
     )
       div(
-        slot="content"
+        v-html="tips"
       )
-        div(
-          v-html="tips"
-        )
-      .timelineWrapper
-        .timeline(
-          v-for="duration in durations"
-          :style="duration.style"
-        )
-    .durationDesc {{durationDesc}}
+    .timelineWrapper
+      .timeline(
+        v-for="duration in durations"
+        :style="duration.style"
+      )
+  .durationDesc {{durationDesc}}
 </template>
 
 <script>

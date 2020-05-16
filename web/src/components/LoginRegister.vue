@@ -1,53 +1,53 @@
 <template lang="pug">
-  .loginRegister.grayBorder
-    h3 {{title}}
-    el-form(
-      v-loading="submitting"
-      ref="form"
-      :model="form"
-      label-width="80px"
+.loginRegister.grayBorder
+  h3 {{title}}
+  el-form(
+    v-loading="submitting"
+    ref="form"
+    :model="form"
+    label-width="80px"
+  )
+    el-form-item(
+      label="账号："
     )
-      el-form-item(
-        label="账号："
+      el-input(
+        v-model="form.account"
+        autofocus=true
+        clearable
       )
-        el-input(
-          v-model="form.account"
-          autofocus=true
-          clearable
+    el-form-item(
+      label="密码："
+    )
+      el-input(
+        v-model="form.password"
+        show-password
+      )
+    el-form-item(
+      label="验证码："
+    )
+      el-row
+        el-col(
+          :span="18"
         )
-      el-form-item(
-        label="密码："
-      )
-        el-input(
-          v-model="form.password"
-          show-password
+          el-input.code(
+            v-model="form.captcha"
+            maxlength="4"
+            clearable
+          )
+        el-col(
+          :span="6"
         )
-      el-form-item(
-        label="验证码："
-      )
-        el-row
-          el-col(
-            :span="18"
+          .captchaImg(
+            @click="getCaptcha"
+          ): img(
+            v-if="captchaData"
+            :src="`data:image/jpeg;base64,${captchaData.data}`"
           )
-            el-input.code(
-              v-model="form.captcha"
-              maxlength="4"
-              clearable
-            )
-          el-col(
-            :span="6"
-          )
-            .captchaImg(
-              @click="getCaptcha"
-            ): img(
-              v-if="captchaData"
-              :src="`data:image/jpeg;base64,${captchaData.data}`"
-            )
-      el-form-item
-        el-button.submit(
-          @click="onSubmit"
-          type='primary'
-        ) {{submitText}}
+    el-form-item
+      el-button.submit(
+        @click="onSubmit"
+        type='primary'
+      ) {{submitText}}
 </template>
 
 <script>

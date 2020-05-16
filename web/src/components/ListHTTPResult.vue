@@ -1,140 +1,140 @@
 <template lang="pug">
-  .httpDetectorResults(
-    v-loading="processing"
+.httpDetectorResults(
+  v-loading="processing"
+)
+  FilterResult(
+    :onFilter="filter"
+    :task="query.task"
+    :category="category"
   )
-    FilterResult(
-      :onFilter="filter"
-      :task="query.task"
-      :category="category"
+  el-dialog(
+    title="更多信息"
+    :visible.sync="showingDetail"
+  )
+    ul.detail(
+      v-if="currentResult"
     )
-    el-dialog(
-      title="更多信息"
-      :visible.sync="showingDetail"
+      li
+        span 状态码：
+        | {{currentResult.statusCode}}
+      li
+        span IP地址：
+        | {{currentResult.addrs.join(',')}}
+      li(
+        v-if="currentResult.message"
+      )
+        span 出错信息：
+        | {{currentResult.message}}
+      li
+        span 协议：
+        | {{currentResult.protocol}}
+      li(
+        v-if="currentResult.tlsVersion"
+      )
+        span TLS版本：
+        | {{currentResult.tlsVersion}}
+      li(
+        v-if="currentResult.tlsCipherSuite"
+      )
+        span TLS加密套件：
+        | {{currentResult.tlsCipherSuite}}
+      li(
+        v-if="currentResult.expirationDate"
+      )
+        span 证件有效期：
+        | {{currentResult.expirationDate}}
+      li.dnsNames(
+        v-if="currentResult.certificateDNSNames && currentResult.certificateDNSNames.length"
+      )
+        span 证书域名：
+        ul
+          li(
+            v-for="name in currentResult.certificateDNSNames"
+          ) {{name}}
+  el-table(
+    :data="results"
+    row-key="id"
+    stripe
+  )
+    el-table-column(
+      prop="id"
+      label="ID"
+      width="100"
     )
-      ul.detail(
-        v-if="currentResult"
-      )
-        li
-          span 状态码：
-          | {{currentResult.statusCode}}
-        li
-          span IP地址：
-          | {{currentResult.addrs.join(',')}}
-        li(
-          v-if="currentResult.message"
-        )
-          span 出错信息：
-          | {{currentResult.message}}
-        li
-          span 协议：
-          | {{currentResult.protocol}}
-        li(
-          v-if="currentResult.tlsVersion"
-        )
-          span TLS版本：
-          | {{currentResult.tlsVersion}}
-        li(
-          v-if="currentResult.tlsCipherSuite"
-        )
-          span TLS加密套件：
-          | {{currentResult.tlsCipherSuite}}
-        li(
-          v-if="currentResult.expirationDate"
-        )
-          span 证件有效期：
-          | {{currentResult.expirationDate}}
-        li.dnsNames(
-          v-if="currentResult.certificateDNSNames && currentResult.certificateDNSNames.length"
-        )
-          span 证书域名：
-          ul
-            li(
-              v-for="name in currentResult.certificateDNSNames"
-            ) {{name}}
-    el-table(
-      :data="results"
-      row-key="id"
-      stripe
+    el-table-column(
+      prop="url"
+      label="URL"
     )
-      el-table-column(
-        prop="id"
-        label="ID"
-        width="100"
-      )
-      el-table-column(
-        prop="url"
-        label="URL"
-      )
-      el-table-column(
-        label="结果"
-        width="60"
-      )
-        template(
-          slot-scope="scope"
-        )
-          DetectorResult(
-            :result="scope.row.result"
-          )
-      el-table-column(
-        prop="durationDesc"
-        label="耗时"
-        width="350"
-      )
-        template(
-          slot-scope="scope"
-        )
-          HTTPTimeline(
-            :dnsLookup="scope.row.dnsLookup || 0"
-            :tcpConnection="scope.row.tcpConnection || 0"
-            :tlsHandshake="scope.row.tlsHandshake || 0"
-            :serverProcessing="scope.row.serverProcessing || 0"
-            :contentTransfer="scope.row.contentTransfer || 0"
-            :duration="scope.row.duration || 0"
-          )
-      el-table-column(
-        prop="message"
-        label="出错信息"
-        width="100"
-      )
-        template(
-          slot-scope="scope"
-        )
-          DetectorMessage(
-            :message="scope.row.message"
-          )
-      el-table-column(
-        width="180"
-        prop="updatedAtDesc"
-        label="更新于"
-      )
-      el-table-column(
-        label="操作"
-        width="100"
-      )
-        template(
-          slot-scope="scope"
-        )
-          el-link.op(
-            @click="showDetail(scope.row)"
-            title="查看详情"
-          )
-            i.el-icon-more
-          router-link.op(
-            title="更新任务"
-            :to="{name: updateRoute, params: { id: scope.row.task }}"
-          )
-            i.el-icon-edit-outline
-    .pagination(
-      v-if="!simplify"
-    ): el-pagination(
-      layout="prev, pager, next, sizes"
-      :page-size="query.limit"
-      :total="count"
-      :page-sizes="pageSizes"
-      :current-page="currentPage"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
+    el-table-column(
+      label="结果"
+      width="60"
     )
+      template(
+        slot-scope="scope"
+      )
+        DetectorResult(
+          :result="scope.row.result"
+        )
+    el-table-column(
+      prop="durationDesc"
+      label="耗时"
+      width="350"
+    )
+      template(
+        slot-scope="scope"
+      )
+        HTTPTimeline(
+          :dnsLookup="scope.row.dnsLookup || 0"
+          :tcpConnection="scope.row.tcpConnection || 0"
+          :tlsHandshake="scope.row.tlsHandshake || 0"
+          :serverProcessing="scope.row.serverProcessing || 0"
+          :contentTransfer="scope.row.contentTransfer || 0"
+          :duration="scope.row.duration || 0"
+        )
+    el-table-column(
+      prop="message"
+      label="出错信息"
+      width="100"
+    )
+      template(
+        slot-scope="scope"
+      )
+        DetectorMessage(
+          :message="scope.row.message"
+        )
+    el-table-column(
+      width="180"
+      prop="updatedAtDesc"
+      label="更新于"
+    )
+    el-table-column(
+      label="操作"
+      width="100"
+    )
+      template(
+        slot-scope="scope"
+      )
+        el-link.op(
+          @click="showDetail(scope.row)"
+          title="查看详情"
+        )
+          i.el-icon-more
+        router-link.op(
+          title="更新任务"
+          :to="{name: updateRoute, params: { id: scope.row.task }}"
+        )
+          i.el-icon-edit-outline
+  .pagination(
+    v-if="!simplify"
+  ): el-pagination(
+    layout="prev, pager, next, sizes"
+    :page-size="query.limit"
+    :total="count"
+    :page-sizes="pageSizes"
+    :current-page="currentPage"
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+  )
 </template>
 <script>
 import { mapState } from 'vuex'

@@ -1,76 +1,75 @@
 <template lang="pug">
-  el-form(
-    ref="form"
-    :model="form"
-    :label-width="$props.labelWidth"
+el-form(
+  ref="form"
+  :model="form"
+  :label-width="$props.labelWidth"
+)
+  el-row(
+    :gutter="$props.gutter"
   )
-    el-row(
-      :gutter="$props.gutter"
+    el-col(
+      v-for="field in $props.fields"
+      :key="field.name"
+      :span="field.span || 12"
     )
-      el-col(
-        v-for="field in $props.fields"
-        :key="field.name"
-        :span="field.span || 12"
+      el-form-item(
+        :label="field.label + '：'"
       )
-        el-form-item(
-          :label="field.label + '：'"
+        el-select.selector(
+          v-if="field.type === 'select'"
+          v-model="form[field.name]"
         )
-          el-select.selector(
-            v-if="field.type === 'select'"
-            v-model="form[field.name]"
+          el-option(
+            v-for="opt in field.options"
+            :key="opt.value"
+            :label="opt.label"
+            :value="opt.value"
           )
-            el-option(
-              v-for="opt in field.options"
-              :key="opt.value"
-              :label="opt.label"
-              :value="opt.value"
-            )
-          el-input(
-            v-else-if="field.type === 'textarea'"
-            type="textarea"
-            v-model="form[field.name]"
-            :placeholder="field.placeholder"
-            :rows="5"
+        el-input(
+          v-else-if="field.type === 'textarea'"
+          type="textarea"
+          v-model="form[field.name]"
+          :placeholder="field.placeholder"
+          :rows="5"
+        )
+        el-select.selector(
+          v-else-if="field.type === 'users'"
+          v-model="form[field.name]"
+          multiple
+          filterable
+          remote
+          :placeholder="field.placeholder"
+          :remote-method="searchUser"
+          :loading="fetchingUsers"
+        )
+          el-option(
+            v-for="item in users"
+            :key="item.account"
+            :label="item.account"
+            :value="item.account"
           )
-          el-select.selector(
-            v-else-if="field.type === 'users'"
-            v-model="form[field.name]"
-            multiple
-            filterable
-            remote
-            :placeholder="field.placeholder"
-            :remote-method="searchUser"
-            :loading="fetchingUsers"
-          )
-            el-option(
-              v-for="item in users"
-              :key="item.account"
-              :label="item.account"
-              :value="item.account"
-            )
-          el-input(
-            v-else
-            v-model="form[field.name]"
-            :type="field.inputType"
-            :placeholder="field.placeholder"
-            clearable
-          )
-      el-col(
-        :span="12"
-      )
-        el-form-item
-          el-button.submit(
-            @click="onSubmit"
-            type='primary'
-          ) 提交
-      el-col(
-        :span="12"
-      )
-        el-form-item
-          el-button.back(
-            @click="handleBack"
-          ) 返回
-
+        el-input(
+          v-else
+          v-model="form[field.name]"
+          :type="field.inputType"
+          :placeholder="field.placeholder"
+          clearable
+        )
+    el-col(
+      :span="12"
+    )
+      el-form-item
+        el-button.submit(
+          @click="onSubmit"
+          type='primary'
+        ) 提交
+    el-col(
+      :span="12"
+    )
+      el-form-item
+        el-button.back(
+          @click="handleBack"
+        ) 返回
 </template>
 
 <script>

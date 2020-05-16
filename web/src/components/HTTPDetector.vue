@@ -1,9 +1,9 @@
 <template lang="pug">
-  BaseDetector(
-    :category="category"
-    :originalDetector="$props.originalDetector"
-    labelWidth="100px"
-  )
+BaseDetector(
+  :category="category"
+  :originalDetector="$props.originalDetector"
+  labelWidth="100px"
+)
 </template>
 
 <script>

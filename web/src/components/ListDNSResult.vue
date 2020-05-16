@@ -1,100 +1,100 @@
 <template lang="pug">
-  .dnsDetectorResults(
-    v-loading="processing"
+.dnsDetectorResults(
+  v-loading="processing"
+)
+  FilterResult(
+    :onFilter="filter"
+    :task="query.task"
+    :category="category"
   )
-    FilterResult(
-      :onFilter="filter"
-      :task="query.task"
-      :category="category"
+  el-table(
+    :data="results"
+    row-key="id"
+    stripe
+  )
+    el-table-column(
+      prop="id"
+      label="ID"
+      width="100"
     )
-    el-table(
-      :data="results"
-      row-key="id"
-      stripe
+    el-table-column(
+      prop="hostname"
+      label="域名"
+      width="200"
     )
-      el-table-column(
-        prop="id"
-        label="ID"
-        width="100"
-      )
-      el-table-column(
-        prop="hostname"
-        label="域名"
-        width="200"
-      )
-      el-table-column(
-        prop="server"
-        label="DNS服务器"
-        width="150"
-      )
-      el-table-column(
-        label="解析结果"
-      )
-        template(
-          slot-scope="scope"
-        )
-          ul(
-            v-if="scope.row.ipAddrs"
-          )
-            li(
-              v-for="ip in scope.row.ipAddrs"
-            ) {{ip}}
-          span(
-            v-else
-          ) --
-      el-table-column(
-        label="结果"
-        width="60"
-      )
-        template(
-          slot-scope="scope"
-        )
-          DetectorResult(
-            :result="scope.row.result"
-          )
-      el-table-column(
-        prop="durationDesc"
-        label="耗时"
-      )
-      el-table-column(
-        prop="message"
-        label="出错信息"
-        width="100"
-      )
-        template(
-          slot-scope="scope"
-        )
-          DetectorMessage(
-            :message="scope.row.message"
-          )
-      el-table-column(
-        width="180"
-        prop="updatedAtDesc"
-        label="更新于"
-      )
-      el-table-column(
-        label="操作"
-        width="60"
-      )
-        template(
-          slot-scope="scope"
-        )
-          router-link.op(
-            title="更新任务"
-            :to="{name: updateRoute, params: { id: scope.row.task }}"
-          )
-            i.el-icon-edit-outline
-    .pagination(
-      v-if="!simplify"
-    ): el-pagination(
-      layout="prev, pager, next, sizes"
-      :page-size="query.limit"
-      :total="count"
-      :page-sizes="pageSizes"
-      :current-page="currentPage"
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
+    el-table-column(
+      prop="server"
+      label="DNS服务器"
+      width="150"
     )
+    el-table-column(
+      label="解析结果"
+    )
+      template(
+        slot-scope="scope"
+      )
+        ul(
+          v-if="scope.row.ipAddrs"
+        )
+          li(
+            v-for="ip in scope.row.ipAddrs"
+          ) {{ip}}
+        span(
+          v-else
+        ) --
+    el-table-column(
+      label="结果"
+      width="60"
+    )
+      template(
+        slot-scope="scope"
+      )
+        DetectorResult(
+          :result="scope.row.result"
+        )
+    el-table-column(
+      prop="durationDesc"
+      label="耗时"
+    )
+    el-table-column(
+      prop="message"
+      label="出错信息"
+      width="100"
+    )
+      template(
+        slot-scope="scope"
+      )
+        DetectorMessage(
+          :message="scope.row.message"
+        )
+    el-table-column(
+      width="180"
+      prop="updatedAtDesc"
+      label="更新于"
+    )
+    el-table-column(
+      label="操作"
+      width="60"
+    )
+      template(
+        slot-scope="scope"
+      )
+        router-link.op(
+          title="更新任务"
+          :to="{name: updateRoute, params: { id: scope.row.task }}"
+        )
+          i.el-icon-edit-outline
+  .pagination(
+    v-if="!simplify"
+  ): el-pagination(
+    layout="prev, pager, next, sizes"
+    :page-size="query.limit"
+    :total="count"
+    :page-sizes="pageSizes"
+    :current-page="currentPage"
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+  )
 </template>
 
 <script>

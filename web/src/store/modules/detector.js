@@ -14,9 +14,14 @@ const mutationDetectorProcessing = 'detector.processing'
 const mutationDetectorReset = 'detector.reset'
 const mutationDetectorList = 'detector.list'
 const mutationDetectorChangeCurrent = 'detector.changeCurrent'
+
 const mutationDetectorUpdate = 'detector.update'
-const mutationDtectorResultProcessing = 'detector.result.processing'
-const mutationDtectorResultList = 'detector.result.list'
+const mutationDetectorResultProcessing = 'detector.result.processing'
+const mutationDetectorResultList = 'detector.result.list'
+
+const mutationDetectorTaskFilterProcessing = 'detector.task.filter.processing'
+const mutationDetectorTaskFilter = 'detector.task.filter'
+const mutationDetectorTaskFilterReset = 'detector.task.filterReset'
 
 const statusDescList = ['未知', '启用', '禁用']
 const resultDescList = ['未知', '成功', '失败']
@@ -61,6 +66,10 @@ const state = {
     count: -1,
     results: null,
     processing: false
+  },
+  filterProcessing: false,
+  filterTasks: {
+    tasks: null
   }
 }
 export default {
@@ -92,10 +101,10 @@ export default {
     [mutationDetectorUpdate] (state, data) {
       state.updateDetector = data
     },
-    [mutationDtectorResultProcessing] (state, { category, processing }) {
+    [mutationDetectorResultProcessing] (state, { category, processing }) {
       state[`${category}ListResult`].processing = processing
     },
-    [mutationDtectorResultList] (state, { category, data }) {
+    [mutationDetectorResultList] (state, { category, data }) {
       const listResult = state[`${category}ListResult`]
       if (data.count >= 0) {
         listResult.count = data.count
@@ -106,6 +115,15 @@ export default {
         item.durationDesc = formatDuration(item.duration)
       })
       listResult.results = data.results
+    },
+    [mutationDetectorTaskFilterProcessing] (state, value) {
+      state.filterProcessing = value
+    },
+    [mutationDetectorTaskFilterReset] (state) {
+      state.filterTasks.tasks = null
+    },
+    [mutationDetectorTaskFilter] (state, data) {
+      state.filterTasks.tasks = data
     }
   },
   actions: {
@@ -198,7 +216,7 @@ export default {
       }
     },
     async listDetectorResult ({ commit }, { category, params }) {
-      commit(mutationDtectorResultProcessing, {
+      commit(mutationDetectorResultProcessing, {
         category,
         processing: true
       })
@@ -211,15 +229,31 @@ export default {
         if (!data.count) {
           data.count = 0
         }
-        commit(mutationDtectorResultList, {
+        commit(mutationDetectorResultList, {
           category,
           data
         })
       } finally {
-        commit(mutationDtectorResultProcessing, {
+        commit(mutationDetectorResultProcessing, {
           category,
           processing: false
         })
+      }
+    },
+    async resetDetectorTaskFilter ({ commit }) {
+      commit(mutationDetectorTaskFilterReset)
+    },
+    async filterDetectorTask ({ commit }, { category, params }) {
+      commit(mutationDetectorTaskFilterProcessing, true)
+      try {
+        const {
+          data
+        } = await request.get(DETECTORS.replace(':category', category), {
+          params
+        })
+        commit(mutationDetectorTaskFilter, data.detectors)
+      } finally {
+        commit(mutationDetectorTaskFilterProcessing, false)
       }
     }
   }

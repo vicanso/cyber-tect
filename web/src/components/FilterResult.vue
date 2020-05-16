@@ -12,13 +12,24 @@
         :span="6"
       )
         el-form-item(
-          label="任务ID："
+          label="任务："
         )
-          el-input(
+          el-select.selector(
             clearable
+            filterable
+            remote
+            reserve-keyword
             v-model="form.task"
-            placeholder="请输入要查看的任务ID"
+            placeholder="请输入关键字"
+            :remote-method="filterTaskByKeyword"
+            :loading="processing"
           )
+            el-option(
+              v-for="item in tasks"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            )
       el-col(
         :span="6"
       )
@@ -56,6 +67,7 @@
         ) 查询
 </template>
 <script>
+import { mapActions, mapState } from 'vuex'
 export default {
   name: 'FilterResult',
   props: {
@@ -63,12 +75,17 @@ export default {
       type: Function,
       required: true
     },
+    category: {
+      type: String,
+      required: true
+    },
     task: String
   },
   data () {
-    const {
-      task
-    } = this.$props
+    let task = null
+    if (this.$props.task) {
+      task = Number(this.$props.task)
+    }
     return {
       form: {
         task,
@@ -91,7 +108,33 @@ export default {
       ]
     }
   },
+  computed: mapState({
+    tasks: state => state.detector.filterTasks.tasks || [],
+    processing: state => state.detector.filterProcessing
+  }),
   methods: {
+    ...mapActions([
+      'resetDetectorTaskFilter',
+      'filterDetectorTask'
+    ]),
+    async filterTaskByKeyword (keyword) {
+      const {
+        category
+      } = this.$props
+      try {
+        await this.filterDetectorTask({
+          category,
+          params: {
+            offset: 0,
+            limit: 20,
+            fields: 'id,name',
+            keyword
+          }
+        })
+      } catch (err) {
+        this.$message.error(err.message)
+      }
+    },
     filter () {
       const {
         task,
@@ -114,6 +157,9 @@ export default {
       }
       this.$props.onFilter(params)
     }
+  },
+  mounted () {
+    this.resetDetectorTaskFilter()
   }
 }
 </script>

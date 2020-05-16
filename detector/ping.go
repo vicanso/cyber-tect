@@ -105,7 +105,7 @@ func (srv *PingSrv) FindByID(id uint) (data *Ping, err error) {
 // List list the ping detector
 func (srv *PingSrv) List(params helper.PGQueryParams, args ...interface{}) (data []*Ping, err error) {
 	data = make([]*Ping, 0)
-	err = pgQuery(params).Find(&data).Error
+	err = pgQuery(params, args...).Find(&data).Error
 	return
 }
 

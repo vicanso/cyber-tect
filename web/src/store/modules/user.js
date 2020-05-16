@@ -30,6 +30,7 @@ export default {
     fetchingUsers: false,
     account: '',
     trackID: '',
+    id: 0,
     email: '',
     users: null
   },

@@ -7,6 +7,45 @@
     )
       | 服务检测
       span.category {{$props.category}}
+    el-form(
+      label-width="80px"
+    )
+      el-row(
+        :gutter="20"
+      )
+        el-col(
+          :span="6"
+        )
+          el-form-item(
+            label="状态："
+          )
+            el-select(
+              v-model="query.status"
+            )
+              el-option(
+                v-for="item in statusOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              )
+        el-col(
+          :span="6"
+        )
+          el-form-item(
+            label="拥有者："
+          )
+            el-checkbox(
+              v-model="query.mine"
+            ) 仅展示我的
+        el-col(
+          :span="12"
+        )
+          el-form-item(
+            label-width="0"
+          )
+            el-button.submit(
+              @click="search"
+            ) 查询
     el-table(
       :data="detectors"
       row-key="id"
@@ -46,6 +85,7 @@
       el-table-column(
         label="操作"
         width="160"
+        fixed="right"
       )
         template(
           slot-scope="scope"
@@ -100,7 +140,8 @@ import {
   getDNSListFields,
   getHTTPListFields,
   getTCPListFields,
-  getPingListFields
+  getPingListFields,
+  getStatusOptions
 } from '@/helpers/field'
 
 function getFields (category) {
@@ -161,6 +202,11 @@ export default {
       50,
       100
     ]
+    const statusOptions = getStatusOptions()
+    statusOptions.unshift({
+      value: 0,
+      label: '所有'
+    })
     return {
       fields: getFields(category),
       updateRoute: getUpdateRoute(category),
@@ -169,8 +215,11 @@ export default {
       query: {
         limit: pageSizes[0],
         offset: 0,
-        order: '-updatedAt'
-      }
+        order: '-updatedAt',
+        status: 0,
+        mine: false
+      },
+      statusOptions
     }
   },
   computed: mapState({
@@ -218,6 +267,10 @@ export default {
         }
       })
     },
+    search () {
+      this.query.offset = 0
+      this.fetch()
+    },
     async fetch () {
       if (this.processing) {
         return
@@ -226,9 +279,17 @@ export default {
         category
       } = this.$props
       try {
+        const params = Object.assign({}, this.query)
+        if (params.mine) {
+          params.owner = this.userAccount
+        }
+        if (params.status === 0) {
+          delete params.status
+        }
+        delete params.mine
         await this.listDetector({
           category,
-          params: this.query
+          params
         })
       } catch (err) {
         this.$message.error(err.message)
@@ -258,4 +319,6 @@ export default {
     margin-right: 0
   i
     margin-right: 3px
+.submit
+  width: 100%
 </style>

@@ -33,6 +33,24 @@ const updatedAtField = {
   name: '更新于',
   width: '180'
 }
+const nameField = {
+  key: 'name',
+  name: '名称',
+  width: '150'
+}
+
+export function getStatusOptions () {
+  return [
+    {
+      value: 1,
+      label: '启用'
+    },
+    {
+      value: 2,
+      label: '禁用'
+    }
+  ]
+}
 
 function getDetectorStatusField () {
   return {
@@ -41,16 +59,7 @@ function getDetectorStatusField () {
     type: 'select',
     required: true,
     span: 5,
-    options: [
-      {
-        value: 1,
-        label: '启用'
-      },
-      {
-        value: 2,
-        label: '禁用'
-      }
-    ]
+    options: getStatusOptions()
   }
 }
 
@@ -118,17 +127,16 @@ export function getDNSListFields () {
   return [
     idField,
     statusField,
-    {
-      key: 'name',
-      name: '名称'
-    },
+    nameField,
     {
       key: 'hostname',
-      name: '域名'
+      name: '域名',
+      width: '150'
     },
     {
       key: 'server',
-      name: 'DNS服务器'
+      name: 'DNS服务器',
+      width: '180'
     },
     timeoutField,
     ownerField,
@@ -171,17 +179,16 @@ export function getHTTPListFields () {
   return [
     idField,
     statusField,
-    {
-      key: 'name',
-      name: '名称'
-    },
+    nameField,
     {
       key: 'url',
-      name: '检测地址'
+      name: '检测地址',
+      width: '250'
     },
     {
       key: 'ip',
-      name: 'IP'
+      name: 'IP',
+      width: '150'
     },
     timeoutField,
     ownerField,
@@ -231,13 +238,11 @@ export function getTCPListFields () {
   return [
     idField,
     statusField,
-    {
-      key: 'name',
-      name: '名称'
-    },
+    nameField,
     {
       key: 'ip',
-      name: 'IP'
+      name: 'IP',
+      width: '150'
     },
     {
       key: 'port',
@@ -288,13 +293,11 @@ export function getPingListFields () {
   return [
     idField,
     statusField,
-    {
-      key: 'name',
-      name: '名称'
-    },
+    nameField,
     {
       key: 'ip',
-      name: 'IP'
+      name: 'IP',
+      width: '150'
     },
     {
       key: 'network',

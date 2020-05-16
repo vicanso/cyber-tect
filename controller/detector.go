@@ -42,17 +42,23 @@ type detectorCtrl struct{}
 
 type (
 	queryDetectorParams struct {
-		Limit  string `json:"limit,omitempty" validate:"xLimit"`
-		Offset string `json:"offset,omitempty" validate:"xOffset"`
-		Order  string `json:"order,omitempty"`
+		Limit   string `json:"limit,omitempty" validate:"xLimit"`
+		Offset  string `json:"offset,omitempty" validate:"xOffset"`
+		Order   string `json:"order,omitempty"`
+		Status  string `json:"status,omitempty" validate:"omitempty,xDetectorResult"`
+		Owner   string `json:"owner,omitempty" validate:"omitempty,xUserAccount"`
+		Fields  string `json:"fields,omitempty" validate:"omitempty,xFields"`
+		Keyword string `json:"keyword,omitempty" validate:"omitempty,xDetectorKeyword"`
 	}
 	queryDetectorResultParams struct {
 		Limit    string `json:"limit,omitempty" validate:"xLimit"`
 		Offset   string `json:"offset,omitempty" validate:"xOffset"`
 		Order    string `json:"order,omitempty"`
 		Task     string `json:"task,omitempty" validate:"omitempty,xDetectorTask"`
+		Tasks    string `json:"tasks,omitempty" validate:"omitempty,min=1,max=300"`
 		Result   string `json:"result,omitempty" validate:"omitempty,xDetectorResult"`
 		Duration string `json:"duration,omitempty" validate:"omitempty,xDuration"`
+		Fields   string `json:"fields,omitempty" validate:"omitempty,xFields"`
 	}
 	addDetectorParams struct {
 		Name        string         `json:"name,omitempty" validate:"xDetectorName"`
@@ -132,7 +138,7 @@ var (
 	updateDetectors      map[string]func(uint, *elton.Context) error
 	getDetectors         map[string]func(uint) (interface{}, error)
 	countDetectors       map[string]func(queryDetectorParams) (int, error)
-	listDetectors        map[string]func(helper.PGQueryParams) (interface{}, error)
+	listDetectors        map[string]func(queryDetectorParams) (interface{}, error)
 	countDetectorResults map[string]func(queryDetectorResultParams) (int, error)
 	listDetectorResults  map[string]func(queryDetectorResultParams) (interface{}, error)
 )
@@ -163,7 +169,7 @@ func init() {
 		catPing: ctrl.countPing,
 		catHTTP: ctrl.countHTTP,
 	}
-	listDetectors = map[string]func(helper.PGQueryParams) (interface{}, error){
+	listDetectors = map[string]func(queryDetectorParams) (interface{}, error){
 		catDNS:  ctrl.listDNS,
 		catTCP:  ctrl.listTCP,
 		catPing: ctrl.listPing,
@@ -222,6 +228,10 @@ func (params *queryDetectorResultParams) toConditions() (conditions []interface{
 		queryList = append(queryList, "task = ?")
 		args = append(args, params.Task)
 	}
+	if params.Tasks != "" {
+		queryList = append(queryList, "task IN (?)")
+		args = append(args, strings.Split(params.Tasks, ","))
+	}
 
 	if params.Result != "" {
 		queryList = append(queryList, "result = ?")
@@ -248,6 +258,39 @@ func (params *queryDetectorResultParams) toQueryParams() (queryParams helper.PGQ
 	queryParams.Limit, _ = strconv.Atoi(params.Limit)
 	queryParams.Offset, _ = strconv.Atoi(params.Offset)
 	queryParams.Order = params.Order
+	queryParams.Fields = params.Fields
+	return queryParams
+}
+
+func (params *queryDetectorParams) toConditions() (conditions []interface{}) {
+	queryList := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	if params.Status != "" {
+		queryList = append(queryList, "status = ?")
+		args = append(args, params.Status)
+	}
+	if params.Owner != "" {
+		queryList = append(queryList, "owner = ?")
+		args = append(args, params.Owner)
+	}
+	if params.Keyword != "" {
+		queryList = append(queryList, "name LIKE ?")
+		args = append(args, "%"+params.Keyword+"%")
+	}
+	conditions = make([]interface{}, 0)
+	if len(queryList) != 0 {
+		conditions = append(conditions, strings.Join(queryList, " AND "))
+		conditions = append(conditions, args...)
+	}
+	return
+}
+
+func (params *queryDetectorParams) toQueryParams() (queryParams helper.PGQueryParams) {
+	queryParams.Limit, _ = strconv.Atoi(params.Limit)
+	queryParams.Offset, _ = strconv.Atoi(params.Offset)
+	queryParams.Order = params.Order
+	queryParams.Fields = params.Fields
 	return queryParams
 }
 
@@ -313,12 +356,12 @@ func (ctrl detectorCtrl) findDNS(id uint) (data interface{}, err error) {
 
 // countDNS count dns detector
 func (ctrl detectorCtrl) countDNS(params queryDetectorParams) (count int, err error) {
-	return dnsSrv.Count()
+	return dnsSrv.Count(params.toConditions()...)
 }
 
 // listDNS list dns detector
-func (ctrl detectorCtrl) listDNS(queryParams helper.PGQueryParams) (data interface{}, err error) {
-	detectors, err := dnsSrv.List(queryParams)
+func (ctrl detectorCtrl) listDNS(params queryDetectorParams) (data interface{}, err error) {
+	detectors, err := dnsSrv.List(params.toQueryParams(), params.toConditions()...)
 	if err != nil {
 		return
 	}
@@ -390,12 +433,12 @@ func (ctrl detectorCtrl) findTCP(id uint) (data interface{}, err error) {
 
 // countTCP count tcp detector
 func (ctrl detectorCtrl) countTCP(params queryDetectorParams) (count int, err error) {
-	return tcpSrv.Count()
+	return tcpSrv.Count(params.toConditions()...)
 }
 
 // listTCP list tcp detector
-func (ctrl detectorCtrl) listTCP(queryParams helper.PGQueryParams) (data interface{}, err error) {
-	detectors, err := tcpSrv.List(queryParams)
+func (ctrl detectorCtrl) listTCP(params queryDetectorParams) (data interface{}, err error) {
+	detectors, err := tcpSrv.List(params.toQueryParams(), params.toConditions()...)
 	if err != nil {
 		return
 	}
@@ -465,12 +508,12 @@ func (ctrl detectorCtrl) findPing(id uint) (data interface{}, err error) {
 
 // countPing count ping detector
 func (ctrl detectorCtrl) countPing(params queryDetectorParams) (count int, err error) {
-	return pingSrv.Count()
+	return pingSrv.Count(params.toConditions()...)
 }
 
 // listPing list ping detector
-func (ctrl detectorCtrl) listPing(queryParams helper.PGQueryParams) (data interface{}, err error) {
-	detectors, err := pingSrv.List(queryParams)
+func (ctrl detectorCtrl) listPing(params queryDetectorParams) (data interface{}, err error) {
+	detectors, err := pingSrv.List(params.toQueryParams(), params.toConditions()...)
 	if err != nil {
 		return
 	}
@@ -554,12 +597,12 @@ func (ctrl detectorCtrl) findHTTP(id uint) (data interface{}, err error) {
 
 // countHTTP count http detector
 func (ctrl detectorCtrl) countHTTP(params queryDetectorParams) (count int, err error) {
-	return httpSrv.Count()
+	return httpSrv.Count(params.toConditions()...)
 }
 
 // listHTTP list http detector
-func (ctrl detectorCtrl) listHTTP(queryParams helper.PGQueryParams) (data interface{}, err error) {
-	detectors, err := httpSrv.List(queryParams)
+func (ctrl detectorCtrl) listHTTP(params queryDetectorParams) (data interface{}, err error) {
+	detectors, err := httpSrv.List(params.toQueryParams(), params.toConditions()...)
 	if err != nil {
 		return
 	}
@@ -620,20 +663,16 @@ func (ctrl detectorCtrl) list(c *elton.Context) (err error) {
 		return
 	}
 
-	queryParams := helper.PGQueryParams{}
-	queryParams.Limit, _ = strconv.Atoi(params.Limit)
-	queryParams.Offset, _ = strconv.Atoi(params.Offset)
-	queryParams.Order = params.Order
-
 	count := -1
-	if queryParams.Offset == 0 {
+	offset, _ := strconv.Atoi(params.Offset)
+	if offset == 0 {
 		count, err = countDetectors[cat](params)
 		if err != nil {
 			return
 		}
 	}
 
-	data, err := listDetectors[cat](queryParams)
+	data, err := listDetectors[cat](params)
 	if err != nil {
 		return
 	}

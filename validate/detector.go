@@ -41,4 +41,5 @@ func init() {
 
 	AddAlias("xDetectorTask", "number")
 	AddAlias("xDetectorResult", "eq=1|eq=2")
+	AddAlias("xDetectorKeyword", "min=1,max=20")
 }

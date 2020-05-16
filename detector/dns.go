@@ -118,7 +118,7 @@ func (srv *DNSSrv) FindByID(id uint) (data *DNS, err error) {
 // List list the dns detector
 func (srv *DNSSrv) List(params helper.PGQueryParams, args ...interface{}) (data []*DNS, err error) {
 	data = make([]*DNS, 0)
-	err = pgQuery(params).Find(&data).Error
+	err = pgQuery(params, args...).Find(&data).Error
 	return
 }
 

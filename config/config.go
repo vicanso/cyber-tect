@@ -201,6 +201,13 @@ func GetStringFromENV(key string) string {
 	return value
 }
 
+// GetIntFromENV get int from env
+func GetIntFromENV(key string) int {
+	value := GetStringFromENV(key)
+	i, _ := strconv.Atoi(value)
+	return i
+}
+
 // GetStringDefault get string with default value
 func GetStringDefault(key, defaultValue string) string {
 	v := GetString(key)
@@ -373,8 +380,8 @@ func GetRouterConcurrentLimit() map[string]uint32 {
 func GetMailConfig() MailConfig {
 	prefix := "mail."
 	mailConfig := MailConfig{
-		Host:     GetString(prefix + "host"),
-		Port:     GetInt(prefix + "port"),
+		Host:     GetStringFromENV(prefix + "host"),
+		Port:     GetIntFromENV(prefix + "port"),
 		User:     GetStringFromENV(prefix + "user"),
 		Password: GetStringFromENV(prefix + "password"),
 	}
@@ -392,6 +399,7 @@ func GetInfluxdbConfig() InfluxdbConfig {
 		Token:         GetStringFromENV(prefix + "token"),
 		BatchSize:     GetUint(prefix + "batchSize"),
 		FlushInterval: GetDuration(prefix + "flushInterval"),
+		Disabled:      GetBool(prefix + "disabled"),
 	}
 	validatePanic(&influxdbConfig)
 	return influxdbConfig

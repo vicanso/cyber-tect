@@ -5,6 +5,7 @@
     FilterResult(
       :onFilter="filter"
       :task="query.task"
+      :category="category"
     )
     el-table(
       :data="results"

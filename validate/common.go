@@ -23,6 +23,7 @@ import (
 func init() {
 	AddAlias("xLimit", "number,min=0,max=10")
 	AddAlias("xOffset", "number,min=0,max=1000")
+	AddAlias("xFields", "min=0,max=100")
 
 	durationRegexp := regexp.MustCompile("^[1-9][0-9]*[smh]$")
 	Add("xDuration", func(fl validator.FieldLevel) bool {

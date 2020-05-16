@@ -107,7 +107,7 @@ func (srv *TCPSrv) FindByID(id uint) (data *TCP, err error) {
 // List list the tcp detector
 func (srv *TCPSrv) List(params helper.PGQueryParams, args ...interface{}) (data []*TCP, err error) {
 	data = make([]*TCP, 0)
-	err = pgQuery(params).Find(&data).Error
+	err = pgQuery(params, args...).Find(&data).Error
 	return
 }
 

@@ -17,6 +17,7 @@ package service
 import (
 	"crypto/tls"
 	"sync"
+	"time"
 
 	"github.com/vicanso/cybertect/config"
 	"go.uber.org/zap"
@@ -56,6 +57,8 @@ func SendMail(subject, content string, receivers []string) {
 				zap.Error(err),
 			)
 		}
+		// 延时一秒
+		time.Sleep(time.Second)
 	}()
 }
 

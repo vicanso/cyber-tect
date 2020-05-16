@@ -14,6 +14,7 @@
         v-html="formatContent(item)"
       )
       .summary(
+        @click="showTaskReuslts(item)"
         :class="{success: item.result === resultSucess, fail: item.result !== resultSucess}"
       )
   .tips(
@@ -24,6 +25,10 @@
 </template>
 <script>
 import { mapState, mapActions } from 'vuex'
+
+import {
+  ROUTE_LIST_HTTP_DETECTOR_RESULT
+} from '@/router'
 
 export default {
   name: 'DetectorResultSummary',
@@ -65,6 +70,14 @@ export default {
       'listMimeDetector',
       'listDetectorResult'
     ]),
+    showTaskReuslts (item) {
+      this.$router.push({
+        name: ROUTE_LIST_HTTP_DETECTOR_RESULT,
+        query: {
+          task: item.task
+        }
+      })
+    },
     formatContent (item) {
       let content = `任务：${item.task}<br />
       结果：${item.updatedAtDesc} 检测${item.resultDesc}<br />
@@ -155,7 +168,7 @@ export default {
 </script>
 <style lang="sass" scoped>
 @import '@/common'
-$summaryWidth: 30px
+$summaryWidth: 25px
 .detectorResultSummary
   padding: 15px
   padding-right: 0

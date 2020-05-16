@@ -1,11 +1,11 @@
 <template lang="pug">
-  .listHTTPDetectorResult
-    el-card
-      div(
-        slot="header"
-      )
-        | HTTP
-      ListHTTPResult
+.listHTTPDetectorResult
+  el-card
+    div(
+      slot="header"
+    )
+      | HTTP
+    ListHTTPResult
 </template>
 <script>
 import ListHTTPResult from '@/components/ListHTTPResult.vue'

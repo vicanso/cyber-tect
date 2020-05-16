@@ -1,7 +1,7 @@
 <template lang="pug">
-  LoginRegister.register(
-    type="register"
-  )
+LoginRegister.register(
+  type="register"
+)
 </template>
 <script>
 import LoginRegister from '@/components/LoginRegister.vue'

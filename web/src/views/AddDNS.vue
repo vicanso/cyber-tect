@@ -1,10 +1,10 @@
 <template lang="pug">
-  el-card.addDNS
-    div(
-      slot="header"
-    )
-      span 添加DNS检测
-    DNSDetector
+el-card.addDNS
+  div(
+    slot="header"
+  )
+    span 添加DNS检测
+  DNSDetector
 </template>
 
 <script>

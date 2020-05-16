@@ -1,12 +1,12 @@
 <template lang="pug">
-  el-card.updateTCP
-    div(
-      slot="header"
-    )
-      span 修改TCP检测
-    UpdateDetector(
-      :category="category"
-    )
+el-card.updateTCP
+  div(
+    slot="header"
+  )
+    span 修改TCP检测
+  UpdateDetector(
+    :category="category"
+  )
 </template>
 <script>
 import UpdateDetector from '@/components/UpdateDetector.vue'

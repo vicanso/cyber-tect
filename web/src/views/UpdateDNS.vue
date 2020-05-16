@@ -1,12 +1,12 @@
 <template lang="pug">
-  el-card.updateDNS
-    div(
-      slot="header"
-    )
-      span 修改DNS检测
-    UpdateDetector(
-      :category="category"
-    )
+el-card.updateDNS
+  div(
+    slot="header"
+  )
+    span 修改DNS检测
+  UpdateDetector(
+    :category="category"
+  )
 </template>
 <script>
 import UpdateDetector from '@/components/UpdateDetector.vue'

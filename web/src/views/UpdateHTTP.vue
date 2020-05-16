@@ -1,12 +1,12 @@
 <template lang="pug">
-  el-card.updateHTTP
-    div(
-      slot="header"
-    )
-      span 修改HTTP检测
-    UpdateDetector(
-      :category="category"
-    )
+el-card.updateHTTP
+  div(
+    slot="header"
+  )
+    span 修改HTTP检测
+  UpdateDetector(
+    :category="category"
+  )
 </template>
 
 <script>

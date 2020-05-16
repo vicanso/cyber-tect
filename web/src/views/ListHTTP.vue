@@ -1,7 +1,7 @@
 <template lang="pug">
-  ListDetector(
-    :category="category"
-  )
+ListDetector(
+  :category="category"
+)
 </template>
 <script>
 import ListDetector from '@/components/ListDetector.vue'

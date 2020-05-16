@@ -1,10 +1,10 @@
 <template lang="pug">
-  .listPingDetectorResult
-    el-card
-      div(
-        slot="header"
-      ) Ping
-      ListPingResult
+.listPingDetectorResult
+  el-card
+    div(
+      slot="header"
+    ) Ping
+    ListPingResult
 </template>
 <script>
 import ListPingResult from '@/components/ListPingResult.vue'

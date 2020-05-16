@@ -1,67 +1,67 @@
 <template lang="pug">
-  .home
-    template(
-      v-if="userAccount"
-    )
-      el-card.detectResult
-        div(
-          slot="header"
+.home
+  template(
+    v-if="userAccount"
+  )
+    el-card.detectResult
+      div(
+        slot="header"
+      )
+        | 我的最新HTTP检测
+        router-link.more(
+          :to="moreHTTPResult"
         )
-          | 我的最新HTTP检测
-          router-link.more(
-            :to="moreHTTPResult"
-          )
-            | 查看更多
-            i.el-icon-more
-        DetectorResultSummary(
-          :category="http"
-          :mime="true"
+          | 查看更多
+          i.el-icon-more
+      DetectorResultSummary(
+        :category="http"
+        :mime="true"
+      )
+    el-card.detectResult
+      div(
+        slot="header"
+      )
+        | 我的最新DNS检测
+        router-link.more(
+          :to="moreDNSResult"
         )
-      el-card.detectResult
-        div(
-          slot="header"
+          | 查看更多
+          i.el-icon-more
+      DetectorResultSummary(
+        :category="dns"
+        :mime="true"
+      )
+    el-card.detectResult
+      div(
+        slot="header"
+      )
+        | 我的最新TCP检测
+        router-link.more(
+          :to="moreTCPResult"
         )
-          | 我的最新DNS检测
-          router-link.more(
-            :to="moreDNSResult"
-          )
-            | 查看更多
-            i.el-icon-more
-        DetectorResultSummary(
-          :category="dns"
-          :mime="true"
+          | 查看更多
+          i.el-icon-more
+      DetectorResultSummary(
+        :category="tcp"
+        :mime="true"
+      )
+    el-card.detectResult
+      div(
+        slot="header"
+      )
+        | 我的最新Ping检测
+        router-link.more(
+          :to="morePingResult"
         )
-      el-card.detectResult
-        div(
-          slot="header"
-        )
-          | 我的最新TCP检测
-          router-link.more(
-            :to="moreTCPResult"
-          )
-            | 查看更多
-            i.el-icon-more
-        DetectorResultSummary(
-          :category="tcp"
-          :mime="true"
-        )
-      el-card.detectResult
-        div(
-          slot="header"
-        )
-          | 我的最新Ping检测
-          router-link.more(
-            :to="morePingResult"
-          )
-            | 查看更多
-            i.el-icon-more
-        DetectorResultSummary(
-          :category="ping"
-          :mime="true"
-        )
-    .tips(
-      v-else
-    ) 请先登录系统
+          | 查看更多
+          i.el-icon-more
+      DetectorResultSummary(
+        :category="ping"
+        :mime="true"
+      )
+  .tips(
+    v-else
+  ) 请先登录系统
 </template>
 <script>
 import { mapState } from 'vuex'

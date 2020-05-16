@@ -1,10 +1,10 @@
 <template lang="pug">
-  .listTCPDetectorResult
-    el-card
-      div(
-        slot="header"
-      ) TCP
-      ListTCPResult
+.listTCPDetectorResult
+  el-card
+    div(
+      slot="header"
+    ) TCP
+    ListTCPResult
 </template>
 <script>
 import ListTCPResult from '@/components/ListTCPResult.vue'

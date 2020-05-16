@@ -1,10 +1,10 @@
 <template lang="pug">
-  el-card.addHTTP
-    div(
-      slot="header"
-    )
-      span 添加HTTP检测
-    HTTPDetector
+el-card.addHTTP
+  div(
+    slot="header"
+  )
+    span 添加HTTP检测
+  HTTPDetector
 </template>
 
 <script>

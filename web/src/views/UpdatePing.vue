@@ -1,12 +1,12 @@
 <template lang="pug">
-  el-card.updatePing
-    div(
-      slot="header"
-    )
-      span 修改Ping检测
-    UpdateDetector(
-      :category="category"
-    )
+el-card.updatePing
+  div(
+    slot="header"
+  )
+    span 修改Ping检测
+  UpdateDetector(
+    :category="category"
+  )
 </template>
 <script>
 import UpdateDetector from '@/components/UpdateDetector.vue'

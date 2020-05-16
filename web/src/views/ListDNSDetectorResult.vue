@@ -1,10 +1,10 @@
 <template lang="pug">
-  .listDNSDetectorResult
-    el-card
-      div(
-        slot="header"
-      ) DNS
-      ListDNSResult
+.listDNSDetectorResult
+  el-card
+    div(
+      slot="header"
+    ) DNS
+    ListDNSResult
 </template>
 <script>
 import ListDNSResult from '@/components/ListDNSResult.vue'

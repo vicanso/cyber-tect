@@ -1,24 +1,24 @@
 <template lang="pug">
-  .userInfo.grayBorder
-    h3 用户信息
-    el-form(
-      ref="form"
-      :model="form"
-      label-width="80px"
-      v-loading="submitting"
+.userInfo.grayBorder
+  h3 用户信息
+  el-form(
+    ref="form"
+    :model="form"
+    label-width="80px"
+    v-loading="submitting"
+  )
+    el-form-item(
+      label="Email："
     )
-      el-form-item(
-        label="Email："
+      el-input(
+        v-model="form.email"
+        clearable
       )
-        el-input(
-          v-model="form.email"
-          clearable
-        )
-      el-form-item
-        el-button.submit(
-          @click="onSubmit"
-          type='primary'
-        ) 更新
+    el-form-item
+      el-button.submit(
+        @click="onSubmit"
+        type='primary'
+      ) 更新
 </template>
 
 <script>

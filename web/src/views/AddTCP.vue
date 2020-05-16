@@ -1,10 +1,10 @@
 <template lang="pug">
-  el-card.addTCP
-    div(
-      slot="header"
-    )
-      span 添加TCP检测
-    TCPDetector
+el-card.addTCP
+  div(
+    slot="header"
+  )
+    span 添加TCP检测
+  TCPDetector
 </template>
 
 <script>

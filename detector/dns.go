@@ -185,6 +185,10 @@ func (srv *DNSSrv) detectOne(dns *DNS) {
 			result.IPAddrs[index] = item.String()
 		}
 	}
+	// 设置最少时间为1
+	if duration == 0 {
+		duration = 1
+	}
 	result.Duration = duration
 	task := fmt.Sprintf("dns-%d", result.Task)
 	if isDetectResultChange(task, result.Result) {

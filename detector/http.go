@@ -244,6 +244,10 @@ func (srv *HTTPSrv) detectOne(h *HTTP) {
 	} else {
 		result.Result = DetectSuccess
 	}
+	// 设置最少时间为1
+	if duration == 0 {
+		duration = 1
+	}
 	result.Duration = duration
 	if resp != nil {
 		result.StatusCode = resp.StatusCode

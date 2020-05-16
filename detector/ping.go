@@ -168,6 +168,10 @@ func (srv *PingSrv) detectOne(ping *Ping) {
 	} else {
 		result.Result = DetectSuccess
 	}
+	// 设置最少时间为1
+	if duration == 0 {
+		duration = 1
+	}
 	result.Duration = duration
 	task := fmt.Sprintf("ping-%d", result.Task)
 	if isDetectResultChange(task, result.Result) {

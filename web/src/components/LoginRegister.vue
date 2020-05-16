@@ -14,6 +14,7 @@
         v-model="form.account"
         autofocus=true
         clearable
+        placeholder="请输入账号"
       )
     el-form-item(
       label="密码："
@@ -21,6 +22,7 @@
       el-input(
         v-model="form.password"
         show-password
+        placeholder="请输入密码"
       )
     el-form-item(
       label="验证码："
@@ -33,6 +35,8 @@
             v-model="form.captcha"
             maxlength="4"
             clearable
+            @keyup.enter.native="onSubmit"
+            placeholder="请输入验证码"
           )
         el-col(
           :span="6"

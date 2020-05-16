@@ -25,7 +25,7 @@ func init() {
 	AddAlias("xOffset", "number,min=0,max=1000")
 	AddAlias("xFields", "min=0,max=100")
 
-	durationRegexp := regexp.MustCompile("^[1-9][0-9]*[smh]$")
+	durationRegexp := regexp.MustCompile("^[1-9][0-9]*(ms|[smh])$")
 	Add("xDuration", func(fl validator.FieldLevel) bool {
 		value, ok := toString(fl)
 		if !ok {

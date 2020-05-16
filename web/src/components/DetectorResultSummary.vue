@@ -182,7 +182,7 @@ $summaryWidth: 20px
   float: left
   cursor: pointer
   &.success
-    background-color: #54b4fc
+    background-color: #0e8be8
     border: 1px solid #2ba2fc
   &.fail
     background-color: #c1c3c7

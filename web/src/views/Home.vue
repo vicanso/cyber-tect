@@ -7,85 +7,90 @@
         div(
           slot="header"
         )
-          | 最新HTTP检测
+          | 我的最新HTTP检测
           router-link.more(
             :to="moreHTTPResult"
           )
             | 查看更多
             i.el-icon-more
-        ListHTTPResult(
-          :limit="limit"
-          :simplify="simplify"
+        DetectorResultSummary(
+          :category="http"
+          :mime="true"
         )
       el-card.detectResult
         div(
           slot="header"
         )
-          | 最新DNS检测
+          | 我的最新DNS检测
           router-link.more(
             :to="moreDNSResult"
           )
             | 查看更多
             i.el-icon-more
-        ListDNSResult(
-          :limit="limit"
-          :simplify="simplify"
+        DetectorResultSummary(
+          :category="dns"
+          :mime="true"
         )
       el-card.detectResult
         div(
           slot="header"
         )
-          | 最新TCP检测
+          | 我的最新TCP检测
           router-link.more(
             :to="moreTCPResult"
           )
             | 查看更多
             i.el-icon-more
-        ListTCPResult(
-          :limit="limit"
-          :simplify="simplify"
+        DetectorResultSummary(
+          :category="tcp"
+          :mime="true"
         )
       el-card.detectResult
         div(
           slot="header"
         )
-          | 最新Ping检测
+          | 我的最新Ping检测
           router-link.more(
             :to="morePingResult"
           )
             | 查看更多
             i.el-icon-more
-        ListPingResult(
-          :limit="limit"
-          :simplify="simplify"
+        DetectorResultSummary(
+          :category="ping"
+          :mime="true"
         )
+    .tips(
+      v-else
+    ) 请先登录系统
 </template>
 <script>
 import { mapState } from 'vuex'
 
-import ListHTTPResult from '@/components/ListHTTPResult.vue'
-import ListDNSResult from '@/components/ListDNSResult.vue'
-import ListTCPResult from '@/components/ListTCPResult.vue'
-import ListPingResult from '@/components/ListPingResult.vue'
+import DetectorResultSummary from '@/components/DetectorResultSummary.vue'
 import {
   LIST_HTTP_RESULT,
   LIST_DNS_RESULT,
   LIST_TCP_RESULT,
   LIST_PING_RESULT
 } from '@/paths'
+import {
+  CAT_HTTP,
+  CAT_PING,
+  CAT_DNS,
+  CAT_TCP
+} from '@/constants/category'
 
 export default {
   name: 'Home',
   components: {
-    ListHTTPResult,
-    ListDNSResult,
-    ListTCPResult,
-    ListPingResult
+    DetectorResultSummary
   },
   data () {
     return {
-      limit: 5,
-      simplify: true,
+      http: CAT_HTTP,
+      ping: CAT_PING,
+      dns: CAT_DNS,
+      tcp: CAT_TCP,
       moreHTTPResult: LIST_HTTP_RESULT,
       moreDNSResult: LIST_DNS_RESULT,
       moreTCPResult: LIST_TCP_RESULT,
@@ -110,4 +115,7 @@ export default {
     transform: rotate(90deg)
 .detectResult
   margin-bottom: 20px
+.tips
+  text-align: center
+  margin-top: 100px
 </style>

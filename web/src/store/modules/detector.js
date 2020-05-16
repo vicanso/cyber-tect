@@ -18,19 +18,44 @@ const mutationDetectorChangeCurrent = 'detector.changeCurrent'
 const mutationDetectorUpdate = 'detector.update'
 const mutationDetectorResultProcessing = 'detector.result.processing'
 const mutationDetectorResultList = 'detector.result.list'
+const mutationDetectorResultReset = 'detector.result.reset'
 
 const mutationDetectorTaskFilterProcessing = 'detector.task.filter.processing'
 const mutationDetectorTaskFilter = 'detector.task.filter'
 const mutationDetectorTaskFilterReset = 'detector.task.filterReset'
 
+const mutationDetectorMimeList = 'detector.mime.list'
+const mutationDetectorMimeProcessing = 'detector.mime.processing'
+
 const statusDescList = ['未知', '启用', '禁用']
 const resultDescList = ['未知', '成功', '失败']
 
 const state = {
+  resultSucess: 1,
+  resultFail: 2,
   processing: false,
   currentCategory: '',
   currentDetectors: null,
   updateDetector: null,
+  // 我所创建的dtector
+  mime: {
+    http: {
+      processing: false,
+      detectors: null
+    },
+    dns: {
+      processing: false,
+      detectors: null
+    },
+    tcp: {
+      processing: false,
+      detectors: null
+    },
+    ping: {
+      processing: false,
+      detectors: null
+    }
+  },
   http: {
     count: -1,
     detectors: null
@@ -78,10 +103,12 @@ export default {
     [mutationDetectorProcessing] (state, value) {
       state.processing = value
     },
+    // 重置detector数据
     [mutationDetectorReset] (state, category) {
       state[category].count = -1
       state[category].detectors = null
     },
+    // 获取detector配置列表
     [mutationDetectorList] (state, { category, data }) {
       state.currentCategory = category
       const arr = (state[category].detectors || []).slice(0)
@@ -90,6 +117,7 @@ export default {
       }
       state[category].detectors = arr.concat(data.detectors || [])
     },
+    // 设置当前更新的detector
     [mutationDetectorChangeCurrent] (state, { category, limit, offset }) {
       state.currentCategory = category
       if (!limit) {
@@ -98,32 +126,56 @@ export default {
         state.currentDetectors = state[category].detectors.slice(offset, offset + limit)
       }
     },
+    // 设置detector更新数据
     [mutationDetectorUpdate] (state, data) {
       state.updateDetector = data
     },
+    // 设置是否正在获取detector结果
     [mutationDetectorResultProcessing] (state, { category, processing }) {
       state[`${category}ListResult`].processing = processing
     },
+    // 重置detector结果列表
+    [mutationDetectorResultReset] (state, { category }) {
+      const listResult = state[`${category}ListResult`]
+      listResult.count = 0
+      listResult.results = null
+    },
+    // 获取detector结果列表
     [mutationDetectorResultList] (state, { category, data }) {
       const listResult = state[`${category}ListResult`]
       if (data.count >= 0) {
         listResult.count = data.count
       }
       data.results.forEach((item) => {
-        item.updatedAtDesc = formatDate(item.updatedAt)
-        item.resultDesc = resultDescList[item.result]
+        if (item.updatedAt) {
+          item.updatedAtDesc = formatDate(item.updatedAt)
+        }
+        if (item.result) {
+          item.resultDesc = resultDescList[item.result]
+        }
         item.durationDesc = formatDuration(item.duration)
       })
       listResult.results = data.results
     },
+    // 设置是否正在获取task filter
     [mutationDetectorTaskFilterProcessing] (state, value) {
       state.filterProcessing = value
     },
+    // 重置task filter数据
     [mutationDetectorTaskFilterReset] (state) {
       state.filterTasks.tasks = null
     },
+    // 设置task filter数据
     [mutationDetectorTaskFilter] (state, data) {
       state.filterTasks.tasks = data
+    },
+    // 设置是否正在获取我的detector
+    [mutationDetectorMimeProcessing] (state, { category, processing }) {
+      state.mime[category].processing = processing
+    },
+    // 设置我的detector数据
+    [mutationDetectorMimeList] (state, { category, data }) {
+      state.mime[category].detectors = data
     }
   },
   actions: {
@@ -215,6 +267,32 @@ export default {
         commit(mutationDetectorProcessing, false)
       }
     },
+    async listMimeDetector ({ commit }, { category, params }) {
+      // 如果已加载过，直接返回
+      if (state.mime[category].detectors) {
+        return
+      }
+      commit(mutationDetectorMimeProcessing, {
+        category,
+        processing: true
+      })
+      try {
+        const {
+          data
+        } = await request.get(DETECTORS.replace(':category', category), {
+          params
+        })
+        commit(mutationDetectorMimeList, {
+          category,
+          data: data.detectors
+        })
+      } finally {
+        commit(mutationDetectorMimeProcessing, {
+          category,
+          processing: false
+        })
+      }
+    },
     async listDetectorResult ({ commit }, { category, params }) {
       commit(mutationDetectorResultProcessing, {
         category,
@@ -239,6 +317,11 @@ export default {
           processing: false
         })
       }
+    },
+    resetDetectorResults ({ commit }, { category }) {
+      commit(mutationDetectorResultReset, {
+        category
+      })
     },
     async resetDetectorTaskFilter ({ commit }) {
       commit(mutationDetectorTaskFilterReset)

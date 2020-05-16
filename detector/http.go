@@ -35,6 +35,9 @@ import (
 const userAgentChrome = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"
 const acceptEncodingChrome = "gzip, deflate, br"
 
+// warningCertExpiredDuration 证书过期告警时间（7天）
+var warningCertExpiredDuration = 7 * 24 * time.Hour
+
 type (
 	HTTP struct {
 		ID        uint       `gorm:"primary_key" json:"id,omitempty"`
@@ -267,9 +270,15 @@ func (srv *HTTPSrv) detectOne(h *HTTP) {
 		result.TLSCipherSuite = ht.TLSCipherSuite
 		if len(ht.Certificates) != 0 {
 			result.CertificateDNSNames = ht.Certificates[0].DNSNames
+			endDate := ht.Certificates[0].NotAfter
 			result.CertificateExpirationDates = []string{
 				ht.Certificates[0].NotBefore.String(),
-				ht.Certificates[0].NotAfter.String(),
+				endDate.String(),
+			}
+			// 如果证书准备过期，设置为失败
+			if endDate.UnixNano() < time.Now().UnixNano()+warningCertExpiredDuration.Nanoseconds() {
+				result.Result = DetectFail
+				result.Message = fmt.Sprintf("证书将于%s过期", endDate.String())
 			}
 		}
 	}

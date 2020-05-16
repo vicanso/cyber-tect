@@ -30,6 +30,8 @@ import {
   ROUTE_LIST_HTTP_DETECTOR_RESULT
 } from '@/router'
 
+const boxWidth = 20
+
 export default {
   name: 'DetectorResultSummary',
   props: {
@@ -120,12 +122,13 @@ export default {
       }
     },
     async fetchDetectorSummary () {
+      const eachColumnBoxCount = Math.floor(this.$el.clientWidth / (boxWidth + 2))
       const {
         category
       } = this.$props
       const params = {
         fields: 'result,id,message,task,duration,updatedAt',
-        limit: 120,
+        limit: eachColumnBoxCount * 3,
         offset: 0,
         order: '-id'
       }
@@ -168,7 +171,7 @@ export default {
 </script>
 <style lang="sass" scoped>
 @import '@/common'
-$summaryWidth: 25px
+$summaryWidth: 20px
 .detectorResultSummary
   padding: 15px
   padding-right: 0

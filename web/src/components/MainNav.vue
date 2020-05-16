@@ -84,7 +84,7 @@ export default {
           name: 'PING',
           children: [
             {
-              name: 'PING检测配置',
+              name: 'Ping检测配置',
               path: LIST_PING
             },
             {

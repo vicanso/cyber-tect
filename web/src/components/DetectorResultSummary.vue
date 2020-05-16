@@ -66,7 +66,8 @@ export default {
       'listDetectorResult'
     ]),
     formatContent (item) {
-      let content = `${item.updatedAtDesc} 检测${item.resultDesc}<br />
+      let content = `任务：${item.task}<br />
+      结果：${item.updatedAtDesc} 检测${item.resultDesc}<br />
         耗时：${item.durationDesc}
       `
       if (item.result === this.resultSucess) {
@@ -146,17 +147,18 @@ export default {
 </script>
 <style lang="sass" scoped>
 @import '@/common'
-$summaryWidth: 12px
+$summaryWidth: 30px
 .detectorResultSummary
-  padding: 10px 0 0 10px
+  padding: 15px
+  padding-right: 0
 .summary
   width: $summaryWidth
   height: $summaryWidth
-  margin: 0 10px 10px 0
-  display: inline-block
+  margin: 0 2px 2px 0
+  float: left
   cursor: pointer
   &.success
-    background-color: #239a3b
+    background-color: #26a0fc
   &.fail
     background-color: #c1c3c7
 .tips

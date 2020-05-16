@@ -147,6 +147,12 @@ export default {
         listResult.count = data.count
       }
       data.results.forEach((item) => {
+        if (!item.addrs) {
+          item.addrs = []
+        }
+        if (item.addrs.length === 0 && item.addr) {
+          item.addrs.push(item.addr)
+        }
         if (item.updatedAt) {
           item.updatedAtDesc = formatDate(item.updatedAt)
         }

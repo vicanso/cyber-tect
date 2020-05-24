@@ -190,6 +190,9 @@ func PGCount(model interface{}, args ...interface{}) (count int, err error) {
 		db = db.Where(args[0], args[1:]...)
 	} else if len(args) == 1 {
 		db = db.Where(args[0])
+	} else {
+		scope := db.NewScope(model)
+		db = pgClient.Table(scope.TableName())
 	}
 	err = db.Count(&count).Error
 	return

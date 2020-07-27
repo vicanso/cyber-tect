@@ -8,14 +8,14 @@ el-card.addDNS
 </template>
 
 <script>
-import DNSDetector from '@/components/DNSDetector.vue'
+import DNSDetector from "@/components/DNSDetector.vue";
 
 export default {
-  name: 'AddDNS',
+  name: "AddDNS",
   components: {
-    DNSDetector
-  }
-}
+    DNSDetector,
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

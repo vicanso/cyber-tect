@@ -24,150 +24,139 @@
     | 请先设置自定义的检测配置
 </template>
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from "vuex";
 
-import {
-  ROUTE_LIST_HTTP_DETECTOR_RESULT
-} from '@/router'
+import { ROUTE_LIST_HTTP_DETECTOR_RESULT } from "@/router";
 
-const boxWidth = 20
+// 图示方块宽度
+const boxWidth = 20;
 
 export default {
-  name: 'DetectorResultSummary',
+  name: "DetectorResultSummary",
   props: {
     category: {
       type: String,
-      required: true
+      required: true,
     },
-    mime: Boolean
+    mime: Boolean,
   },
-  data () {
+  data() {
     return {
-      filterTasks: ''
-    }
+      filterTasks: "",
+    };
   },
   computed: mapState({
-    userAccount: state => state.user.account,
-    resultSucess: state => state.detector.resultSucess,
-    resultFail: state => state.detector.resultFail,
+    userAccount: (state) => state.user.account,
+    resultSucess: (state) => state.detector.resultSucess,
+    resultFail: (state) => state.detector.resultFail,
     processing: function (state) {
-      const {
-        category
-      } = this.$props
-      const {
-        detector
-      } = state
-      return detector.mime[category].processing || detector[`${category}ListResult`].processing
+      const { category } = this.$props;
+      const { detector } = state;
+      return (
+        detector.mime[category].processing ||
+        detector[`${category}ListResult`].processing
+      );
     },
     detectors: function (state) {
-      return state.detector.mime[this.$props.category].detectors
+      return state.detector.mime[this.$props.category].detectors;
     },
     detectorResults: function (state) {
-      return state.detector[`${this.$props.category}ListResult`].results
-    }
+      return state.detector[`${this.$props.category}ListResult`].results;
+    },
   }),
   methods: {
     ...mapActions([
-      'resetDetectorResults',
-      'listMimeDetector',
-      'listDetectorResult'
+      "resetDetectorResults",
+      "listMimeDetector",
+      "listDetectorResult",
     ]),
-    showTaskReuslts (item) {
+    showTaskReuslts(item) {
       this.$router.push({
         name: ROUTE_LIST_HTTP_DETECTOR_RESULT,
         query: {
-          task: item.task
-        }
-      })
+          task: item.task,
+        },
+      });
     },
-    formatContent (item) {
+    formatContent(item) {
       let content = `任务：${item.task}<br />
       结果：${item.updatedAtDesc} 检测${item.resultDesc}<br />
         耗时：${item.durationDesc}
-      `
+      `;
       if (item.result === this.resultSucess) {
-        return content
+        return content;
       }
       content += `<br />
       失败原因：${item.message}
-      `
-      return content
+      `;
+      return content;
     },
-    async fetchMimeDetector () {
-      const {
-        category
-      } = this.$props
+    async fetchMimeDetector() {
+      const { category } = this.$props;
       const params = {
         // 偷懒，直接取前100个
         limit: 100,
         offset: 0,
         owner: this.userAccount,
-        order: '-id',
-        fields: 'id',
-        status: 1
-      }
+        order: "-id",
+        fields: "id",
+        status: 1,
+      };
       try {
         await this.listMimeDetector({
           category,
-          params
-        })
-        const arr = this.detectors.map(item => item.id)
+          params,
+        });
+        const arr = this.detectors.map((item) => item.id);
         if (arr.length === 0) {
-          return
+          return;
         }
-        this.filterTasks = arr.join(',')
-        await this.fetchDetectorSummary()
+        this.filterTasks = arr.join(",");
+        await this.fetchDetectorSummary();
       } catch (err) {
-        this.$message.error(err.error)
+        this.$message.error(err.error);
       }
     },
-    async fetchDetectorSummary () {
-      const eachColumnBoxCount = Math.floor(this.$el.clientWidth / (boxWidth + 2))
-      const {
-        category
-      } = this.$props
+    async fetchDetectorSummary() {
+      const eachColumnBoxCount = Math.floor(this.$el.clientWidth / boxWidth);
+      const { category } = this.$props;
       const params = {
-        fields: 'result,id,message,task,duration,updatedAt',
-        limit: eachColumnBoxCount * 3,
+        fields: "result,id,message,task,duration,updatedAt",
+        limit: eachColumnBoxCount * 8,
         offset: 0,
-        order: '-id'
-      }
+        order: "-id",
+      };
       if (this.filterTasks) {
-        params.tasks = this.filterTasks
+        params.tasks = this.filterTasks;
       }
       try {
         await this.listDetectorResult({
           category,
-          params
-        })
+          params,
+        });
       } catch (err) {
-        this.$message.error(err.message)
+        this.$message.error(err.message);
       }
-    }
+    },
   },
-  mounted () {
-    const {
-      mime,
-      category
-    } = this.$props
+  mounted() {
+    const { mime, category } = this.$props;
     this.resetDetectorResults({
-      category
-    })
+      category,
+    });
     if (mime) {
-      this.fetchMimeDetector()
+      this.fetchMimeDetector();
     } else {
-      this.fetchDetectorSummary()
+      this.fetchDetectorSummary();
     }
   },
-  beforeDestroy () {
-    const {
-      category
-    } = this.$props
+  beforeDestroy() {
+    const { category } = this.$props;
     this.resetDetectorResults({
-      category
-    })
-  }
-}
+      category,
+    });
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'
@@ -175,20 +164,17 @@ $summaryWidth: 20px
 .detectorResultSummary
   margin: 15px
   margin-right: 0
-  height: 66px
   overflow: hidden
 .summary
   width: $summaryWidth
   height: $summaryWidth
-  margin: 0 2px 2px 0
   float: left
   cursor: pointer
+  border: 1px solid white
   &.success
-    background-color: #0e8be8
-    border: 1px solid #2ba2fc
+    background-color: #038686
   &.fail
     background-color: #c1c3c7
-    border: 1px solid #c1c3c7
 .tips
   font-size: 13px
   i

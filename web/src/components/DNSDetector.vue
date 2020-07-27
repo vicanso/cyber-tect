@@ -6,22 +6,20 @@ BaseDetector(
 )
 </template>
 <script>
-import BaseDetector from '@/components/BaseDetector.vue'
-import {
-  CAT_DNS
-} from '@/constants/category'
+import BaseDetector from "@/components/BaseDetector.vue";
+import { CAT_DNS } from "@/constants/category";
 export default {
-  name: 'DNSDetector',
+  name: "DNSDetector",
   components: {
-    BaseDetector
+    BaseDetector,
   },
   props: {
-    originalDetector: Object
+    originalDetector: Object,
   },
-  data () {
+  data() {
     return {
-      category: CAT_DNS
-    }
-  }
-}
+      category: CAT_DNS,
+    };
+  },
+};
 </script>

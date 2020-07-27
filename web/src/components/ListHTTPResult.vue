@@ -137,57 +137,46 @@
   )
 </template>
 <script>
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 
-import {
-  CAT_HTTP
-} from '@/constants/category'
-import HTTPTimeline from '@/components/HTTPTimeline.vue'
-import DetectorResult from '@/components/DetectorResult.vue'
-import DetectorMessage from '@/components/DetectorMessage.vue'
-import FilterResult from '@/components/FilterResult.vue'
-import BaseListResult from '@/components/BaseListResult.vue'
-import {
-  formatDate
-} from '@/helpers/util'
-import {
-  ROUTE_UPDATE_HTTP
-} from '@/router'
+import { CAT_HTTP } from "@/constants/category";
+import HTTPTimeline from "@/components/HTTPTimeline.vue";
+import DetectorResult from "@/components/DetectorResult.vue";
+import DetectorMessage from "@/components/DetectorMessage.vue";
+import FilterResult from "@/components/FilterResult.vue";
+import BaseListResult from "@/components/BaseListResult.vue";
+import { formatDate } from "@/helpers/util";
+import { ROUTE_UPDATE_HTTP } from "@/router";
 
 export default {
-  name: 'ListHTTPResult',
+  name: "ListHTTPResult",
   props: {
     limit: {
       type: Number,
-      default: 10
+      default: 10,
     },
-    simplify: Boolean
+    simplify: Boolean,
   },
   extends: BaseListResult,
   components: {
     HTTPTimeline,
     DetectorMessage,
     DetectorResult,
-    FilterResult
+    FilterResult,
   },
-  data () {
-    const {
-      limit
-    } = this.$props
-    const pageSizes = [
-      10,
-      20,
-      30,
-      50,
-      100
-    ]
+  data() {
+    const { limit } = this.$props;
+    const pageSizes = [10, 20, 30, 50, 100];
     if (!pageSizes.includes(limit)) {
-      pageSizes.unshift(limit)
+      pageSizes.unshift(limit);
     }
-    const query = Object.assign({
-      limit,
-      order: '-id'
-    }, this.$route.query)
+    const query = Object.assign(
+      {
+        limit,
+        order: "-id",
+      },
+      this.$route.query
+    );
     return {
       category: CAT_HTTP,
       updateRoute: ROUTE_UPDATE_HTTP,
@@ -195,29 +184,32 @@ export default {
       currentResult: null,
       pageSizes,
       currentPage: 1,
-      query
-    }
+      query,
+    };
   },
   computed: mapState({
-    processing: state => state.detector.httpListResult.processing,
-    count: state => state.detector.httpListResult.count,
-    results: state => state.detector.httpListResult.results || []
+    processing: (state) => state.detector.httpListResult.processing,
+    count: (state) => state.detector.httpListResult.count,
+    results: (state) => state.detector.httpListResult.results || [],
   }),
   methods: {
-    showDetail (data) {
-      if (data.certificateExpirationDates && data.certificateExpirationDates.length === 2) {
-        const start = formatDate(data.certificateExpirationDates[0])
-        const end = formatDate(data.certificateExpirationDates[1])
-        data.expirationDate = `${start} 至 ${end}`
+    showDetail(data) {
+      if (
+        data.certificateExpirationDates &&
+        data.certificateExpirationDates.length === 2
+      ) {
+        const start = formatDate(data.certificateExpirationDates[0]);
+        const end = formatDate(data.certificateExpirationDates[1]);
+        data.expirationDate = `${start} 至 ${end}`;
       }
-      this.currentResult = data
-      this.showingDetail = true
-    }
+      this.currentResult = data;
+      this.showingDetail = true;
+    },
   },
-  mounted () {
-    this.fetch()
-  }
-}
+  mounted() {
+    this.fetch();
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import "@/common.sass"

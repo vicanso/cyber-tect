@@ -8,14 +8,14 @@ el-card.addHTTP
 </template>
 
 <script>
-import HTTPDetector from '@/components/HTTPDetector.vue'
+import HTTPDetector from "@/components/HTTPDetector.vue";
 
 export default {
-  name: 'AddHTTP',
+  name: "AddHTTP",
   components: {
-    HTTPDetector
-  }
-}
+    HTTPDetector,
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

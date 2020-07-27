@@ -6,42 +6,39 @@
       router-view
 </template>
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from "vuex";
 
-import MainHeader from '@/components/MainHeader'
-import MainNav from '@/components/MainNav'
+import MainHeader from "@/components/MainHeader";
+import MainNav from "@/components/MainNav";
 export default {
   components: {
     MainHeader,
-    MainNav
+    MainNav,
   },
-  name: 'App',
+  name: "App",
   computed: mapState({
-    userAccount: state => state.user.account
+    userAccount: (state) => state.user.account,
   }),
   methods: {
-    ...mapActions([
-      'fetchUser',
-      'updateUser'
-    ]),
-    refreshSessionTTL () {
+    ...mapActions(["fetchUser", "updateUser"]),
+    refreshSessionTTL() {
       if (!this.userAccount) {
-        return
+        return;
       }
-      this.updateUser({})
+      this.updateUser({});
+    },
+  },
+  async mounted() {
+    setInterval(() => {
+      this.refreshSessionTTL();
+    }, 5 * 60 * 1000);
+    try {
+      await this.fetchUser();
+    } catch (err) {
+      this.$message.error(err.message);
     }
   },
-  async mounted () {
-    setInterval(() => {
-      this.refreshSessionTTL()
-    }, 5 * 60 * 1000)
-    try {
-      await this.fetchUser()
-    } catch (err) {
-      this.$message.error(err.message)
-    }
-  }
-}
+};
 </script>
 <style lang="sass" scoped>
 @import "@/common.sass"

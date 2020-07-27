@@ -11,14 +11,14 @@
 </template>
 <script>
 export default {
-  name: 'DetectorResult',
+  name: "DetectorResult",
   props: {
     result: {
       type: Number,
-      required: true
-    }
-  }
-}
+      required: true,
+    },
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import "@/common.sass"

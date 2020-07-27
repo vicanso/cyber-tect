@@ -7,13 +7,13 @@
     ListTCPResult
 </template>
 <script>
-import ListTCPResult from '@/components/ListTCPResult.vue'
+import ListTCPResult from "@/components/ListTCPResult.vue";
 export default {
-  name: 'ListTCPDetectorResult',
+  name: "ListTCPDetectorResult",
   components: {
-    ListTCPResult
-  }
-}
+    ListTCPResult,
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

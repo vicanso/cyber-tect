@@ -9,22 +9,20 @@ el-card.updateDNS
   )
 </template>
 <script>
-import UpdateDetector from '@/components/UpdateDetector.vue'
-import {
-  CAT_DNS
-} from '@/constants/category'
+import UpdateDetector from "@/components/UpdateDetector.vue";
+import { CAT_DNS } from "@/constants/category";
 
 export default {
-  name: 'UpdateDNS',
+  name: "UpdateDNS",
   components: {
-    UpdateDetector
+    UpdateDetector,
   },
-  data () {
+  data() {
     return {
-      category: CAT_DNS
-    }
-  }
-}
+      category: CAT_DNS,
+    };
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

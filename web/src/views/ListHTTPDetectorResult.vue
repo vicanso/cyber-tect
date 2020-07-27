@@ -8,14 +8,14 @@
     ListHTTPResult
 </template>
 <script>
-import ListHTTPResult from '@/components/ListHTTPResult.vue'
+import ListHTTPResult from "@/components/ListHTTPResult.vue";
 
 export default {
-  name: 'ListHTTPDetectorResultView',
+  name: "ListHTTPDetectorResultView",
   components: {
-    ListHTTPResult
-  }
-}
+    ListHTTPResult,
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

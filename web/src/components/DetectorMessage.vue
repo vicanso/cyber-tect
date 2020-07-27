@@ -13,9 +13,9 @@
 </template>
 <script>
 export default {
-  name: 'DetectorMessage',
+  name: "DetectorMessage",
   props: {
-    message: String
-  }
-}
+    message: String,
+  },
+};
 </script>

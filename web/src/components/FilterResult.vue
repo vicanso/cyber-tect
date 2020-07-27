@@ -67,101 +67,92 @@
         ) 查询
 </template>
 <script>
-import { mapActions, mapState } from 'vuex'
+import { mapActions, mapState } from "vuex";
 export default {
-  name: 'FilterResult',
+  name: "FilterResult",
   props: {
     onFilter: {
       type: Function,
-      required: true
+      required: true,
     },
     category: {
       type: String,
-      required: true
+      required: true,
     },
-    task: String
+    task: String,
   },
-  data () {
-    let task = null
+  data() {
+    let task = null;
     if (this.$props.task) {
-      task = Number(this.$props.task)
+      task = Number(this.$props.task);
     }
     return {
       form: {
         task,
         result: 0,
-        duration: ''
+        duration: "",
       },
       results: [
         {
-          label: '所有',
-          value: 0
+          label: "所有",
+          value: 0,
         },
         {
-          label: '成功',
-          value: 1
+          label: "成功",
+          value: 1,
         },
         {
-          label: '失败',
-          value: 2
-        }
-      ]
-    }
+          label: "失败",
+          value: 2,
+        },
+      ],
+    };
   },
   computed: mapState({
-    tasks: state => state.detector.filterTasks.tasks || [],
-    processing: state => state.detector.filterProcessing
+    tasks: (state) => state.detector.filterTasks.tasks || [],
+    processing: (state) => state.detector.filterProcessing,
   }),
   methods: {
-    ...mapActions([
-      'resetDetectorTaskFilter',
-      'filterDetectorTask'
-    ]),
-    async filterTaskByKeyword (keyword) {
-      const {
-        category
-      } = this.$props
+    ...mapActions(["resetDetectorTaskFilter", "filterDetectorTask"]),
+    async filterTaskByKeyword(keyword) {
+      const { category } = this.$props;
       try {
         await this.filterDetectorTask({
           category,
           params: {
             offset: 0,
             limit: 20,
-            fields: 'id,name',
-            keyword
-          }
-        })
+            fields: "id,name",
+            keyword,
+          },
+        });
       } catch (err) {
-        this.$message.error(err.message)
+        this.$message.error(err.message);
       }
     },
-    filter () {
-      const {
-        task,
-        result,
-        duration
-      } = this.form
+    filter() {
+      const { task, result, duration } = this.form;
       const params = {
-        task: '',
+        task: "",
         result: null,
-        duration: null
-      }
+        duration: null,
+      };
       if (task) {
-        params.task = task
+        params.task = task;
       }
       if (result) {
-        params.result = result
+        params.result = result;
       }
       if (duration) {
-        params.duration = `${duration}s`
+        params.duration = `${duration}s`;
       }
-      this.$props.onFilter(params)
-    }
+      this.$props.onFilter(params);
+    },
   },
-  mounted () {
-    this.resetDetectorTaskFilter()
-  }
-}
+  mounted() {
+    this.resetDetectorTaskFilter();
+  },
+};
 </script>
 <style lang="sass" scoped>
 .selector

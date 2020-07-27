@@ -6,22 +6,20 @@ BaseDetector(
 )
 </template>
 <script>
-import BaseDetector from '@/components/BaseDetector.vue'
-import {
-  CAT_PING
-} from '@/constants/category'
+import BaseDetector from "@/components/BaseDetector.vue";
+import { CAT_PING } from "@/constants/category";
 export default {
-  name: 'PingDetector',
+  name: "PingDetector",
   components: {
-    BaseDetector
+    BaseDetector,
   },
   props: {
-    originalDetector: Object
+    originalDetector: Object,
   },
-  data () {
+  data() {
     return {
-      category: CAT_PING
-    }
-  }
-}
+      category: CAT_PING,
+    };
+  },
+};
 </script>

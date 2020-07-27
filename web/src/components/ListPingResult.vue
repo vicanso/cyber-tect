@@ -83,69 +83,60 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 
-import {
-  CAT_PING
-} from '@/constants/category'
-import DetectorResult from '@/components/DetectorResult.vue'
-import DetectorMessage from '@/components/DetectorMessage.vue'
-import FilterResult from '@/components/FilterResult.vue'
-import BaseListResult from '@/components/BaseListResult.vue'
-import {
-  ROUTE_UPDATE_PING
-} from '@/router'
+import { CAT_PING } from "@/constants/category";
+import DetectorResult from "@/components/DetectorResult.vue";
+import DetectorMessage from "@/components/DetectorMessage.vue";
+import FilterResult from "@/components/FilterResult.vue";
+import BaseListResult from "@/components/BaseListResult.vue";
+import { ROUTE_UPDATE_PING } from "@/router";
 
 export default {
-  name: 'ListTCPResult',
+  name: "ListTCPResult",
   props: {
     limit: {
       type: Number,
-      default: 10
+      default: 10,
     },
-    simplify: Boolean
+    simplify: Boolean,
   },
   extends: BaseListResult,
   components: {
     DetectorResult,
     DetectorMessage,
-    FilterResult
+    FilterResult,
   },
-  data () {
-    const {
-      limit
-    } = this.$props
-    const pageSizes = [
-      10,
-      20,
-      30,
-      50,
-      100
-    ]
+  data() {
+    const { limit } = this.$props;
+    const pageSizes = [10, 20, 30, 50, 100];
     if (!pageSizes.includes(limit)) {
-      pageSizes.unshift(limit)
+      pageSizes.unshift(limit);
     }
-    const query = Object.assign({
-      limit,
-      order: '-id'
-    }, this.$route.query)
+    const query = Object.assign(
+      {
+        limit,
+        order: "-id",
+      },
+      this.$route.query
+    );
     return {
       category: CAT_PING,
       updateRoute: ROUTE_UPDATE_PING,
       pageSizes,
       currentPage: 1,
-      query
-    }
+      query,
+    };
   },
   computed: mapState({
-    processing: state => state.detector.pingListResult.processing,
-    count: state => state.detector.pingListResult.count,
-    results: state => state.detector.pingListResult.results || []
+    processing: (state) => state.detector.pingListResult.processing,
+    count: (state) => state.detector.pingListResult.count,
+    results: (state) => state.detector.pingListResult.results || [],
   }),
-  mounted () {
-    this.fetch()
-  }
-}
+  mounted() {
+    this.fetch();
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import "@/common.sass"

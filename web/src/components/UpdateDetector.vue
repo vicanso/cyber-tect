@@ -24,66 +24,56 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from "vuex";
 
-import HTTPDetector from '@/components/HTTPDetector.vue'
-import DNSDetector from '@/components/DNSDetector.vue'
-import TCPDetector from '@/components/TCPDetector.vue'
-import PingDetector from '@/components/PingDetector.vue'
-import {
-  CAT_HTTP,
-  CAT_DNS,
-  CAT_PING,
-  CAT_TCP
-} from '@/constants/category'
+import HTTPDetector from "@/components/HTTPDetector.vue";
+import DNSDetector from "@/components/DNSDetector.vue";
+import TCPDetector from "@/components/TCPDetector.vue";
+import PingDetector from "@/components/PingDetector.vue";
+import { CAT_HTTP, CAT_DNS, CAT_PING, CAT_TCP } from "@/constants/category";
 
 export default {
-  name: 'UpdateDetector',
+  name: "UpdateDetector",
   props: {
     category: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
-  data () {
+  data() {
     return {
       httpCat: CAT_HTTP,
       dnsCat: CAT_DNS,
       pingCat: CAT_PING,
-      tcpCat: CAT_TCP
-    }
+      tcpCat: CAT_TCP,
+    };
   },
   components: {
     DNSDetector,
     HTTPDetector,
     TCPDetector,
-    PingDetector
+    PingDetector,
   },
   computed: mapState({
-    fetching: state => state.detector.processing,
-    originalDetector: state => state.detector.updateDetector
+    fetching: (state) => state.detector.processing,
+    originalDetector: (state) => state.detector.updateDetector,
   }),
   methods: {
-    ...mapActions([
-      'clearUpdateDetector',
-      'getUpdateDetector'
-    ])
+    ...mapActions(["clearUpdateDetector", "getUpdateDetector"]),
   },
-  beforeDestroy () {
-    this.clearUpdateDetector()
+  beforeDestroy() {
+    this.clearUpdateDetector();
   },
-  async mounted () {
-    const {
-      category
-    } = this.$props
+  async mounted() {
+    const { category } = this.$props;
     try {
       await this.getUpdateDetector({
         category,
-        id: Number(this.$route.params.id)
-      })
+        id: Number(this.$route.params.id),
+      });
     } catch (err) {
-      this.$message.error(err.messagel)
+      this.$message.error(err.messagel);
     }
-  }
-}
+  },
+};
 </script>

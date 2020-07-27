@@ -55,101 +55,88 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from "vuex";
 
-import request from '@/request'
-import {
-  COMMONS_CAPTCHA
-} from '@/constants/url'
-import {
-  ROUTE_LOGIN
-} from '@/router'
+import request from "@/request";
+import { COMMONS_CAPTCHA } from "@/constants/url";
+import { ROUTE_LOGIN } from "@/router";
 
-const registerType = 'register'
+const registerType = "register";
 
 export default {
-  name: 'LoginRegister',
+  name: "LoginRegister",
   props: {
-    type: String
+    type: String,
   },
-  data () {
-    const {
-      type
-    } = this.$props
-    let title = '用户登录'
-    let submitText = '立即登录'
+  data() {
+    const { type } = this.$props;
+    let title = "用户登录";
+    let submitText = "立即登录";
     if (type === registerType) {
-      title = '用户注册'
-      submitText = '立即注册'
+      title = "用户注册";
+      submitText = "立即注册";
     }
     return {
       title,
       submitText,
       form: {
-        account: '',
-        password: '',
-        captcha: ''
+        account: "",
+        password: "",
+        captcha: "",
       },
       submitting: false,
-      captchaData: null
-    }
+      captchaData: null,
+    };
   },
   methods: {
-    ...mapActions([
-      'login',
-      'register'
-    ]),
-    async getCaptcha () {
-      this.captchaData = null
+    ...mapActions(["login", "register"]),
+    async getCaptcha() {
+      this.captchaData = null;
       try {
-        const { data } = await request.get(COMMONS_CAPTCHA)
-        this.captchaData = data
+        const { data } = await request.get(COMMONS_CAPTCHA);
+        this.captchaData = data;
       } catch (err) {
-        this.$message.error(err.message)
+        this.$message.error(err.message);
       }
     },
-    async onSubmit () {
-      const {
-        account,
-        password,
-        captcha
-      } = this.form
+    async onSubmit() {
+      const { account, password, captcha } = this.form;
       if (!account || !password || !captcha) {
-        this.$message.warning('账号、密码以及验证码不能为空')
-        return
+        this.$message.warning("账号、密码以及验证码不能为空");
+        return;
       }
       if (this.submitting) {
-        return
+        return;
       }
-      this.submitting = true
+      this.submitting = true;
       const params = {
         account,
         password,
-        captcha: `${this.captchaData.id}:${captcha}`
-      }
+        captcha: `${this.captchaData.id}:${captcha}`,
+      };
       try {
         if (this.$props.type === registerType) {
-          await this.register(params)
+          await this.register(params);
           this.$router.replace({
-            name: ROUTE_LOGIN
-          })
+            name: ROUTE_LOGIN,
+          });
         } else {
-          await this.login(params)
-          this.$router.back()
+          await this.login(params);
+          this.$router.back();
         }
       } catch (err) {
         // 图形验证码只可校验一次，因此出错则刷新
-        this.getCaptcha()
-        this.$message.error(err.message)
+        this.getCaptcha();
+        this.$message.error(err.message);
       } finally {
-        this.submitting = false
+        this.submitting = false;
       }
-    }
+    },
   },
-  mounted () {
-    this.getCaptcha()
-  }
-}
+  mounted() {
+    this.getCaptcha();
+  },
+};
 </script>
 
 <style lang="sass" scoped>

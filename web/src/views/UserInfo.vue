@@ -22,55 +22,51 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from "vuex";
 
 export default {
-  name: 'UserInfo',
-  data () {
+  name: "UserInfo",
+  data() {
     return {
       submitting: false,
       form: {
-        email: ''
-      }
-    }
+        email: "",
+      },
+    };
   },
   methods: {
-    ...mapActions([
-      'updateUser'
-    ]),
-    async onSubmit () {
-      const {
-        email
-      } = this.form
+    ...mapActions(["updateUser"]),
+    async onSubmit() {
+      const { email } = this.form;
       if (this.submitting) {
-        return
+        return;
       }
       if (!email) {
-        this.$message.warning('邮箱不能为空')
-        return
+        this.$message.warning("邮箱不能为空");
+        return;
       }
-      this.submitting = true
+      this.submitting = true;
       try {
         await this.updateUser({
-          email
-        })
-        this.$message.success('已成功更新信息')
-        this.$router.back()
+          email,
+        });
+        this.$message.success("已成功更新信息");
+        this.$router.back();
       } catch (err) {
-        this.$message.error(err.message)
+        this.$message.error(err.message);
       } finally {
-        this.submitting = false
+        this.submitting = false;
       }
-    }
+    },
   },
   computed: mapState({
-    email: state => state.user.email
+    email: (state) => state.user.email,
   }),
-  mounted () {
+  mounted() {
     // 此方法有可能数据未加载完成，暂时使用
-    this.form.email = this.email
-  }
-}
+    this.form.email = this.email;
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import "@/common.sass"

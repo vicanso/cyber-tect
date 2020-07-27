@@ -8,14 +8,14 @@ el-card.addPing
 </template>
 
 <script>
-import PingDetector from '@/components/PingDetector.vue'
+import PingDetector from "@/components/PingDetector.vue";
 
 export default {
-  name: 'AddPing',
+  name: "AddPing",
   components: {
-    PingDetector
-  }
-}
+    PingDetector,
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

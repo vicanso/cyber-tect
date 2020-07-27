@@ -7,23 +7,21 @@ BaseDetector(
 </template>
 
 <script>
-import BaseDetector from '@/components/BaseDetector.vue'
-import {
-  CAT_HTTP
-} from '@/constants/category'
+import BaseDetector from "@/components/BaseDetector.vue";
+import { CAT_HTTP } from "@/constants/category";
 
 export default {
-  name: 'HTTPDetector',
+  name: "HTTPDetector",
   props: {
-    originalDetector: Object
+    originalDetector: Object,
   },
   components: {
-    BaseDetector
+    BaseDetector,
   },
-  data () {
+  data() {
     return {
-      category: CAT_HTTP
-    }
-  }
-}
+      category: CAT_HTTP,
+    };
+  },
+};
 </script>

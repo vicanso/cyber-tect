@@ -98,69 +98,60 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 
-import {
-  CAT_DNS
-} from '@/constants/category'
-import DetectorResult from '@/components/DetectorResult.vue'
-import DetectorMessage from '@/components/DetectorMessage.vue'
-import FilterResult from '@/components/FilterResult.vue'
-import BaseListResult from '@/components/BaseListResult.vue'
-import {
-  ROUTE_UPDATE_DNS
-} from '@/router'
+import { CAT_DNS } from "@/constants/category";
+import DetectorResult from "@/components/DetectorResult.vue";
+import DetectorMessage from "@/components/DetectorMessage.vue";
+import FilterResult from "@/components/FilterResult.vue";
+import BaseListResult from "@/components/BaseListResult.vue";
+import { ROUTE_UPDATE_DNS } from "@/router";
 
 export default {
-  name: 'ListDNSResult',
+  name: "ListDNSResult",
   props: {
     limit: {
       type: Number,
-      default: 10
+      default: 10,
     },
-    simplify: Boolean
+    simplify: Boolean,
   },
   extends: BaseListResult,
   components: {
     DetectorResult,
     DetectorMessage,
-    FilterResult
+    FilterResult,
   },
-  data () {
-    const {
-      limit
-    } = this.$props
-    const pageSizes = [
-      10,
-      20,
-      30,
-      50,
-      100
-    ]
+  data() {
+    const { limit } = this.$props;
+    const pageSizes = [10, 20, 30, 50, 100];
     if (!pageSizes.includes(limit)) {
-      pageSizes.unshift(limit)
+      pageSizes.unshift(limit);
     }
-    const query = Object.assign({
-      limit,
-      order: '-id'
-    }, this.$route.query)
+    const query = Object.assign(
+      {
+        limit,
+        order: "-id",
+      },
+      this.$route.query
+    );
     return {
       category: CAT_DNS,
       updateRoute: ROUTE_UPDATE_DNS,
       pageSizes,
       currentPage: 1,
-      query
-    }
+      query,
+    };
   },
   computed: mapState({
-    processing: state => state.detector.dnsListResult.processing,
-    count: state => state.detector.dnsListResult.count,
-    results: state => state.detector.dnsListResult.results || []
+    processing: (state) => state.detector.dnsListResult.processing,
+    count: (state) => state.detector.dnsListResult.count,
+    results: (state) => state.detector.dnsListResult.results || [],
   }),
-  mounted () {
-    this.fetch()
-  }
-}
+  mounted() {
+    this.fetch();
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import "@/common.sass"

@@ -1,9 +1,9 @@
-const env = process.env.NODE_ENV
+const env = process.env.NODE_ENV;
 
-export function isDevelopment () {
-  return env === 'development'
+export function isDevelopment() {
+  return env === "development";
 }
 
-export function isProduction () {
-  return env === 'production'
+export function isProduction() {
+  return env === "production";
 }

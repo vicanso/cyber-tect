@@ -18,6 +18,7 @@ import (
 	"time"
 
 	influxdb "github.com/influxdata/influxdb-client-go"
+	influxdbAPI "github.com/influxdata/influxdb-client-go/api"
 	"github.com/vicanso/cybertect/config"
 )
 
@@ -27,8 +28,8 @@ var (
 
 type (
 	InfluxSrv struct {
-		client influxdb.InfluxDBClient
-		writer influxdb.WriteApi
+		client influxdb.Client
+		writer influxdbAPI.WriteApi
 	}
 )
 

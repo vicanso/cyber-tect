@@ -6,22 +6,20 @@
   )
 </template>
 <script>
-import BaseDetector from '@/components/BaseDetector.vue'
-import {
-  CAT_TCP
-} from '@/constants/category'
+import BaseDetector from "@/components/BaseDetector.vue";
+import { CAT_TCP } from "@/constants/category";
 export default {
-  name: 'TCPDetector',
+  name: "TCPDetector",
   components: {
-    BaseDetector
+    BaseDetector,
   },
   props: {
-    originalDetector: Object
+    originalDetector: Object,
   },
-  data () {
+  data() {
     return {
-      category: CAT_TCP
-    }
-  }
-}
+      category: CAT_TCP,
+    };
+  },
+};
 </script>

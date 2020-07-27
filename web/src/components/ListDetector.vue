@@ -119,7 +119,7 @@ el-card.listDetector(
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from "vuex";
 
 import {
   ROUTE_UPDATE_HTTP,
@@ -129,84 +129,72 @@ import {
   ROUTE_UPDATE_TCP,
   ROUTE_LIST_TCP_DETECTOR_RESULT,
   ROUTE_UPDATE_PING,
-  ROUTE_LIST_PING_DETECTOR_RESULT
-} from '@/router'
-import {
-  CAT_DNS,
-  CAT_HTTP,
-  CAT_TCP
-} from '@/constants/category'
+  ROUTE_LIST_PING_DETECTOR_RESULT,
+} from "@/router";
+import { CAT_DNS, CAT_HTTP, CAT_TCP } from "@/constants/category";
 import {
   getDNSListFields,
   getHTTPListFields,
   getTCPListFields,
   getPingListFields,
-  getStatusOptions
-} from '@/helpers/field'
+  getStatusOptions,
+} from "@/helpers/field";
 
-function getFields (category) {
+function getFields(category) {
   switch (category) {
     case CAT_DNS:
-      return getDNSListFields()
+      return getDNSListFields();
     case CAT_HTTP:
-      return getHTTPListFields()
+      return getHTTPListFields();
     case CAT_TCP:
-      return getTCPListFields()
+      return getTCPListFields();
     default:
-      return getPingListFields()
+      return getPingListFields();
   }
 }
 
-function getUpdateRoute (category) {
+function getUpdateRoute(category) {
   switch (category) {
     case CAT_DNS:
-      return ROUTE_UPDATE_DNS
+      return ROUTE_UPDATE_DNS;
     case CAT_HTTP:
-      return ROUTE_UPDATE_HTTP
+      return ROUTE_UPDATE_HTTP;
     case CAT_TCP:
-      return ROUTE_UPDATE_TCP
+      return ROUTE_UPDATE_TCP;
     default:
-      return ROUTE_UPDATE_PING
+      return ROUTE_UPDATE_PING;
   }
 }
 
-function getListRoute (category) {
+function getListRoute(category) {
   switch (category) {
     case CAT_DNS:
-      return ROUTE_LIST_DNS_DETECTOR_RESULT
+      return ROUTE_LIST_DNS_DETECTOR_RESULT;
     case CAT_HTTP:
-      return ROUTE_LIST_HTTP_DETECTOR_RESULT
+      return ROUTE_LIST_HTTP_DETECTOR_RESULT;
     case CAT_TCP:
-      return ROUTE_LIST_TCP_DETECTOR_RESULT
+      return ROUTE_LIST_TCP_DETECTOR_RESULT;
     default:
-      return ROUTE_LIST_PING_DETECTOR_RESULT
+      return ROUTE_LIST_PING_DETECTOR_RESULT;
   }
 }
 
 export default {
-  name: 'ListDetector',
+  name: "ListDetector",
   props: {
     category: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
-  data () {
-    const {
-      category
-    } = this.$props
-    const pageSizes = [
-      10,
-      20,
-      30,
-      50,
-      100
-    ]
-    const statusOptions = getStatusOptions()
+  data() {
+    const { category } = this.$props;
+    const pageSizes = [10, 20, 30, 50, 100];
+    const statusOptions = getStatusOptions();
     statusOptions.unshift({
       value: 0,
-      label: '所有'
-    })
+      label: "所有",
+    });
     return {
       fields: getFields(category),
       updateRoute: getUpdateRoute(category),
@@ -215,91 +203,87 @@ export default {
       query: {
         limit: pageSizes[0],
         offset: 0,
-        order: '-updatedAt',
+        order: "-updatedAt",
         status: 0,
-        mine: false
+        mine: false,
       },
-      statusOptions
-    }
+      statusOptions,
+    };
   },
   computed: mapState({
-    userAccount: state => state.user.account,
-    processing: state => state.detector.processing,
-    detectorCount: state => {
+    userAccount: (state) => state.user.account,
+    processing: (state) => state.detector.processing,
+    detectorCount: (state) => {
       if (!state.detector.currentCategory) {
-        return
+        return;
       }
-      return state.detector[state.detector.currentCategory].count
+      return state.detector[state.detector.currentCategory].count;
     },
-    detectors: state => {
+    detectors: (state) => {
       if (!state.detector.currentCategory) {
-        return []
+        return [];
       }
-      return state.detector.currentDetectors || []
-    }
+      return state.detector.currentDetectors || [];
+    },
   }),
   methods: {
-    ...mapActions([
-      'listDetector'
-    ]),
-    handleCurrentChange (page) {
-      this.query.offset = (page - 1) * this.query.limit
-      this.fetch()
+    ...mapActions(["listDetector"]),
+    handleCurrentChange(page) {
+      this.query.offset = (page - 1) * this.query.limit;
+      this.fetch();
     },
-    handleSizeChange (pageSize) {
-      this.query.limit = pageSize
-      this.query.offset = 0
-      this.fetch()
+    handleSizeChange(pageSize) {
+      this.query.limit = pageSize;
+      this.query.offset = 0;
+      this.fetch();
     },
-    handleUpdate (id) {
+    handleUpdate(id) {
       this.$router.push({
         name: this.updateRoute,
         params: {
-          id
-        }
-      })
+          id,
+        },
+      });
     },
-    handlerView (id) {
+    handlerView(id) {
       this.$router.push({
         name: this.listRoute,
         query: {
-          task: `${id}`
-        }
-      })
+          task: `${id}`,
+        },
+      });
     },
-    search () {
-      this.query.offset = 0
-      this.fetch()
+    search() {
+      this.query.offset = 0;
+      this.fetch();
     },
-    async fetch () {
+    async fetch() {
       if (this.processing) {
-        return
+        return;
       }
-      const {
-        category
-      } = this.$props
+      const { category } = this.$props;
       try {
-        const params = Object.assign({}, this.query)
+        const params = Object.assign({}, this.query);
         if (params.mine) {
-          params.owner = this.userAccount
+          params.owner = this.userAccount;
         }
         if (params.status === 0) {
-          delete params.status
+          delete params.status;
         }
-        delete params.mine
+        delete params.mine;
         await this.listDetector({
           category,
-          params
-        })
+          params,
+        });
       } catch (err) {
-        this.$message.error(err.message)
+        this.$message.error(err.message);
       }
-    }
+    },
   },
-  mounted () {
-    this.fetch()
-  }
-}
+  mounted() {
+    this.fetch();
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

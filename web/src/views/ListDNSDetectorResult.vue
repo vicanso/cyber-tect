@@ -7,13 +7,13 @@
     ListDNSResult
 </template>
 <script>
-import ListDNSResult from '@/components/ListDNSResult.vue'
+import ListDNSResult from "@/components/ListDNSResult.vue";
 export default {
-  name: 'ListDNSDetectorResult',
+  name: "ListDNSDetectorResult",
   components: {
-    ListDNSResult
-  }
-}
+    ListDNSResult,
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

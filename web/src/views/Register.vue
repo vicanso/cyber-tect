@@ -4,14 +4,14 @@ LoginRegister.register(
 )
 </template>
 <script>
-import LoginRegister from '@/components/LoginRegister.vue'
+import LoginRegister from "@/components/LoginRegister.vue";
 
 export default {
-  name: 'Register',
+  name: "Register",
   components: {
-    LoginRegister
-  }
-}
+    LoginRegister,
+  },
+};
 </script>
 <style lang="sass" scoped>
 .register

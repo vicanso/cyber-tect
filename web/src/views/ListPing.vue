@@ -10,32 +10,28 @@
     ) 添加Ping检测
 </template>
 <script>
-import ListDetector from '@/components/ListDetector.vue'
-import {
-  CAT_PING
-} from '@/constants/category'
-import {
-  ROUTE_ADD_PING
-} from '@/router'
+import ListDetector from "@/components/ListDetector.vue";
+import { CAT_PING } from "@/constants/category";
+import { ROUTE_ADD_PING } from "@/router";
 
 export default {
-  name: 'ListPing',
+  name: "ListPing",
   components: {
-    ListDetector
+    ListDetector,
   },
-  data () {
+  data() {
     return {
-      category: CAT_PING
-    }
+      category: CAT_PING,
+    };
   },
   methods: {
-    add () {
+    add() {
       this.$router.push({
-        name: ROUTE_ADD_PING
-      })
-    }
-  }
-}
+        name: ROUTE_ADD_PING,
+      });
+    },
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common.sass'

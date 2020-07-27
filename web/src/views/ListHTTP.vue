@@ -10,32 +10,28 @@
     ) 添加HTTP检测
 </template>
 <script>
-import ListDetector from '@/components/ListDetector.vue'
-import {
-  CAT_HTTP
-} from '@/constants/category'
-import {
-  ROUTE_ADD_HTTP
-} from '@/router'
+import ListDetector from "@/components/ListDetector.vue";
+import { CAT_HTTP } from "@/constants/category";
+import { ROUTE_ADD_HTTP } from "@/router";
 
 export default {
-  name: 'ListHTTP',
+  name: "ListHTTP",
   components: {
-    ListDetector
+    ListDetector,
   },
-  data () {
+  data() {
     return {
-      category: CAT_HTTP
-    }
+      category: CAT_HTTP,
+    };
   },
   methods: {
-    add () {
+    add() {
       this.$router.push({
-        name: ROUTE_ADD_HTTP
-      })
-    }
-  }
-}
+        name: ROUTE_ADD_HTTP,
+      });
+    },
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common.sass'

@@ -1,26 +1,19 @@
-import request from '@/request'
-import {
-  USERS_ME,
-  USERS_LOGIN,
-  USERS_LOGOUT,
-  USERS
-} from '@/constants/url'
-import {
-  generatePassword
-} from '@/helpers/util'
-import { sha256 } from '@/helpers/crypto'
+import request from "@/request";
+import { USERS_ME, USERS_LOGIN, USERS_LOGOUT, USERS } from "@/constants/url";
+import { generatePassword } from "@/helpers/util";
+import { sha256 } from "@/helpers/crypto";
 
-const mutationUserFetching = 'user.fetching'
-const mutationUserInfo = 'user.info'
-const mutationUsersFetching = 'users.fetching'
-const mutationUsers = 'users'
+const mutationUserFetching = "user.fetching";
+const mutationUserInfo = "user.info";
+const mutationUsersFetching = "users.fetching";
+const mutationUsers = "users";
 
-function commitUserInfo (commit, data) {
+function commitUserInfo(commit, data) {
   commit(mutationUserInfo, {
-    account: data.account || '',
-    trackID: data.trackID || '',
-    email: data.email || ''
-  })
+    account: data.account || "",
+    trackID: data.trackID || "",
+    email: data.email || "",
+  });
 }
 
 export default {
@@ -28,97 +21,99 @@ export default {
     // fetching 默认设置为fetching
     fetching: true,
     fetchingUsers: false,
-    account: '',
-    trackID: '',
+    account: "",
+    trackID: "",
     id: 0,
-    email: '',
-    users: null
+    email: "",
+    users: null,
   },
   mutations: {
-    [mutationUserFetching] (state, value) {
-      state.fetching = value
+    [mutationUserFetching](state, value) {
+      state.fetching = value;
     },
-    [mutationUserInfo] (state, value) {
-      Object.assign(state, value)
+    [mutationUserInfo](state, value) {
+      Object.assign(state, value);
     },
-    [mutationUsersFetching] (state, value) {
-      state.fetchingUsers = value
+    [mutationUsersFetching](state, value) {
+      state.fetchingUsers = value;
     },
-    [mutationUsers] (state, users) {
-      state.users = users
-    }
+    [mutationUsers](state, users) {
+      state.users = users;
+    },
   },
   actions: {
-    async fetchUser ({ commit }) {
-      commit(mutationUserFetching, true)
+    async fetchUser({ commit }) {
+      commit(mutationUserFetching, true);
       try {
-        const {
-          data
-        } = await request.get(USERS_ME)
-        commitUserInfo(commit, data)
+        const { data } = await request.get(USERS_ME);
+        commitUserInfo(commit, data);
       } finally {
-        commit(mutationUserFetching, false)
+        commit(mutationUserFetching, false);
       }
     },
-    async login ({ commit }, { account, password, captcha }) {
-      commit(mutationUserFetching, true)
+    async login({ commit }, { account, password, captcha }) {
+      commit(mutationUserFetching, true);
       try {
-        const res = await request.get(USERS_LOGIN)
-        const {
-          token
-        } = res.data
-        const { data } = await request.post(USERS_LOGIN, {
-          account,
-          password: sha256(generatePassword(password) + token)
-        }, {
-          headers: {
-            'X-Captcha': captcha
+        const res = await request.get(USERS_LOGIN);
+        const { token } = res.data;
+        const { data } = await request.post(
+          USERS_LOGIN,
+          {
+            account,
+            password: sha256(generatePassword(password) + token),
+          },
+          {
+            headers: {
+              "X-Captcha": captcha,
+            },
           }
-        })
-        commitUserInfo(commit, data)
+        );
+        commitUserInfo(commit, data);
       } finally {
-        commit(mutationUserFetching, false)
+        commit(mutationUserFetching, false);
       }
     },
-    async register ({ commit }, { account, password, captcha }) {
-      await request.post(USERS_ME, {
-        account,
-        password: generatePassword(password)
-      }, {
-        headers: {
-          'X-Captcha': captcha
+    async register(_, { account, password, captcha }) {
+      await request.post(
+        USERS_ME,
+        {
+          account,
+          password: generatePassword(password),
+        },
+        {
+          headers: {
+            "X-Captcha": captcha,
+          },
         }
-      })
+      );
     },
-    async logout ({ commit }) {
-      commit(mutationUserFetching, true)
+    async logout({ commit }) {
+      commit(mutationUserFetching, true);
       try {
-        await request.delete(USERS_LOGOUT)
-        commitUserInfo(commit, {})
+        await request.delete(USERS_LOGOUT);
+        commitUserInfo(commit, {});
       } finally {
-        commit(mutationUserFetching, false)
+        commit(mutationUserFetching, false);
       }
     },
-    async updateUser ({ commit }, { email }) {
+    async updateUser({ commit }, { email }) {
       await request.patch(USERS_ME, {
-        email
-      })
+        email,
+      });
       commit(mutationUserInfo, {
-        email
-      })
+        email,
+      });
     },
-    async listUser ({ commit }, params) {
-      commit(mutationUsersFetching, true)
+    async listUser({ commit }, params) {
+      commit(mutationUsersFetching, true);
       try {
-        const {
-          data
-        } = await request.get(USERS, {
-          params
-        })
-        commit(mutationUsers, data.users)
+        const { data } = await request.get(USERS, {
+          params,
+        });
+        commit(mutationUsers, data.users);
       } finally {
-        commit(mutationUsersFetching, false)
+        commit(mutationUsersFetching, false);
       }
-    }
-  }
-}
+    },
+  },
+};

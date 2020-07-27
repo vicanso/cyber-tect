@@ -18,98 +18,96 @@
 </template>
 
 <script>
-import {
-  formatDuration
-} from '@/helpers/util'
+import { formatDuration } from "@/helpers/util";
 
 export default {
-  name: 'HTTPTimeline',
+  name: "HTTPTimeline",
   props: {
     dnsLookup: {
       type: Number,
-      default: 0
+      default: 0,
     },
     tcpConnection: {
       type: Number,
-      default: 0
+      default: 0,
     },
     tlsHandshake: {
       type: Number,
-      default: 0
+      default: 0,
     },
     serverProcessing: {
       type: Number,
-      default: 0
+      default: 0,
     },
     contentTransfer: {
       type: Number,
-      default: 0
+      default: 0,
     },
     duration: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
-  data () {
+  data() {
     const {
       dnsLookup,
       tcpConnection,
       tlsHandshake,
       serverProcessing,
       contentTransfer,
-      duration
-    } = this.$props
+      duration,
+    } = this.$props;
     const durations = [
       {
-        name: 'dns lookup',
+        name: "dns lookup",
         duration: dnsLookup,
-        color: '#aad576'
+        color: "#aad576",
       },
       {
-        name: 'tcp connection',
+        name: "tcp connection",
         duration: tcpConnection,
-        color: '#73a942'
+        color: "#73a942",
       },
       {
-        name: 'tls handshake',
+        name: "tls handshake",
         duration: tlsHandshake,
-        color: '#538d22'
+        color: "#538d22",
       },
       {
-        name: 'server processing',
+        name: "server processing",
         duration: serverProcessing,
-        color: '#245501'
+        color: "#245501",
       },
       {
-        name: 'content transfer',
+        name: "content transfer",
         duration: contentTransfer,
-        color: '#143601'
-      }
-    ]
-    const tips = []
-    durations.forEach(item => {
-      tips.push(`${item.name}：${item.duration} 毫秒`)
-    })
-    let percentCount = 0
-    const max = 250
+        color: "#143601",
+      },
+    ];
+    const tips = [];
+    durations.forEach((item) => {
+      tips.push(`${item.name}：${item.duration} 毫秒`);
+    });
+    let percentCount = 0;
+    const max = 250;
     durations.forEach((item, index) => {
-      let percent = Math.round(max * item.duration / duration)
+      let percent = Math.round((max * item.duration) / duration);
       if (index === durations.length - 1) {
-        percent = max - percentCount
+        percent = max - percentCount;
       }
       item.style = {
         width: `${percent}px`,
-        backgroundColor: item.color
-      }
-      percentCount += percent
-    })
+        backgroundColor: item.color,
+      };
+      percentCount += percent;
+    });
     return {
-      tips: tips.join('<br />'),
+      tips: tips.join("<br />"),
       durations,
-      durationDesc: formatDuration(duration)
-    }
-  }
-}
+      durationDesc: formatDuration(duration),
+    };
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import "@/common.sass"

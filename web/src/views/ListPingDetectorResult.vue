@@ -7,13 +7,13 @@
     ListPingResult
 </template>
 <script>
-import ListPingResult from '@/components/ListPingResult.vue'
+import ListPingResult from "@/components/ListPingResult.vue";
 export default {
-  name: 'ListPingDetectorResult',
+  name: "ListPingDetectorResult",
   components: {
-    ListPingResult
-  }
-}
+    ListPingResult,
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

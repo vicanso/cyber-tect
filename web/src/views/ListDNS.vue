@@ -10,32 +10,28 @@
     ) 添加DNS检测
 </template>
 <script>
-import ListDetector from '@/components/ListDetector.vue'
-import {
-  CAT_DNS
-} from '@/constants/category'
-import {
-  ROUTE_ADD_DNS
-} from '@/router'
+import ListDetector from "@/components/ListDetector.vue";
+import { CAT_DNS } from "@/constants/category";
+import { ROUTE_ADD_DNS } from "@/router";
 
 export default {
-  name: 'ListDNS',
+  name: "ListDNS",
   components: {
-    ListDetector
+    ListDetector,
   },
-  data () {
+  data() {
     return {
-      category: CAT_DNS
-    }
+      category: CAT_DNS,
+    };
   },
   methods: {
-    add () {
+    add() {
       this.$router.push({
-        name: ROUTE_ADD_DNS
-      })
-    }
-  }
-}
+        name: ROUTE_ADD_DNS,
+      });
+    },
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common.sass'

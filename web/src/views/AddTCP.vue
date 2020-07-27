@@ -8,14 +8,14 @@ el-card.addTCP
 </template>
 
 <script>
-import TCPDetector from '@/components/TCPDetector.vue'
+import TCPDetector from "@/components/TCPDetector.vue";
 
 export default {
-  name: 'AddTCP',
+  name: "AddTCP",
   components: {
-    TCPDetector
-  }
-}
+    TCPDetector,
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

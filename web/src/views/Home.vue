@@ -1,9 +1,12 @@
 <template lang="pug">
 .home
-  template(
+  el-row(
     v-if="userAccount"
+    :gutter="20"
   )
-    el-card.detectResult
+    el-col(
+      :span="12"
+    ): el-card.detectResult
       div(
         slot="header"
       )
@@ -17,7 +20,9 @@
         :category="http"
         :mime="true"
       )
-    el-card.detectResult
+    el-col(
+      :span="12"
+    ): el-card.detectResult
       div(
         slot="header"
       )
@@ -31,7 +36,9 @@
         :category="dns"
         :mime="true"
       )
-    el-card.detectResult
+    el-col(
+      :span="12"
+    ): el-card.detectResult
       div(
         slot="header"
       )
@@ -45,7 +52,9 @@
         :category="tcp"
         :mime="true"
       )
-    el-card.detectResult
+    el-col(
+      :span="12"
+    ): el-card.detectResult
       div(
         slot="header"
       )
@@ -64,28 +73,23 @@
   ) 请先登录系统
 </template>
 <script>
-import { mapState } from 'vuex'
+import { mapState } from "vuex";
 
-import DetectorResultSummary from '@/components/DetectorResultSummary.vue'
+import DetectorResultSummary from "@/components/DetectorResultSummary.vue";
 import {
   LIST_HTTP_RESULT,
   LIST_DNS_RESULT,
   LIST_TCP_RESULT,
-  LIST_PING_RESULT
-} from '@/paths'
-import {
-  CAT_HTTP,
-  CAT_PING,
-  CAT_DNS,
-  CAT_TCP
-} from '@/constants/category'
+  LIST_PING_RESULT,
+} from "@/paths";
+import { CAT_HTTP, CAT_PING, CAT_DNS, CAT_TCP } from "@/constants/category";
 
 export default {
-  name: 'Home',
+  name: "Home",
   components: {
-    DetectorResultSummary
+    DetectorResultSummary,
   },
-  data () {
+  data() {
     return {
       http: CAT_HTTP,
       ping: CAT_PING,
@@ -94,13 +98,13 @@ export default {
       moreHTTPResult: LIST_HTTP_RESULT,
       moreDNSResult: LIST_DNS_RESULT,
       moreTCPResult: LIST_TCP_RESULT,
-      morePingResult: LIST_PING_RESULT
-    }
+      morePingResult: LIST_PING_RESULT,
+    };
   },
   computed: mapState({
-    userAccount: state => state.user.account
-  })
-}
+    userAccount: (state) => state.user.account,
+  }),
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

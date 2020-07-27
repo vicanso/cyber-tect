@@ -10,32 +10,28 @@
     ) 添加TCP检测
 </template>
 <script>
-import ListDetector from '@/components/ListDetector.vue'
-import {
-  CAT_TCP
-} from '@/constants/category'
-import {
-  ROUTE_ADD_TCP
-} from '@/router'
+import ListDetector from "@/components/ListDetector.vue";
+import { CAT_TCP } from "@/constants/category";
+import { ROUTE_ADD_TCP } from "@/router";
 
 export default {
-  name: 'ListTCP',
+  name: "ListTCP",
   components: {
-    ListDetector
+    ListDetector,
   },
-  data () {
+  data() {
     return {
-      category: CAT_TCP
-    }
+      category: CAT_TCP,
+    };
   },
   methods: {
-    add () {
+    add() {
       this.$router.push({
-        name: ROUTE_ADD_TCP
-      })
-    }
-  }
-}
+        name: ROUTE_ADD_TCP,
+      });
+    },
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common.sass'

@@ -32,90 +32,88 @@ import {
   LIST_TCP,
   LIST_TCP_RESULT,
   LIST_PING,
-  LIST_PING_RESULT
-} from '@/paths'
+  LIST_PING_RESULT,
+} from "@/paths";
 
 export default {
-  name: 'MainNav',
-  data () {
+  name: "MainNav",
+  data() {
     return {
-      active: '',
+      active: "",
       navs: [
         {
-          name: 'HTTP',
+          name: "HTTP",
           children: [
             {
-              name: 'HTTP检测配置',
-              path: LIST_HTTP
+              name: "HTTP检测配置",
+              path: LIST_HTTP,
             },
             {
-              name: 'HTTP检测结果',
-              path: LIST_HTTP_RESULT
-            }
-          ]
+              name: "HTTP检测结果",
+              path: LIST_HTTP_RESULT,
+            },
+          ],
         },
         {
-          name: 'DNS',
+          name: "DNS",
           children: [
             {
-              name: 'DNS检测配置',
-              path: LIST_DNS
+              name: "DNS检测配置",
+              path: LIST_DNS,
             },
             {
-              name: 'DNS检测结果',
-              path: LIST_DNS_RESULT
-            }
-          ]
+              name: "DNS检测结果",
+              path: LIST_DNS_RESULT,
+            },
+          ],
         },
         {
-          name: 'TCP',
+          name: "TCP",
           children: [
             {
-              name: 'TCP检测配置',
-              path: LIST_TCP
+              name: "TCP检测配置",
+              path: LIST_TCP,
             },
             {
-              name: 'TCP检测结果',
-              path: LIST_TCP_RESULT
-            }
-          ]
+              name: "TCP检测结果",
+              path: LIST_TCP_RESULT,
+            },
+          ],
         },
         {
-          name: 'PING',
+          name: "PING",
           children: [
             {
-              name: 'Ping检测配置',
-              path: LIST_PING
+              name: "Ping检测配置",
+              path: LIST_PING,
             },
             {
-              name: 'Ping检测结果',
-              path: LIST_PING_RESULT
-            }
-          ]
-        }
-      ]
-    }
+              name: "Ping检测结果",
+              path: LIST_PING_RESULT,
+            },
+          ],
+        },
+      ],
+    };
   },
   watch: {
-    '$route' (to, from) {
-      const {
-        navs
-      } = this
-      let active = ''
+    $route(to) {
+      const { navs } = this;
+      let active = "";
       navs.forEach((nav, i) => {
         nav.children.forEach((item, j) => {
           if (item.path === to.path) {
-            active = `${i}-${j}`
+            active = `${i}-${j}`;
           }
-        })
-      })
-      this.active = active
-    }
+        });
+      });
+      this.active = active;
+    },
   },
-  beforeRouteUpdate (to, from, next) {
-    next()
-  }
-}
+  beforeRouteUpdate(to, from, next) {
+    next();
+  },
+};
 </script>
 
 <style lang="sass" scoped>

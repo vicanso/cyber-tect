@@ -9,22 +9,20 @@ el-card.updateTCP
   )
 </template>
 <script>
-import UpdateDetector from '@/components/UpdateDetector.vue'
-import {
-  CAT_TCP
-} from '@/constants/category'
+import UpdateDetector from "@/components/UpdateDetector.vue";
+import { CAT_TCP } from "@/constants/category";
 
 export default {
-  name: 'UpdateTCP',
+  name: "UpdateTCP",
   components: {
-    UpdateDetector
+    UpdateDetector,
   },
-  data () {
+  data() {
     return {
-      category: CAT_TCP
-    }
-  }
-}
+      category: CAT_TCP,
+    };
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

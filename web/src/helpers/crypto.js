@@ -30,7 +30,7 @@ const SHA256 = (function () {
       if ("SHA-224" === c || "SHA-256" === c)
         (g = (((b + 65) >>> 9) << 4) + 15), (e = 16);
       else throw Error("Unexpected error in SHA-2 implementation");
-      for (; a.length <= g;) a.push(0);
+      for (; a.length <= g; ) a.push(0);
       a[b >>> 5] |= 128 << (24 - (b % 32));
       b = b + f;
       a[g] = b & 4294967295;
@@ -57,10 +57,10 @@ const SHA256 = (function () {
       f = n >>> 3;
       d = f / 4 - 1;
       if (f < a / 8) {
-        for (b = t(b, a, 0, v(c)); b.length <= d;) b.push(0);
+        for (b = t(b, a, 0, v(c)); b.length <= d; ) b.push(0);
         b[d] &= 4294967040;
       } else if (f > a / 8) {
-        for (; b.length <= d;) b.push(0);
+        for (; b.length <= d; ) b.push(0);
         b[d] &= 4294967040;
       }
       for (a = 0; a <= d; a += 1)
@@ -156,7 +156,7 @@ const SHA256 = (function () {
     };
   }
 
-  function l() { }
+  function l() {}
 
   function J(c, a, b) {
     var g = c.length,
@@ -175,12 +175,12 @@ const SHA256 = (function () {
       if (isNaN(f))
         throw Error("String of HEX type contains invalid characters");
       h = (d >>> 1) + q;
-      for (e = h >>> 2; a.length <= e;) a.push(0);
+      for (e = h >>> 2; a.length <= e; ) a.push(0);
       a[e] |= f << (8 * (3 - (h % 4)));
     }
     return {
       value: a,
-      binLen: 4 * g + b
+      binLen: 4 * g + b,
     };
   }
 
@@ -201,7 +201,7 @@ const SHA256 = (function () {
         (g[e] |= a << (8 * (3 - (h % 4))));
     return {
       value: g,
-      binLen: 8 * c.length + b
+      binLen: 8 * c.length + b,
     };
   }
 
@@ -232,14 +232,14 @@ const SHA256 = (function () {
           (q |= f << (18 - 6 * h));
       for (h = 0; h < m.length - 1; h += 1) {
         n = d + a;
-        for (f = n >>> 2; g.length <= f;) g.push(0);
+        for (f = n >>> 2; g.length <= f; ) g.push(0);
         g[f] |= ((q >>> (16 - 8 * h)) & 255) << (8 * (3 - (n % 4)));
         d += 1;
       }
     }
     return {
       value: g,
-      binLen: 8 * d + b
+      binLen: 8 * d + b,
     };
   }
 
@@ -258,7 +258,7 @@ const SHA256 = (function () {
         (g[f] |= c[a] << (8 * (3 - (e % 4))));
     return {
       value: g,
-      binLen: 8 * c.byteLength + b
+      binLen: 8 * c.byteLength + b,
     };
   }
 
@@ -284,21 +284,21 @@ const SHA256 = (function () {
     for (d = 0; d < g; d += 3)
       for (
         e = (d + 1) >>> 2,
-        f = c.length <= e ? 0 : c[e],
-        e = (d + 2) >>> 2,
-        e = c.length <= e ? 0 : c[e],
-        e =
-        (((c[d >>> 2] >>> (8 * (3 - (d % 4)))) & 255) << 16) |
-        (((f >>> (8 * (3 - ((d + 1) % 4)))) & 255) << 8) |
-        ((e >>> (8 * (3 - ((d + 2) % 4)))) & 255),
-        f = 0;
+          f = c.length <= e ? 0 : c[e],
+          e = (d + 2) >>> 2,
+          e = c.length <= e ? 0 : c[e],
+          e =
+            (((c[d >>> 2] >>> (8 * (3 - (d % 4)))) & 255) << 16) |
+            (((f >>> (8 * (3 - ((d + 1) % 4)))) & 255) << 8) |
+            ((e >>> (8 * (3 - ((d + 2) % 4)))) & 255),
+          f = 0;
         4 > f;
         f += 1
       )
         8 * d + 6 * f <= 32 * c.length
           ? (b += "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/".charAt(
-            (e >>> (6 * (3 - f))) & 63
-          ))
+              (e >>> (6 * (3 - f))) & 63
+            ))
           : (b += a.b64Pad);
     return b;
   }
@@ -326,7 +326,7 @@ const SHA256 = (function () {
   function B(c) {
     var a = {
       outputUpper: !1,
-      b64Pad: "="
+      b64Pad: "=",
     };
     c = c || {};
     a.outputUpper = c.outputUpper || !1;
@@ -369,33 +369,33 @@ const SHA256 = (function () {
             for (m = 0; m < b.length; m += 1)
               for (
                 f = b.charCodeAt(m),
-                h = [],
-                128 > f
-                  ? h.push(f)
-                  : 2048 > f
+                  h = [],
+                  128 > f
+                    ? h.push(f)
+                    : 2048 > f
                     ? (h.push(192 | (f >>> 6)), h.push(128 | (f & 63)))
                     : 55296 > f || 57344 <= f
-                      ? h.push(
+                    ? h.push(
                         224 | (f >>> 12),
                         128 | ((f >>> 6) & 63),
                         128 | (f & 63)
                       )
-                      : ((m += 1),
-                        (f =
-                          65536 +
-                          (((f & 1023) << 10) | (b.charCodeAt(m) & 1023))),
-                        h.push(
-                          240 | (f >>> 18),
-                          128 | ((f >>> 12) & 63),
-                          128 | ((f >>> 6) & 63),
-                          128 | (f & 63)
-                        )),
-                n = 0;
+                    : ((m += 1),
+                      (f =
+                        65536 +
+                        (((f & 1023) << 10) | (b.charCodeAt(m) & 1023))),
+                      h.push(
+                        240 | (f >>> 18),
+                        128 | ((f >>> 12) & 63),
+                        128 | ((f >>> 6) & 63),
+                        128 | (f & 63)
+                      )),
+                  n = 0;
                 n < h.length;
                 n += 1
               ) {
                 p = q + l;
-                for (k = p >>> 2; e.length <= k;) e.push(0);
+                for (k = p >>> 2; e.length <= k; ) e.push(0);
                 e[k] |= h[n] << (8 * (3 - (p % 4)));
                 q += 1;
               }
@@ -404,13 +404,13 @@ const SHA256 = (function () {
               f = b.charCodeAt(m);
               "UTF16LE" === a && ((n = f & 255), (f = (n << 8) | (f >>> 8)));
               p = q + l;
-              for (k = p >>> 2; e.length <= k;) e.push(0);
+              for (k = p >>> 2; e.length <= k; ) e.push(0);
               e[k] |= f << (8 * (2 - (p % 4)));
               q += 2;
             }
           return {
             value: e,
-            binLen: 8 * q + c
+            binLen: 8 * q + c,
           };
         };
         break;
@@ -504,7 +504,7 @@ const SHA256 = (function () {
       4290775857,
       1750603025,
       1694076839,
-      3204075428
+      3204075428,
     ];
     b = [
       1779033703,
@@ -514,7 +514,7 @@ const SHA256 = (function () {
       1359893119,
       2600822924,
       528734635,
-      1541459225
+      1541459225,
     ];
     switch (c) {
       case "SHA-224":
@@ -532,7 +532,7 @@ const SHA256 = (function () {
           new l(),
           new l(),
           new l(),
-          new l()
+          new l(),
         ];
         break;
       case "SHA-512":
@@ -544,7 +544,7 @@ const SHA256 = (function () {
           new l(),
           new l(),
           new l(),
-          new l()
+          new l(),
         ];
         break;
       default:
@@ -693,12 +693,12 @@ const SHA256 = (function () {
     2428436474,
     2756734187,
     3204031479,
-    3329325298
+    3329325298,
   ];
   return u;
 })();
 
-export const sha256 = text => {
+export const sha256 = (text) => {
   const hash = new SHA256("SHA-256", "TEXT");
   hash.update(text);
   return hash.getHash("B64");

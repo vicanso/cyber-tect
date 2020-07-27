@@ -10,22 +10,20 @@ el-card.updateHTTP
 </template>
 
 <script>
-import UpdateDetector from '@/components/UpdateDetector.vue'
-import {
-  CAT_HTTP
-} from '@/constants/category'
+import UpdateDetector from "@/components/UpdateDetector.vue";
+import { CAT_HTTP } from "@/constants/category";
 
 export default {
-  name: 'UpdateHTTP',
+  name: "UpdateHTTP",
   components: {
-    UpdateDetector
+    UpdateDetector,
   },
-  data () {
+  data() {
     return {
-      category: CAT_HTTP
-    }
-  }
-}
+      category: CAT_HTTP,
+    };
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

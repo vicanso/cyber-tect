@@ -73,113 +73,102 @@ el-form(
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions } from "vuex";
 
 export default {
-  name: 'ExDetectorForm',
+  name: "ExDetectorForm",
   props: {
     originalDetector: Object,
     fields: {
       type: Array,
-      required: true
+      required: true,
     },
     labelWidth: {
       type: String,
-      default: '80px'
+      default: "80px",
     },
     gutter: {
       type: Number,
-      default: 20
+      default: 20,
     },
     submit: {
       type: Function,
-      required: true
+      required: true,
     },
-    back: Function
+    back: Function,
   },
-  data () {
-    const {
-      fields,
-      originalDetector
-    } = this.$props
+  data() {
+    const { fields, originalDetector } = this.$props;
     const data = {
-      form: {}
-    }
+      form: {},
+    };
     fields.forEach((item) => {
-      const {
-        name
-      } = item
+      const { name } = item;
       if (originalDetector) {
-        data.form[name] = originalDetector[name]
+        data.form[name] = originalDetector[name];
       } else {
-        data.form[name] = null
+        data.form[name] = null;
       }
-    })
-    return data
+    });
+    return data;
   },
   computed: mapState({
-    users: state => state.user.users,
-    fetchingUsers: state => state.user.fetchingUsers
+    users: (state) => state.user.users,
+    fetchingUsers: (state) => state.user.fetchingUsers,
   }),
   methods: {
-    ...mapActions([
-      'listUser'
-    ]),
-    async searchUser (keyword) {
+    ...mapActions(["listUser"]),
+    async searchUser(keyword) {
       try {
         await this.listUser({
           keyword,
-          limit: 10
-        })
+          limit: 10,
+        });
       } catch (err) {
-        this.$message.error(err.message)
+        this.$message.error(err.message);
       }
     },
-    handleBack () {
+    handleBack() {
       if (this.$props.back) {
-        this.$props.back()
-        return
+        this.$props.back();
+        return;
       }
-      this.$router.back()
+      this.$router.back();
     },
-    onSubmit () {
-      const {
-        form
-      } = this
-      const {
-        fields
-      } = this.$props
-      const data = {}
+    onSubmit() {
+      const { form } = this;
+      const { fields } = this.$props;
+      const data = {};
       Object.keys(form).forEach((key) => {
-        const value = form[key]
+        const value = form[key];
         if (value !== null && (!Array.isArray(value) || value.length !== 0)) {
-          data[key] = value
+          data[key] = value;
         }
-      })
+      });
       Object.keys(data).forEach((key) => {
         fields.forEach((field) => {
-          if (field.name === key && field.inputType === 'number') {
-            data[key] = Number(data[key])
+          if (field.name === key && field.inputType === "number") {
+            data[key] = Number(data[key]);
           }
-        })
-      })
-      const emptyFields = []
+        });
+      });
+      const emptyFields = [];
       this.$props.fields.forEach((item) => {
         if (item.required && !data[item.name]) {
-          emptyFields.push(item.label)
+          emptyFields.push(item.label);
         }
-      })
+      });
       if (emptyFields.length !== 0) {
-        this.$message.warning(`${emptyFields.join('，')}不能为空`)
-        return
+        this.$message.warning(`${emptyFields.join("，")}不能为空`);
+        return;
       }
-      this.$props.submit(data)
-    }
+      this.$props.submit(data);
+    },
   },
-  mounted () {
-    this.searchUser()
-  }
-}
+  mounted() {
+    this.searchUser();
+  },
+};
 </script>
 <style lang="sass" scoped>
 .selector, .submit, .back

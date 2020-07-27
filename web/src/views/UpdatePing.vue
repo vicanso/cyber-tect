@@ -9,22 +9,20 @@ el-card.updatePing
   )
 </template>
 <script>
-import UpdateDetector from '@/components/UpdateDetector.vue'
-import {
-  CAT_PING
-} from '@/constants/category'
+import UpdateDetector from "@/components/UpdateDetector.vue";
+import { CAT_PING } from "@/constants/category";
 
 export default {
-  name: 'UpdatePing',
+  name: "UpdatePing",
   components: {
-    UpdateDetector
+    UpdateDetector,
   },
-  data () {
+  data() {
     return {
-      category: CAT_PING
-    }
-  }
-}
+      category: CAT_PING,
+    };
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import '@/common'

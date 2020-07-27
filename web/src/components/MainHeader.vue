@@ -41,29 +41,27 @@ header.header
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
-import { HOME, LOGIN, REGISTER, USER_INFO } from '@/paths'
+import { mapState, mapActions } from "vuex";
+import { HOME, LOGIN, REGISTER, USER_INFO } from "@/paths";
 
 export default {
-  name: 'MainHeader',
-  data () {
+  name: "MainHeader",
+  data() {
     return {
       HOME,
       LOGIN,
       REGISTER,
-      USER_INFO
-    }
+      USER_INFO,
+    };
   },
   computed: mapState({
-    fetchingUserInfo: state => state.user.fetching,
-    userAccount: state => state.user.account
+    fetchingUserInfo: (state) => state.user.fetching,
+    userAccount: (state) => state.user.account,
   }),
   methods: {
-    ...mapActions([
-      'logout'
-    ])
-  }
-}
+    ...mapActions(["logout"]),
+  },
+};
 </script>
 <style lang="sass" scoped>
 @import "@/common.sass"

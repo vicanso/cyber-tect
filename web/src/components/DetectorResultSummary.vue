@@ -15,7 +15,7 @@
       )
       .summary(
         @click="showTaskReuslts(item)"
-        :class="{success: item.result === resultSucess, fail: item.result !== resultSucess}"
+        :style="{backgroundColor: item.color}"
       )
   .tips(
     v-else
@@ -30,6 +30,22 @@ import { ROUTE_LIST_HTTP_DETECTOR_RESULT } from "@/router";
 
 // 图示方块宽度
 const boxWidth = 20;
+
+class Color {
+  constructor(r, g, b) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+  }
+  toString() {
+    return `rgba(${this.r}, ${this.g}, ${this.b})`;
+  }
+}
+
+const defaultFailColor = new Color(193, 195, 199);
+const defaultSuccessColor = new Color(3, 134, 134);
+const defaultSuccessSlowColor = new Color(3, 185, 185);
+const defaultSuccessSlowerColor = new Color(165, 208, 208);
 
 export default {
   name: "DetectorResultSummary",
@@ -61,7 +77,24 @@ export default {
       return state.detector.mime[this.$props.category].detectors;
     },
     detectorResults: function (state) {
-      return state.detector[`${this.$props.category}ListResult`].results;
+      const { results } = state.detector[`${this.$props.category}ListResult`];
+      const { resultFail } = this;
+      if (results) {
+        results.forEach((item) => {
+          if (item.result === resultFail) {
+            item.color = defaultFailColor.toString();
+          } else {
+            if (item.duration >= 3000) {
+              item.color = defaultSuccessSlowerColor.toString();
+            } else if (item.duration >= 1000) {
+              item.color = defaultSuccessSlowColor.toString();
+            } else {
+              item.color = defaultSuccessColor.toString();
+            }
+          }
+        });
+      }
+      return results;
     },
   }),
   methods: {
@@ -74,7 +107,7 @@ export default {
       this.$router.push({
         name: ROUTE_LIST_HTTP_DETECTOR_RESULT,
         query: {
-          task: item.task,
+          task: `${item.task}`,
         },
       });
     },
@@ -171,10 +204,6 @@ $summaryWidth: 20px
   float: left
   cursor: pointer
   border: 1px solid white
-  &.success
-    background-color: #038686
-  &.fail
-    background-color: #c1c3c7
 .tips
   font-size: 13px
   i

@@ -15,6 +15,9 @@
       v-if="currentResult"
     )
       li
+        span 描述：
+        | {{currentResult.taskDesc}}
+      li
         span 状态码：
         | {{currentResult.statusCode}}
       li
@@ -137,7 +140,7 @@
   )
 </template>
 <script>
-import { mapState } from "vuex";
+import { mapState, mapActions } from "vuex";
 
 import { CAT_HTTP } from "@/constants/category";
 import HTTPTimeline from "@/components/HTTPTimeline.vue";
@@ -191,8 +194,11 @@ export default {
     processing: (state) => state.detector.httpListResult.processing,
     count: (state) => state.detector.httpListResult.count,
     results: (state) => state.detector.httpListResult.results || [],
+    detectors: (state) =>
+      (state.detector[CAT_HTTP] && state.detector[CAT_HTTP].detectors) || [],
   }),
   methods: {
+    ...mapActions(["listDetector"]),
     showDetail(data) {
       if (
         data.certificateExpirationDates &&
@@ -202,12 +208,31 @@ export default {
         const end = formatDate(data.certificateExpirationDates[1]);
         data.expirationDate = `${start} 至 ${end}`;
       }
+      this.detectors.forEach((item) => {
+        if (item.id === data.task) {
+          data.taskDesc = item.description;
+        }
+      });
       this.currentResult = data;
       this.showingDetail = true;
     },
   },
   mounted() {
     this.fetch();
+  },
+  async beforeMount() {
+    const { category } = this;
+    try {
+      await this.listDetector({
+        category: category,
+        params: {
+          offset: 0,
+          limit: 100,
+        },
+      });
+    } catch (err) {
+      this.$message.error(err.message);
+    }
   },
 };
 </script>

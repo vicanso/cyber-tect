@@ -107,7 +107,7 @@ func init() {
 	// 获取用户列表
 	g.GET(
 		"/v1",
-		shouldBeAdmin,
+		shouldLogined,
 		ctrl.list,
 	)
 

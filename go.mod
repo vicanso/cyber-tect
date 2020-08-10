@@ -13,21 +13,22 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/influxdata/influxdb-client-go v1.4.0
 	github.com/jinzhu/gorm v1.9.15
-	github.com/lib/pq v1.7.1
+	github.com/lib/pq v1.8.0
 	github.com/oklog/ulid/v2 v2.0.2
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/tidwall/gjson v1.6.0
 	github.com/vicanso/count-warner v1.0.0
-	github.com/vicanso/elton v1.0.3
+	github.com/vicanso/elton v1.0.5
 	github.com/vicanso/elton-session v1.0.0
-	github.com/vicanso/go-axios v0.1.3
+	github.com/vicanso/go-axios v0.1.4
 	github.com/vicanso/hes v0.2.2
-	github.com/vicanso/http-trace v0.1.1
+	github.com/vicanso/http-trace v1.0.0
 	github.com/vicanso/ips v1.0.0
 	go.uber.org/automaxprocs v1.3.0
 	go.uber.org/zap v1.15.0
-	golang.org/x/image v0.0.0-20200618115811-c13761719519
+	golang.org/x/image v0.0.0-20200801110659-972c09e46d76
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )

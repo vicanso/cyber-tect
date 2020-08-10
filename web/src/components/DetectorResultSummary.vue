@@ -26,8 +26,6 @@
 <script>
 import { mapState, mapActions } from "vuex";
 
-import { ROUTE_LIST_HTTP_DETECTOR_RESULT } from "@/router";
-
 // 图示方块宽度
 const boxWidth = 20;
 
@@ -51,6 +49,10 @@ export default {
   name: "DetectorResultSummary",
   props: {
     category: {
+      type: String,
+      required: true,
+    },
+    route: {
       type: String,
       required: true,
     },
@@ -105,7 +107,7 @@ export default {
     ]),
     showTaskReuslts(item) {
       this.$router.push({
-        name: ROUTE_LIST_HTTP_DETECTOR_RESULT,
+        name: this.route,
         query: {
           task: `${item.task}`,
         },

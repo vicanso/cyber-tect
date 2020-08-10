@@ -19,6 +19,7 @@
       DetectorResultSummary(
         :category="http"
         :mime="true"
+        :route="httpRoute"
       )
     el-col(
       :span="12"
@@ -35,6 +36,7 @@
       DetectorResultSummary(
         :category="dns"
         :mime="true"
+        :route="dnsRoute"
       )
     el-col(
       :span="12"
@@ -51,6 +53,7 @@
       DetectorResultSummary(
         :category="tcp"
         :mime="true"
+        :route="tcpRoute"
       )
     el-col(
       :span="12"
@@ -67,6 +70,7 @@
       DetectorResultSummary(
         :category="ping"
         :mime="true"
+        :route="pingRoute"
       )
   .tips(
     v-else
@@ -82,6 +86,13 @@ import {
   LIST_TCP_RESULT,
   LIST_PING_RESULT,
 } from "@/paths";
+import {
+  ROUTE_LIST_HTTP_DETECTOR_RESULT,
+  ROUTE_LIST_DNS_DETECTOR_RESULT,
+  ROUTE_LIST_PING_DETECTOR_RESULT,
+  ROUTE_LIST_TCP_DETECTOR_RESULT,
+} from "@/router";
+
 import { CAT_HTTP, CAT_PING, CAT_DNS, CAT_TCP } from "@/constants/category";
 
 export default {
@@ -95,6 +106,10 @@ export default {
       ping: CAT_PING,
       dns: CAT_DNS,
       tcp: CAT_TCP,
+      httpRoute: ROUTE_LIST_HTTP_DETECTOR_RESULT,
+      pingRoute: ROUTE_LIST_PING_DETECTOR_RESULT,
+      dnsRoute: ROUTE_LIST_DNS_DETECTOR_RESULT,
+      tcpRoute: ROUTE_LIST_TCP_DETECTOR_RESULT,
       moreHTTPResult: LIST_HTTP_RESULT,
       moreDNSResult: LIST_DNS_RESULT,
       moreTCPResult: LIST_TCP_RESULT,

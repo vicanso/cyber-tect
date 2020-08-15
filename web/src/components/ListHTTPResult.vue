@@ -21,7 +21,10 @@
         span 状态码：
         | {{currentResult.statusCode}}
       li
-        span IP地址：
+        span 连接地址：
+        | {{currentResult.addr}}
+      li
+        span 域名解析：
         | {{currentResult.addrs.join(',')}}
       li(
         v-if="currentResult.message"

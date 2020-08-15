@@ -118,7 +118,12 @@ func (h *HTTP) Check() (resp *http.Response, ht *HT.HTTPTrace, err error) {
 	// 每次都使用新的client，避免复用
 	client := &http.Client{
 		Timeout: timeout,
+		// 禁止重定向
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 		Transport: &http.Transport{
+			Proxy:             http.ProxyFromEnvironment,
 			ForceAttemptHTTP2: true,
 			// 设置较短时间，不复用
 			IdleConnTimeout:       1 * time.Second,

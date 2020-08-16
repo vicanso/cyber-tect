@@ -287,6 +287,13 @@ func (srv *HTTPSrv) detectOne(h *HTTP) {
 			}
 		}
 	}
+	if result.Result == DetectFail {
+		logger.Info("http detect fail",
+			zap.String("message", result.Message),
+			zap.Any("http trace", ht),
+		)
+	}
+
 	task := fmt.Sprintf("http-%d", result.Task)
 	if isDetectResultChange(task, result.Result) {
 		result.Receivers = h.Receivers

@@ -25,7 +25,7 @@
         | {{currentResult.addr}}
       li
         span 域名解析：
-        | {{currentResult.addrs.join(',')}}
+        | {{currentResult.addrs.join(', ')}}
       li(
         v-if="currentResult.message"
       )

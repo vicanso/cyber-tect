@@ -160,6 +160,8 @@ export default {
         limit: eachColumnBoxCount * 8,
         offset: 0,
         order: "-id",
+        // 不获取总数
+        count: "0",
       };
       if (this.filterTasks) {
         params.tasks = this.filterTasks;

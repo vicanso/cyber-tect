@@ -51,6 +51,7 @@ type (
 		Keyword string `json:"keyword,omitempty" validate:"omitempty,xDetectorKeyword"`
 	}
 	queryDetectorResultParams struct {
+		Count    string `json:"count,omitempty"`
 		Limit    string `json:"limit,omitempty" validate:"xLimit"`
 		Offset   string `json:"offset,omitempty" validate:"xOffset"`
 		Order    string `json:"order,omitempty"`
@@ -758,7 +759,7 @@ func (ctrl detectorCtrl) listResult(c *elton.Context) (err error) {
 	offset, _ := strconv.Atoi(params.Offset)
 
 	count := -1
-	if offset == 0 {
+	if offset == 0 && params.Count != "0" {
 		count, err = countDetectorResults[cat](params)
 		if err != nil {
 			return

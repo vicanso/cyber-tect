@@ -1,4 +1,4 @@
-FROM node:12-alpine as webbuilder
+FROM node:14-alpine as webbuilder
 
 COPY . /cybertect
 RUN cd /cybertect/web \
@@ -7,7 +7,7 @@ RUN cd /cybertect/web \
   && rm -rf node_module
 
 
-FROM golang:1.14-alpine as builder
+FROM golang:1.15-alpine as builder
 
 COPY --from=webbuilder /cybertect /cybertect
 

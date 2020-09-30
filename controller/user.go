@@ -217,7 +217,7 @@ func (ctrl userCtrl) me(c *elton.Context) (err error) {
 	// ulid的长度为26
 	if cookie == nil || len(cookie.Value) != 26 {
 		uid := util.GenUlid()
-		_ = c.AddCookie(&http.Cookie{
+		c.AddCookie(&http.Cookie{
 			Name:     key,
 			Value:    uid,
 			Path:     "/",
@@ -405,7 +405,7 @@ func (ctrl userCtrl) updateMe(c *elton.Context) (err error) {
 		return
 	}
 	// 更新session
-	err = c.AddSignedCookie(&http.Cookie{
+	c.AddSignedCookie(&http.Cookie{
 		Name:     scf.Key,
 		Value:    cookie.Value,
 		Path:     scf.CookiePath,

@@ -21,8 +21,8 @@ import (
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
 
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/elton"
 )
 
 type (
@@ -94,7 +94,7 @@ func (ctrl commonCtrl) location(c *elton.Context) (err error) {
 
 func (ctrl commonCtrl) routers(c *elton.Context) (err error) {
 	c.Body = map[string]interface{}{
-		"routers": c.Elton().Routers,
+		"routers": c.Elton().GetRouters(),
 	}
 	return
 }

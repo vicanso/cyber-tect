@@ -16,12 +16,10 @@ package helper
 
 import (
 	"github.com/vicanso/cybertect/log"
-	"github.com/vicanso/cybertect/util"
 )
 
 var (
-	logger       = log.Default()
-	isProduction = util.IsProduction
+	logger = log.Default()
 )
 
 type ContextKey string

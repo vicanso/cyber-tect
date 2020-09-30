@@ -16,12 +16,13 @@ package helper
 
 import (
 	"errors"
+	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/go-axios"
 	"github.com/vicanso/hes"
 )
@@ -97,7 +98,7 @@ func TestNewInstance(t *testing.T) {
 
 func TestAttachWithContext(t *testing.T) {
 	assert := assert.New(t)
-	c := elton.NewContext(nil, nil)
+	c := elton.NewContext(nil, httptest.NewRequest("GET", "/", nil))
 	c.ID = "context id"
 	conf := &axios.Config{}
 	AttachWithContext(conf, c)

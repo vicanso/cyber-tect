@@ -20,11 +20,11 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/tidwall/gjson v1.6.1
 	github.com/vicanso/count-warner v1.0.1
-	github.com/vicanso/elton v1.1.0
+	github.com/vicanso/elton v1.2.0
 	github.com/vicanso/elton-session v1.0.2
-	github.com/vicanso/go-axios v0.1.13
+	github.com/vicanso/go-axios v0.1.14
 	github.com/vicanso/hes v0.2.3
-	github.com/vicanso/http-trace v1.0.2
+	github.com/vicanso/http-trace v1.0.3
 	github.com/vicanso/ips v1.0.1
 	go.uber.org/automaxprocs v1.3.0
 	go.uber.org/zap v1.16.0

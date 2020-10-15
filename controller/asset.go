@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"time"
 
 	"github.com/gobuffalo/packr/v2"
 	"github.com/vicanso/cybertect/router"
@@ -67,9 +68,9 @@ func init() {
 	}
 	g.GET("/static/*", M.NewStaticServe(sf, M.StaticServeConfig{
 		// 客户端缓存一年
-		MaxAge: 365 * 24 * 3600,
+		MaxAge: 365 * 24 * time.Hour,
 		// 缓存服务器缓存一个小时
-		SMaxAge:             60 * 60,
+		SMaxAge:             time.Hour,
 		DenyQueryString:     true,
 		DisableLastModified: true,
 	}))
@@ -87,7 +88,7 @@ func sendFile(c *elton.Context, file string) (err error) {
 }
 
 func (ctrl assetCtrl) index(c *elton.Context) (err error) {
-	c.CacheMaxAge("10s")
+	c.CacheMaxAge(10 * time.Second)
 	return sendFile(c, "index.html")
 }
 

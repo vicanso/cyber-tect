@@ -111,8 +111,13 @@ func (h *HTTP) Check() (resp *http.Response, ht *HT.HTTPTrace, err error) {
 				KeepAlive: 30 * time.Second,
 				DualStack: true,
 			}
+			ip := h.IP
+			// IPV6
+			if strings.Contains(ip, ":") {
+				ip = "[" + ip + "]"
+			}
 			sepIndex := strings.LastIndex(addr, ":")
-			return dia.DialContext(ctx, network, h.IP+addr[sepIndex:])
+			return dia.DialContext(ctx, network, ip+addr[sepIndex:])
 		}
 	}
 	// 每次都使用新的client，避免复用

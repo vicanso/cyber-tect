@@ -63,11 +63,14 @@ func configRefresh() {
 }
 
 func removeOlderDetectResult() {
+	logger := log.Default()
 	err := detector.RemoveOlderDetectResult()
 	if err != nil {
-		log.Default().Error("remove older detect result fail",
+		logger.Error("remove older detect result fail",
 			zap.Error(err),
 		)
+	} else {
+		logger.Info("remove older detect result done")
 	}
 }
 

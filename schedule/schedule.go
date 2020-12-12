@@ -37,6 +37,7 @@ func init() {
 	_, _ = c.AddFunc("@every 1m", tcpCheck)
 	_, _ = c.AddFunc("@every 1m", pingCheck)
 	_, _ = c.AddFunc("@every 1m", httpCheck)
+	_, _ = c.AddFunc("@every 5m", removeOlderDetectResult)
 	c.Start()
 }
 
@@ -58,6 +59,15 @@ func configRefresh() {
 			zap.Error(err),
 		)
 		service.AlarmError("config refresh fail")
+	}
+}
+
+func removeOlderDetectResult() {
+	err := detector.RemoveOlderDetectResult()
+	if err != nil {
+		log.Default().Error("remove older detect result fail",
+			zap.Error(err),
+		)
 	}
 }
 

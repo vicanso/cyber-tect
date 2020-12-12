@@ -137,3 +137,22 @@ func getReceivers(receivers pq.StringArray) (users []*service.User, err error) {
 func formatMs(ms int) string {
 	return (time.Duration(ms) * time.Millisecond).String()
 }
+
+// RemoveOlderDetectResult remove older detect result
+func RemoveOlderDetectResult() (err error) {
+	values := []interface{}{
+		&DNSDetectResult{},
+		&HTTPDetectResult{},
+		&PingDetectResult{},
+		&TCPDetectResult{},
+	}
+	date := time.Now().AddDate(0, -3, 0)
+	for _, value := range values {
+		client := pgGetClient()
+		e := client.Delete(value, "created_at < ?", date).Error
+		if e != nil {
+			err = e
+		}
+	}
+	return
+}

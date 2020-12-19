@@ -45,7 +45,7 @@ type (
 		ID        uint       `gorm:"primary_key" json:"id,omitempty"`
 		CreatedAt *time.Time `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
-		DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
+		// DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
 
 		Receivers pq.StringArray `json:"receivers,omitempty" gorm:"type:text[]"`
 		Duration  int            `json:"duration,omitempty"`

@@ -224,7 +224,6 @@ func init() {
 func (params *queryDetectorResultParams) toConditions() (conditions []interface{}) {
 	queryList := make([]string, 0)
 	args := make([]interface{}, 0)
-	queryList = append(queryList, "deleted_at IS NULL")
 
 	if params.Task != "" {
 		queryList = append(queryList, "task = ?")

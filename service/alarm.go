@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,59 +17,67 @@ package service
 import (
 	"crypto/tls"
 	"sync"
-	"time"
 
 	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/log"
 	"go.uber.org/zap"
 	"gopkg.in/gomail.v2"
 )
 
 var (
-	mailDialer *gomail.Dialer
-	mailSender string
-
-	sendingMailMutex = new(sync.Mutex)
+	sendingMailMutex = &sync.Mutex{}
+	newMailOnce      = &sync.Once{}
 )
 
-func init() {
-	mailConfig := config.GetMailConfig()
-	if mailConfig.Host != "" {
-		mailSender = mailConfig.User
-		mailDialer = gomail.NewDialer(mailConfig.Host, mailConfig.Port, mailConfig.User, mailConfig.Password)
-		mailDialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-	}
-}
+var (
+	defaultMailDialer *gomail.Dialer
+)
 
-func SendMail(subject, content string, receivers []string) {
-	m := gomail.NewMessage()
-	m.SetHeader("From", mailSender)
-	m.SetHeader("To", receivers...)
-	m.SetHeader("Subject", subject)
-	m.SetBody("text/plain", content)
-	// 避免发送邮件时太慢影响现有流程
-	go func() {
-		// 只允许一次一个邮件发送，避免邮件服务拦截
-		sendingMailMutex.Lock()
-		defer sendingMailMutex.Unlock()
-		err := mailDialer.DialAndSend(m)
-		if err != nil {
-			logger.Error("send mail fail",
-				zap.Error(err),
-			)
+var (
+	basicInfo   = config.GetBasicConfig()
+	alarmConfig = config.GetAlarmConfig()
+	mailConfig  = config.GetMailConfig()
+)
+
+// newMailDialer 新建邮件发送dialer
+func newMailDialer() *gomail.Dialer {
+	newMailOnce.Do(func() {
+		if mailConfig.Host == "" {
+			return
 		}
-		// 延时一秒
-		time.Sleep(time.Second)
-	}()
+		d := gomail.NewDialer(mailConfig.Host, mailConfig.Port, mailConfig.User, mailConfig.Password)
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		defaultMailDialer = d
+	})
+	return defaultMailDialer
+
 }
 
-// AlarmError alarm error message
+// AlarmError 发送出错警告
 func AlarmError(message string) {
-	logger.Error(message,
-		zap.String("app", config.GetAppName()),
+	log.Default().Error(message,
+		zap.String("app", basicInfo.Name),
 		zap.String("category", "alarm-error"),
 	)
-	if mailDialer != nil {
-		receivers := config.GetStringSlice("alarm.receiver")
-		SendMail("Alarm-"+config.GetAppName(), message, receivers)
+	d := newMailDialer()
+	if d != nil {
+		m := gomail.NewMessage()
+		receivers := alarmConfig.Receivers
+		m.SetHeader("From", mailConfig.User)
+		m.SetHeader("To", receivers...)
+		m.SetHeader("Subject", "Alarm-"+basicInfo.Name)
+		m.SetBody("text/plain", message)
+		// 避免发送邮件时太慢影响现有流程
+		go func() {
+			// 一次只允许一个email发送（由于使用的邮件服务有限制）
+			sendingMailMutex.Lock()
+			defer sendingMailMutex.Unlock()
+			err := d.DialAndSend(m)
+			if err != nil {
+				log.Default().Error("send mail fail",
+					zap.Error(err),
+				)
+			}
+		}()
 	}
 }

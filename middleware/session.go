@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,22 +15,16 @@
 package middleware
 
 import (
+	"github.com/vicanso/cybertect/cache"
+	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
 	session "github.com/vicanso/elton-session"
-	"github.com/vicanso/cybertect/config"
-	"github.com/vicanso/cybertect/helper"
-	"github.com/vicanso/cybertect/util"
 )
 
 // NewSession new session middleware
 func NewSession() elton.Handler {
-	client := helper.RedisGetClient()
-	if client == nil {
-		panic("session store need redis client")
-	}
-	store := &helper.RedisSessionStore{
-		Prefix: "ss-",
-	}
+	store := cache.GetRedisSession()
 	scf := config.GetSessionConfig()
 	return session.NewByCookie(session.CookieConfig{
 		Store:   store,

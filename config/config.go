@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,135 +12,168 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// 应用中的所有配置获取，拉取配置信息使用default配置中的值为默认值，再根据GO_ENV配置的环境变量获取对应的环境配置，
+// 需要注意，尽可能按单个key的形式来获取对应的配置，这样的方式可以保证针对单个key优先获取GO_ENV对应配置，
+// 再获取默认配置，如果一次获取map的形式，如果当前配置对应的map的所有key不全，不会再获取default的配置
+
 package config
 
 import (
 	"bytes"
+	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gobuffalo/packr/v2"
-	"github.com/spf13/viper"
 	"github.com/vicanso/cybertect/validate"
+	"github.com/vicanso/viperx"
 )
 
 var (
-	box     = packr.New("config", "../configs")
-	env     = os.Getenv("GO_ENV")
-	appName string
-)
+	box = packr.New("config", "../configs")
+	env = os.Getenv("GO_ENV")
 
-type (
-	// RedisOptions redis options
-	RedisOptions struct {
-		Addr     string `validate:"min=5,max=30"`
-		Password string
-		DB       int `validate:"xLimit"`
-		// 慢请求时长
-		Slow time.Duration
-		// 最大的正在处理请求量
-		MaxProcessing uint32
-	}
-	// SessionConfig session's config
-	SessionConfig struct {
-		TTL        time.Duration
-		Key        string `validate:"ascii,required"`
-		CookiePath string `validate:"ascii,required"`
-	}
-	// MailConfig mail's config
-	MailConfig struct {
-		Host     string `validate:"hostname,required"`
-		Port     int    `validate:"number,required"`
-		User     string `validate:"email,required"`
-		Password string `validate:"min=1,max=100"`
-	}
-
-	// Influxdb config
-	InfluxdbConfig struct {
-		Bucket        string `validate:"min=1,max=50"`
-		Org           string `validate:"min=1,max=100"`
-		URI           string `validate:"url,required"`
-		Token         string `validate:"ascii,required"`
-		BatchSize     uint   `validate:"min=1,max=5000"`
-		FlushInterval time.Duration
-		Disabled      bool
-	}
-
-	// PostgresConfig postgres config
-	PostgresConfig struct {
-		Slow                time.Duration
-		MaxQueryProcessing  uint32
-		MaxUpdateProcessing uint32
-	}
+	defaultViperX = mustLoadConfig()
 )
 
 const (
-	// Dev development env
+	// Dev 开发模式下的环境变量
 	Dev = "dev"
-	// Test test env
+	// Test 测试环境下的环境变量
 	Test = "test"
-	// Production production env
+	// Production 生产环境下的环境变量
 	Production = "production"
-
-	defaultListen   = ":7001"
-	defaultTrackKey = "jt"
 )
 
-var (
-	defaultViper = viper.New()
+type (
+	// BasicConfig 应用基本配置信息
+	BasicConfig struct {
+		// 监听地址
+		Listen string `validate:"required,ascii"`
+		// 最大处理请求数
+		RequestLimit uint `validate:"required"`
+		// 应用名称
+		Name string `validate:"required,ascii"`
+		// PID文件
+		PidFile string `validate:"required"`
+		// 应用前缀
+		Prefixes []string `validate:"omitempty,dive,xPath"`
+	}
+	// SessionConfig session相关配置信息
+	SessionConfig struct {
+		// cookie的保存路径
+		CookiePath string `validate:"required,ascii"`
+		// cookie的key
+		Key string `validate:"required,ascii"`
+		// cookie的有效期
+		TTL time.Duration `validate:"required"`
+		// 用于加密cookie的key
+		Keys []string `validate:"required"`
+		// 用于跟踪用户的cookie
+		TrackKey string `validate:"required,ascii"`
+	}
+	// RedisConfig redis配置
+	RedisConfig struct {
+		// 连接地址
+		Addr string `validate:"required,hostname_port"`
+		// 密码
+		Password string
+		// db(0,1,2等)
+		DB int
+		// 慢请求时长
+		Slow time.Duration `validate:"required"`
+		// 最大的正在处理请求量
+		MaxProcessing uint32 `validate:"required"`
+		// key前缀
+		Prefix string
+	}
+	// PostgresConfig postgres配置
+	PostgresConfig struct {
+		URI string `validate:"required,uri"`
+	}
+	// MailConfig email的配置
+	MailConfig struct {
+		Host     string `validate:"required,hostname"`
+		Port     int    `validate:"required,number"`
+		User     string `validate:"required,email"`
+		Password string `validate:"required,min=1,max=100"`
+	}
+	// Influxdb influxdb配置
+	InfluxdbConfig struct {
+		// 存储的bucket
+		Bucket string `validate:"required,min=1,max=50"`
+		// 配置的组织名称
+		Org string `validate:"required,min=1,max=100"`
+		// 连接地址
+		URI string `validate:"required,url"`
+		// 认证的token
+		Token string `validate:"required,ascii"`
+		// 批量提交大小
+		BatchSize uint `validate:"required,min=1,max=5000"`
+		// 间隔提交时长
+		FlushInterval time.Duration `validate:"required"`
+		// 是否启用gzip
+		Gzip bool
+		// 是否禁用
+		Disabled bool
+	}
+	// AlarmConfig alarm配置
+	AlarmConfig struct {
+		// 接收人列表
+		Receivers []string `validate:"required"`
+	}
+	// LocationConfig 定位配置
+	LocationConfig struct {
+		Name    string        `validate:"required"`
+		Timeout time.Duration `validate:"required"`
+		BaseURL string        `validate:"required,url"`
+	}
+
+	// MinioConfig minio的配置信息
+	MinioConfig struct {
+		Endpoint        string `validate:"required,hostname_port"`
+		AccessKeyID     string `validate:"required,min=3"`
+		SecretAccessKey string `validate:"required,min=6"`
+		SSL             bool
+	}
 )
 
-func init() {
+// mustLoadConfig 加载配置，出错是则抛出panic
+func mustLoadConfig() *viperx.ViperX {
 	configType := "yml"
-	v := viper.New()
-	defaultViper.SetConfigType(configType)
-	v.SetConfigType(configType)
+	defaultViperX := viperx.New(configType)
 
-	configExt := "." + configType
-	data, err := box.Find("default" + configExt)
-	if err != nil {
-		panic(err)
-	}
-	// 读取默认配置中的所有配置
-	err = v.ReadConfig(bytes.NewReader(data))
-	if err != nil {
-		panic(err)
-	}
-	configs := v.AllSettings()
-	// 将default中的配置全部以默认配置写入
-	for k, v := range configs {
-		defaultViper.SetDefault(k, v)
+	readers := make([]io.Reader, 0)
+	for _, name := range []string{
+		"default",
+		GetENV(),
+	} {
+		data, err := box.Find(name + "." + configType)
+		if err != nil {
+			panic(err)
+		}
+		readers = append(readers, bytes.NewReader(data))
 	}
 
-	// 根据当前运行环境配置读取
-	envConfigFile := GetENV() + configExt
-	data, err = box.Find(envConfigFile)
+	err := defaultViperX.ReadConfig(readers...)
 	if err != nil {
 		panic(err)
 	}
-	// 读取当前运行环境对应的配置
-	err = defaultViper.ReadConfig(bytes.NewReader(data))
-	if err != nil {
-		panic(err)
-	}
-	appName = GetString("app")
+	return defaultViperX
 }
 
-func validatePanic(v interface{}) {
+// mustValidate 对数据校验，如果出错则panic，仅用于初始化时的配置检查
+func mustValidate(v interface{}) {
 	err := validate.Do(v, nil)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func GetAppName() string {
-	return appName
-}
-
-// GetENV get go env
+// GetENV 获取当前运行环境
 func GetENV() string {
 	if env == "" {
 		return Dev
@@ -148,259 +181,167 @@ func GetENV() string {
 	return env
 }
 
-// GetBool viper get bool
-func GetBool(key string) bool {
-	return defaultViper.GetBool(key)
-}
-
-// GetInt viper get int
-func GetInt(key string) int {
-	return defaultViper.GetInt(key)
-}
-
-// GetUint viper get uint
-func GetUint(key string) uint {
-	return defaultViper.GetUint(key)
-}
-
-// GetUint32 viper get uint32
-func GetUint32(key string) uint32 {
-	return defaultViper.GetUint32(key)
-}
-
-// GetIntDefault get int with default value
-func GetIntDefault(key string, defaultValue int) int {
-	v := GetInt(key)
-	if v != 0 {
-		return v
+// GetBasicConfig 获取基本配置信息
+func GetBasicConfig() BasicConfig {
+	prefix := "basic."
+	basicConfig := BasicConfig{
+		Name:         defaultViperX.GetString(prefix + "name"),
+		RequestLimit: defaultViperX.GetUint(prefix + "requestLimit"),
+		Listen:       defaultViperX.GetStringFromENV(prefix + "listen"),
+		Prefixes:     defaultViperX.GetStringSlice(prefix + "prefixes"),
 	}
-	return defaultValue
-}
-
-// GetUint32Default get uint32 with default value
-func GetUint32Default(key string, defaultValue uint32) uint32 {
-	v := GetUint32(key)
-	if v != 0 {
-		return v
+	pidFile := fmt.Sprintf("%s.pid", basicConfig.Name)
+	pwd, _ := os.Getwd()
+	if pwd != "" {
+		pidFile = pwd + "/" + pidFile
 	}
-	return defaultValue
+	basicConfig.PidFile = pidFile
+	mustValidate(&basicConfig)
+	return basicConfig
 }
 
-// GetString viper get string
-func GetString(key string) string {
-	return defaultViper.GetString(key)
-}
-
-// GetStringFromENV get string from env, if not exists, it will return the value of config
-func GetStringFromENV(key string) string {
-	value := GetString(key)
-	v := os.Getenv(value)
-	if v != "" {
-		return v
-	}
-	return value
-}
-
-// GetIntFromENV get int from env
-func GetIntFromENV(key string) int {
-	value := GetStringFromENV(key)
-	i, _ := strconv.Atoi(value)
-	return i
-}
-
-// GetStringDefault get string with default value
-func GetStringDefault(key, defaultValue string) string {
-	v := GetString(key)
-	if v != "" {
-		return v
-	}
-	return defaultValue
-}
-
-// GetDuration viper get duration
-func GetDuration(key string) time.Duration {
-	return defaultViper.GetDuration(key)
-}
-
-// GetDurationDefault get duration with default value
-func GetDurationDefault(key string, defaultValue time.Duration) time.Duration {
-	v := GetDuration(key)
-	if v != 0 {
-		return v
-	}
-	return defaultValue
-}
-
-// GetStringSlice viper get string slice
-func GetStringSlice(key string) []string {
-	return defaultViper.GetStringSlice(key)
-}
-
-// GetStringMap get string map
-func GetStringMap(key string) map[string]interface{} {
-	return defaultViper.GetStringMap(key)
-}
-
-// GetListen get server listen address
-func GetListen() string {
-	return GetStringDefault("listen", defaultListen)
-}
-
-// GetTrackKey get the track cookie key
-func GetTrackKey() string {
-	return GetStringDefault("track", defaultTrackKey)
-}
-
-// GetRedisConfig get redis config
-func GetRedisConfig() (options RedisOptions, err error) {
-	prefix := "redis."
-	uri := GetStringFromENV(prefix + "uri")
-	defaultSlow := 300 * time.Millisecond
-	defaultMaxProcessing := 1000
-	if len(uri) != 0 {
-		urlInfo, e := url.Parse(uri)
-		if e != nil {
-			err = e
-			return
-		}
-		pass, _ := urlInfo.User.Password()
-		query := urlInfo.Query()
-		db, _ := strconv.Atoi(query.Get("db"))
-		slow, _ := time.ParseDuration(query.Get("slow"))
-		if slow == 0 {
-			slow = defaultSlow
-		}
-		maxProcessing, _ := strconv.Atoi(query.Get("maxProcessing"))
-		if maxProcessing == 0 {
-			maxProcessing = defaultMaxProcessing
-		}
-
-		options = RedisOptions{
-			Addr:          urlInfo.Host,
-			Password:      pass,
-			DB:            db,
-			Slow:          slow,
-			MaxProcessing: uint32(maxProcessing),
-		}
-	} else {
-		options = RedisOptions{
-			Addr:          GetStringFromENV(prefix + "addr"),
-			Password:      GetStringFromENV(prefix + "password"),
-			DB:            GetInt(prefix + "db"),
-			Slow:          GetDurationDefault(prefix+"slow", defaultSlow),
-			MaxProcessing: GetUint32Default(prefix+"maxProcessing", uint32(defaultMaxProcessing)),
-		}
-	}
-	validatePanic(&options)
-	return
-}
-
-// GetPostgresConnectString get postgres connect string
-func GetPostgresConnectString() string {
-	keys := []string{
-		"host",
-		"port",
-		"user",
-		"dbname",
-		"password",
-		"sslmode",
-	}
-	arr := []string{}
-	prefix := "postgres."
-	uri := GetStringFromENV(prefix + "uri")
-	if uri != "" {
-		return uri
-	}
-	for _, key := range keys {
-		k := prefix + key
-		value := GetString(k)
-		// 密码与用户名支持env中获取
-		if key == "password" || key == "user" {
-			value = GetStringFromENV(k)
-		}
-		if value != "" {
-			arr = append(arr, key+"="+value)
-		}
-	}
-	return strings.Join(arr, " ")
-}
-
-// GetPostgresConfig get postgres config
-func GetPostgresConfig() PostgresConfig {
-	prefix := "postgres."
-	slow := GetDuration(prefix + "slow")
-	if slow == 0 {
-		slow = time.Second
-	}
-	maxQueryProcessing := GetUint32Default(prefix+"maxQueryProcessing", 1000)
-	maxUpdateProcessing := GetUint32Default(prefix+"maxUpdateProcessing", 500)
-	return PostgresConfig{
-		Slow:                slow,
-		MaxQueryProcessing:  maxQueryProcessing,
-		MaxUpdateProcessing: maxUpdateProcessing,
-	}
-}
-
-// GetSessionConfig get sesion config
+// GetSessionConfig 获取session的配置
 func GetSessionConfig() SessionConfig {
 	prefix := "session."
 	sessConfig := SessionConfig{
-		TTL:        GetDuration(prefix + "ttl"),
-		Key:        GetString(prefix + "key"),
-		CookiePath: GetString(prefix + "path"),
+		TTL:        defaultViperX.GetDuration(prefix + "ttl"),
+		Key:        defaultViperX.GetString(prefix + "key"),
+		CookiePath: defaultViperX.GetString(prefix + "path"),
+		Keys:       defaultViperX.GetStringSlice(prefix + "keys"),
+		TrackKey:   defaultViperX.GetString(prefix + "trackKey"),
 	}
-	// 如果session设置过短，则使用默认为24小时
-	if sessConfig.TTL < time.Second {
-		sessConfig.TTL = 24 * time.Hour
-	}
-	validatePanic(&sessConfig)
+	mustValidate(&sessConfig)
 	return sessConfig
 }
 
-// GetSignedKeys get signed keys
-func GetSignedKeys() []string {
-	return GetStringSlice("keys")
-}
-
-// GetRouterConcurrentLimit get router concurrent limit
-func GetRouterConcurrentLimit() map[string]uint32 {
-	limit := make(map[string]uint32)
-	data := GetStringMap("routerLimit")
-	for key, value := range data {
-		v, _ := value.(int)
-		if v != 0 {
-			arr := strings.Split(key, " ")
-			limit[strings.ToUpper(arr[0])+" "+arr[1]] = uint32(v)
+// GetRedisConfig 获取redis的配置
+func GetRedisConfig() RedisConfig {
+	prefix := "redis."
+	uri := defaultViperX.GetStringFromENV(prefix + "uri")
+	uriInfo, err := url.Parse(uri)
+	if err != nil {
+		panic(err)
+	}
+	// 获取设置的db
+	db := 0
+	query := uriInfo.Query()
+	dbValue := query.Get("db")
+	if dbValue != "" {
+		db, err = strconv.Atoi(dbValue)
+		if err != nil {
+			panic(err)
 		}
 	}
-	return limit
+	// 获取密码
+	password, _ := uriInfo.User.Password()
+
+	// 获取slow设置的时间间隔
+	slowValue := query.Get("slow")
+	slow := 100 * time.Millisecond
+	if slowValue != "" {
+		slow, err = time.ParseDuration(slowValue)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// 获取最大处理数的配置
+	maxProcessing := 1000
+	maxValue := query.Get("maxProcessing")
+	if maxValue != "" {
+		maxProcessing, err = strconv.Atoi(maxValue)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	redisConfig := RedisConfig{
+		Addr:          uriInfo.Host,
+		Password:      password,
+		DB:            db,
+		Slow:          slow,
+		MaxProcessing: uint32(maxProcessing),
+	}
+	keyPrefix := query.Get("prefix")
+	if keyPrefix != "" {
+		redisConfig.Prefix = keyPrefix + ":"
+	}
+
+	mustValidate(&redisConfig)
+	return redisConfig
 }
 
-// GetMailConfig get mail config
+// GetPostgresConfig 获取postgres配置
+func GetPostgresConfig() PostgresConfig {
+	prefix := "postgres."
+	postgresConfig := PostgresConfig{
+		URI: defaultViperX.GetStringFromENV(prefix + "uri"),
+	}
+	mustValidate(&postgresConfig)
+	return postgresConfig
+}
+
+// GetMailConfig 获取邮件配置
 func GetMailConfig() MailConfig {
 	prefix := "mail."
 	mailConfig := MailConfig{
-		Host:     GetStringFromENV(prefix + "host"),
-		Port:     GetIntFromENV(prefix + "port"),
-		User:     GetStringFromENV(prefix + "user"),
-		Password: GetStringFromENV(prefix + "password"),
+		Host:     defaultViperX.GetString(prefix + "host"),
+		Port:     defaultViperX.GetInt(prefix + "port"),
+		User:     defaultViperX.GetStringFromENV(prefix + "user"),
+		Password: defaultViperX.GetStringFromENV(prefix + "password"),
 	}
-	validatePanic(&mailConfig)
+	mustValidate(&mailConfig)
 	return mailConfig
 }
 
-// GetInfluxdbConfig get influxdb config
+// GetInfluxdbConfig 获取influxdb配置
 func GetInfluxdbConfig() InfluxdbConfig {
 	prefix := "influxdb."
 	influxdbConfig := InfluxdbConfig{
-		URI:           GetStringFromENV(prefix + "uri"),
-		Bucket:        GetString(prefix + "bucket"),
-		Org:           GetString(prefix + "org"),
-		Token:         GetStringFromENV(prefix + "token"),
-		BatchSize:     GetUint(prefix + "batchSize"),
-		FlushInterval: GetDuration(prefix + "flushInterval"),
-		Disabled:      GetBool(prefix + "disabled"),
+		URI:           defaultViperX.GetStringFromENV(prefix + "uri"),
+		Bucket:        defaultViperX.GetString(prefix + "bucket"),
+		Org:           defaultViperX.GetString(prefix + "org"),
+		Token:         defaultViperX.GetStringFromENV(prefix + "token"),
+		BatchSize:     defaultViperX.GetUint(prefix + "batchSize"),
+		FlushInterval: defaultViperX.GetDuration(prefix + "flushInterval"),
+		Gzip:          defaultViperX.GetBool(prefix + "gzip"),
+		Disabled:      defaultViperX.GetBool(prefix + "disabled"),
 	}
-	validatePanic(&influxdbConfig)
+	mustValidate(&influxdbConfig)
 	return influxdbConfig
+}
+
+// GetAlarmConfig 获取告警配置
+func GetAlarmConfig() AlarmConfig {
+	prefix := "alarm."
+	alarmConfig := AlarmConfig{
+		Receivers: defaultViperX.GetStringSlice(prefix + "receivers"),
+	}
+	mustValidate(&alarmConfig)
+	return alarmConfig
+}
+
+// GetLocationConfig 获取定位的配置
+func GetLocationConfig() LocationConfig {
+	prefix := "location."
+	locationConfig := LocationConfig{
+		Name:    defaultViperX.GetString(prefix + "name"),
+		BaseURL: defaultViperX.GetString(prefix + "baseURL"),
+		Timeout: defaultViperX.GetDuration(prefix + "timeout"),
+	}
+	mustValidate(&locationConfig)
+	return locationConfig
+}
+
+// GetMinioConfig 获取minio的配置
+func GetMinioConfig() MinioConfig {
+	prefix := "minio."
+	minioConfig := MinioConfig{
+		Endpoint:        defaultViperX.GetString(prefix + "endpoint"),
+		AccessKeyID:     defaultViperX.GetStringFromENV(prefix + "accessKeyID"),
+		SecretAccessKey: defaultViperX.GetStringFromENV(prefix + "secretAccessKey"),
+		SSL:             defaultViperX.GetBool(prefix + "ssl"),
+	}
+	mustValidate(&minioConfig)
+	return minioConfig
 }

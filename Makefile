@@ -1,31 +1,39 @@
-export GO111MODULE = on
-
-.PHONY: default test test-cover dev
+.PHONY: default test test-cover dev generate hooks
 
 # for dev
 dev:
-	fresh
+	/usr/local/bin/gowatch
 
 doc:
 	swagger generate spec -o ./api.yml && swagger validate ./api.yml 
 
-test: export GO_ENV=test
 test:
-	go test -cover ./...
+	go test -race -cover ./...
 
-test-cover: export GO_ENV=test
+generate: 
+	go generate ./ent
+
+describe:
+	entc describe ./ent/schema
+
 test-cover:
 	go test -race -coverprofile=test.out ./... && go tool cover --html=test.out
 
 list-mod:
 	go list -m -u all
 
+tidy:
+	go mod tidy
+
 build:
 	packr2
-	go build -ldflags "-X main.Version=0.0.1 -X 'main.BuildAt=`date`' -X 'main.GO=`go version`'" -o cybertect 
+	go build -ldflags "-X main.Version=0.0.1 -X 'main.BuildedAt=`date`'" -o cybertect 
 
 clean:
 	packr2 clean
 
 lint:
-	golangci-lint run
+	golangci-lint run --timeout 2m --skip-dirs web
+
+hooks:
+	cp hooks/* .git/hooks/

@@ -20,85 +20,99 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewConcurrentLimit(t *testing.T) {
 	assert := assert.New(t)
-
-	ttl := 2 * time.Millisecond
 	fn := NewConcurrentLimit([]string{
-		"q:type",
-	}, ttl, "lock-")
-	req := httptest.NewRequest("GET", "/", nil)
-	resp := httptest.NewRecorder()
-	c := elton.NewContext(resp, req)
+		"q:key",
+	}, 10*time.Millisecond, "TestNewConcurrentLimit")
+	req := httptest.NewRequest("GET", "/?key=1", nil)
+	c := elton.NewContext(nil, req)
 	c.Next = func() error {
 		return nil
 	}
+
+	// 第一次时，未有相同的key，正常执行
+	err := fn(c)
+	assert.Nil(err)
+	// 有相同的key，无法正常执行
+	err = fn(c)
+	assert.Equal("category=elton-concurrent-limiter, message=submit too frequently", err.Error())
+
+	// 锁过期后，可以正常执行
+	time.Sleep(20 * time.Millisecond)
+	err = fn(c)
+	assert.Nil(err)
+}
+
+func TestNewConcurrentLimitWithDone(t *testing.T) {
+	assert := assert.New(t)
+	fn := NewConcurrentLimitWithDone([]string{
+		"q:key",
+	}, 20*time.Millisecond, "TestNewConcurrentLimitWithDone")
+	req := httptest.NewRequest("GET", "/?key=1", nil)
+	c := elton.NewContext(nil, req)
+	// 由于后续有另外的goroutine读取，因此直接先获取一次query
+	_ = c.Query()
+	c.Next = func() error {
+		// 延时响应，方便测试并发访问
+		time.Sleep(10 * time.Millisecond)
+		return nil
+	}
+	go func() {
+		time.Sleep(2 * time.Millisecond)
+		// 由于上一次的并发访问未完成，因此会出错
+		err := fn(c)
+		assert.Equal("category=elton-concurrent-limiter, message=submit too frequently", err.Error())
+	}()
 	err := fn(c)
 	assert.Nil(err)
 
-	err = fn(c)
-	he, ok := err.(*hes.Error)
-	assert.True(ok)
-	assert.Equal("elton-concurrent-limiter", he.Category)
-
-	time.Sleep(3 * time.Millisecond)
+	// 上一次的已完成，可以继续正常执行
 	err = fn(c)
 	assert.Nil(err)
 }
 
 func TestNewIPLimit(t *testing.T) {
 	assert := assert.New(t)
-
-	ttl := 2 * time.Millisecond
-	fn := NewIPLimit(1, ttl, "lock-")
+	fn := NewIPLimit(1, 5*time.Millisecond, "TestNewIPLimit")
 	req := httptest.NewRequest("GET", "/", nil)
-	resp := httptest.NewRecorder()
-	c := elton.NewContext(resp, req)
+	c := elton.NewContext(nil, req)
 	c.Next = func() error {
 		return nil
 	}
+
 	err := fn(c)
 	assert.Nil(err)
 
+	// 第二次访问时，则拦截
 	err = fn(c)
-	assert.Equal(err, errTooFrequently)
+	assert.Equal("请求过于频繁，请稍候再试！(2/1)", err.(*hes.Error).Message)
 
-	time.Sleep(3 * time.Millisecond)
+	// 等待过期后可正常执行
+	time.Sleep(10 * time.Millisecond)
 	err = fn(c)
 	assert.Nil(err)
 }
 
 func TestNewErrorLimit(t *testing.T) {
 	assert := assert.New(t)
-
-	ttl := 2 * time.Millisecond
-	fn := NewErrorLimit(1, ttl, func(c *elton.Context) string {
-		return c.Request.RequestURI
+	fn := NewErrorLimit(1, 5*time.Millisecond, func(c *elton.Context) string {
+		return ""
 	})
-	req := httptest.NewRequest("GET", "/", nil)
-	resp := httptest.NewRecorder()
-	c := elton.NewContext(resp, req)
-	customErr := errors.New("error")
+	c := elton.NewContext(nil, httptest.NewRequest("GET", "/", nil))
+	customErr := errors.New("abc")
 	c.Next = func() error {
 		return customErr
 	}
-
-	// 第一次可以通过，返回的是customErr
 	err := fn(c)
-	assert.Equal(customErr, err)
+	assert.Equal(err, customErr)
 
-	// 第二次不通过
+	// 第二次执行时，被拦截
 	err = fn(c)
-	assert.Equal(errTooFrequently, err)
-
-	// 过期之后，返回的是customErr
-	time.Sleep(3 * time.Millisecond)
-	err = fn(c)
-	assert.Equal(customErr, err)
+	assert.Equal("请求过于频繁，请稍候再试！(1/1)", err.(*hes.Error).Message)
 }

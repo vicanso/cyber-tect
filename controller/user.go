@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,145 +12,195 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// 用户相关的一些路由处理
+
 package controller
 
 import (
+	"context"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/lib/pq"
+	"github.com/facebook/ent/dialect/sql"
+	"github.com/facebook/ent/dialect/sql/sqljson"
 	"github.com/tidwall/gjson"
-	"github.com/vicanso/cybertect/middleware"
-	"github.com/vicanso/cybertect/validate"
-	"github.com/vicanso/hes"
-
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/ent"
+	"github.com/vicanso/cybertect/ent/predicate"
+	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/ent/user"
+	"github.com/vicanso/cybertect/ent/userlogin"
+	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/cybertect/middleware"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
+	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/elton"
+	"github.com/vicanso/hes"
+	"go.uber.org/zap"
 )
 
-type userCtrl struct{}
 type (
+	userCtrl struct{}
+
+	// userInfoResp 用户信息响应
 	userInfoResp struct {
-		service.User
-		// 是否匿名
-		// Example: true
-		Anonymous bool `json:"anonymous,omitempty"`
-		// 系统时间
-		// Example: 2019-10-26T10:11:25+08:00
 		Date string `json:"date,omitempty"`
-		// 信息更新时间
-		// Example: 2019-10-26T10:11:25+08:00
-		UpdatedAt string `json:"updatedAt,omitempty"`
-		// IP地址
-		// Example: 1.1.1.1
-		IP string `json:"ip,omitempty"`
-		// rack id
-		// Example: 01DPNPDXH4MQJHBF4QX1EFD6Y3
-		TrackID string `json:"trackId,omitempty"`
-		// 登录时间
-		// Example: 2019-10-26T10:11:25+08:00
-		LoginAt string `json:"loginAt,omitempty"`
+		service.UserSessionInfo
 	}
-	loginTokenResp struct {
-		// 登录Token
-		// Example: IaHnYepm
-		Token string `json:"token,omitempty"`
-	}
-)
 
-type (
-	// 注册与登录参数
-	registerLoginUserParams struct {
+	// userListResp 用户列表响应
+	userListResp struct {
+		Users []*ent.User `json:"users,omitempty"`
+		Count int         `json:"count,omitempty"`
+	}
+	// userRoleListResp 用户角色列表响应
+	userRoleListResp struct {
+		UserRoles []*schema.UserRoleInfo `json:"userRoles,omitempty"`
+	}
+	// userLoginListResp 用户登录列表响应
+	userLoginListResp struct {
+		UserLogins []*ent.UserLogin `json:"userLogins,omitempty"`
+		Count      int              `json:"count,omitempty"`
+	}
+
+	// userListParams 用户查询参数
+	userListParams struct {
+		listParams
+
+		Keyword string `json:"keyword,omitempty" validate:"omitempty,xKeyword"`
+		Role    string `json:"role,omitempty" validate:"omitempty,xUserRole"`
+		Group   string `json:"group,omitempty" validate:"omitempty,xUserGroup"`
+		Status  string `json:"status,omitempty" validate:"omitempty,xStatus"`
+	}
+
+	// userLoginListParams 用户登录查询
+	userLoginListParams struct {
+		listParams
+
+		Begin   time.Time `json:"begin,omitempty"`
+		End     time.Time `json:"end,omitempty"`
+		Account string    `json:"account,omitempty" validate:"omitempty,xUserAccount"`
+	}
+
+	// userRegisterLoginParams 注册与登录参数
+	userRegisterLoginParams struct {
 		// 账户
-		// Example: vicanso
-		Account string `json:"account,omitempty" validate:"xUserAccount,required"`
+		Account string `json:"account,omitempty" validate:"required,xUserAccount"`
 		// 密码，密码为sha256后的加密串
-		// Example: JgX9742WqzaNHVP+YiPy/RXP0eoX29k00hEF3BdghGU=
-		Password string `json:"password,omitempty" validate:"xUserPassword,required"`
+		Password string `json:"password,omitempty" validate:"required,xUserPassword"`
 	}
 
-	listUserParams struct {
-		Limit   string `json:"limit,omitempty" validate:"xLimit,required"`
-		Keyword string `json:"keyword,omitempty" validate:"xUserAccountKeyword"`
-		Role    string `json:"role,omitempty" validate:"xUserRole"`
+	// userUpdateMeParams 用户信息更新参数
+	userUpdateMeParams struct {
+		Name        string `json:"name,omitempty" validate:"omitempty,xUserName"`
+		Email       string `json:"email,omitempty" validate:"omitempty,xUserEmail"`
+		Password    string `json:"password,omitempty" validate:"omitempty,xUserPassword"`
+		NewPassword string `json:"newPassword,omitempty" validate:"omitempty,xUserPassword"`
 	}
-
-	updateUserParams struct {
-		Roles []string `json:"roles,omitempty" validate:"xUserRoles"`
+	// userUpdateParams 更新用户信息参数
+	userUpdateParams struct {
+		Roles  []string      `json:"roles,omitempty" validate:"omitempty"`
+		Status schema.Status `json:"status,omitempty" validate:"omitempty,xStatus"`
 	}
-	// updateUserMeParams 用户邮箱更新
-	updateUserMeParams struct {
-		Email string `json:"email,omitempty" validate:"email"`
-	}
-	listUserLoginRecordParams struct {
-		Begin   time.Time `json:"begin,omitempty" validate:"-"`
-		End     time.Time `json:"end,omitempty" validate:"-"`
-		Account string    `json:"account,omitempty" validate:"xUserAccount"`
-		Limit   string    `json:"limit,omitempty" validate:"xLimit,required"`
-		Offset  string    `json:"offset,omitempty" validate:"xOffset,required"`
+	// userActionAddParams 用户添加行为记录的参数
+	userActionAddParams struct {
+		Actions []struct {
+			// Category 用户行为类型
+			Category string `json:"category,omitempty" validate:"required,xUserActionCategory"`
+			// Route 触发时所在路由
+			Route string `json:"route,omitempty" validate:"required,xUserActionRoute"`
+			// Path 触发时的完整路径
+			Path string `json:"path,omitempty" validate:"required,xPath"`
+			// Time 记录的时间戳，单位秒
+			Time int64 `json:"time,omitempty" validate:"required"`
+			// Extra 其它额外信息
+			Extra map[string]interface{} `json:"extra,omitempty"`
+		} `json:"actions,omitempty" validate:"required,dive"`
 	}
 )
 
 var (
-	errLoginTokenNil = hes.New("login token is nil")
+	// session配置信息
+	sessionConfig config.SessionConfig
+)
+
+const (
+	errUserCategory = "user"
 )
 
 func init() {
+	sessionConfig = config.GetSessionConfig()
+	prefix := "/users"
+	g := router.NewGroup(prefix, loadUserSession)
+	noneSessionGroup := router.NewGroup(prefix)
 
-	g := router.NewGroup("/users", loadUserSession)
 	ctrl := userCtrl{}
+
 	// 获取用户列表
 	g.GET(
 		"/v1",
-		shouldLogined,
+		shouldBeAdmin,
 		ctrl.list,
+	)
+
+	// 获取用户信息
+	g.GET(
+		"/v1/{id}",
+		shouldBeAdmin,
+		ctrl.findByID,
 	)
 
 	// 更新用户信息
 	g.PATCH(
-		"/v1/{userID}",
+		"/v1/{id}",
+		newTrackerMiddleware(cs.ActionUserInfoUpdate),
 		shouldBeAdmin,
-		ctrl.update,
-	)
-
-	// 获取用户信息
-	g.GET("/v1/me", ctrl.me)
-
-	// 用户注册
-	g.POST(
-		"/v1/me",
-		newTracker(cs.ActionRegister),
-		captchaValidate,
-		// 限制相同IP在60秒之内只能调用5次
-		newIPLimit(5, 60*time.Second, cs.ActionLogin),
-		shouldAnonymous,
-		ctrl.register,
-	)
-	// 刷新user session的ttl
-	g.PATCH(
-		"/v1/me",
-		ctrl.updateMe,
+		ctrl.updateByID,
 	)
 
 	// 获取登录token
 	g.GET(
 		"/v1/me/login",
-		shouldAnonymous,
+		shouldBeAnonymous,
 		ctrl.getLoginToken,
+	)
+
+	// 获取用户信息
+	g.GET(
+		"/v1/me",
+		ctrl.me,
+	)
+
+	// 用户注册
+	g.POST(
+		"/v1/me",
+		// 注册无论成功失败都最少等待1秒
+		middleware.WaitFor(time.Second),
+		newTrackerMiddleware(cs.ActionRegister),
+		captchaValidate,
+		// 限制相同IP在60秒之内只能调用5次
+		newIPLimit(5, 60*time.Second, cs.ActionRegister),
+		shouldBeAnonymous,
+		ctrl.register,
 	)
 
 	// 用户登录
 	g.POST(
 		"/v1/me/login",
-		middleware.WaitFor(time.Second),
-		newTracker(cs.ActionLogin),
+		// 登录如果失败则最少等待1秒
+		middleware.WaitFor(time.Second, true),
+		newTrackerMiddleware(cs.ActionLogin),
 		captchaValidate,
-		shouldAnonymous,
+		shouldBeAnonymous,
+		// 同一个账号限制3秒只能登录一次（无论成功还是失败）
+		newConcurrentLimit([]string{
+			"account",
+		}, 3*time.Second, cs.ActionLogin),
 		// 限制相同IP在60秒之内只能调用10次
 		newIPLimit(10, 60*time.Second, cs.ActionLogin),
 		// 限制10分钟内，相同的账号只允许出错5次
@@ -159,11 +209,20 @@ func init() {
 		}),
 		ctrl.login,
 	)
+
+	// 刷新user session的ttl或更新客户信息
+	g.PATCH(
+		"/v1/me",
+		newTrackerMiddleware(cs.ActionUserMeUpdate),
+		shouldBeLogin,
+		ctrl.updateMe,
+	)
+
 	// 用户退出登录
 	g.DELETE(
-		"/v1/me/logout",
-		newTracker(cs.ActionLogout),
-		shouldLogined,
+		"/v1/me",
+		newTrackerMiddleware(cs.ActionLogout),
+		shouldBeLogin,
 		ctrl.logout,
 	)
 
@@ -173,65 +232,254 @@ func init() {
 		shouldBeAdmin,
 		ctrl.listLoginRecord,
 	)
+
+	// 添加用户行为
+	g.POST(
+		"/v1/actions",
+		shouldBeLogin,
+		ctrl.addUserAction,
+	)
+
+	// 获取用户角色分组
+	noneSessionGroup.GET(
+		"/v1/roles",
+		noCacheIfRequestNoCache,
+		ctrl.getRoleList,
+	)
 }
 
-// get user info from session
-func pickUserInfo(c *elton.Context) (userInfo *userInfoResp, err error) {
-	us := getUserSession(c)
-	userInfo = &userInfoResp{
-		Anonymous: true,
-		Date:      now(),
-		IP:        c.RealIP(),
-		TrackID:   getTrackID(c),
-	}
-	account := us.GetAccount()
-	if account == "" {
-		return
-	}
-	user, err := userSrv.FindByAccount(account)
+// validateBeforeSave 保存前校验
+func (params *userRegisterLoginParams) validateBeforeSave(ctx context.Context) (err error) {
+	// 判断该账户是否已注册
+	exists, err := getEntClient().User.Query().
+		Where(user.Account(params.Account)).
+		Exist(ctx)
 	if err != nil {
 		return
 	}
-	userInfo.User = *user
-	userInfo.Anonymous = false
+	if exists {
+		err = hes.New("该账户已注册", errUserCategory)
+		return
+	}
+
 	return
 }
 
-// 用户信息
-// swagger:response usersMeInfoResponse
-// nolint
-type usersMeInfoResponse struct {
-	// in: body
-	Body *userInfoResp
+// save 创建用户
+func (params *userRegisterLoginParams) save(ctx context.Context) (*ent.User, error) {
+	err := params.validateBeforeSave(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return getEntClient().User.Create().
+		SetAccount(params.Account).
+		SetPassword(params.Password).
+		Save(ctx)
 }
 
-// swagger:route GET /users/v1/me users usersMe
-// getUserInfo
-//
-// 获取用户信息，如果用户已登录，则返回用户相关信息
-// responses:
-// 	200: usersMeInfoResponse
-func (ctrl userCtrl) me(c *elton.Context) (err error) {
-	key := config.GetTrackKey()
-	cookie, _ := c.Cookie(key)
-	// ulid的长度为26
-	if cookie == nil || len(cookie.Value) != 26 {
-		uid := util.GenUlid()
-		c.AddCookie(&http.Cookie{
-			Name:     key,
-			Value:    uid,
-			Path:     "/",
-			HttpOnly: true,
-			MaxAge:   365 * 24 * 3600,
-		})
-		trackRecord := &service.UserTrackRecord{
-			UserAgent: c.GetRequestHeader("User-Agent"),
-			IP:        c.RealIP(),
-			TrackID:   util.GetTrackID(c),
+// login 登录
+func (params *userRegisterLoginParams) login(ctx context.Context, token string) (u *ent.User, err error) {
+	u, err = getEntClient().User.Query().
+		Where(user.Account(params.Account)).
+		First(ctx)
+	errAccountOrPasswordInvalid := hes.New("账户或者密码错误", errUserCategory)
+	if err != nil {
+		// 如果登录时账号不存在
+		if ent.IsNotFound(err) {
+			err = errAccountOrPasswordInvalid
 		}
-		_ = userSrv.AddTrackRecord(trackRecord, c)
+		return
 	}
-	user, err := pickUserInfo(c)
+	pwd := util.Sha256(u.Password + token)
+	// 用于自动化测试使用
+	if util.IsDevelopment() && params.Password == "fEqNCco3Yq9h5ZUglD3CZJT4lBsfEqNCco31Yq9h5ZUB" {
+		pwd = params.Password
+	}
+	if pwd != params.Password {
+		err = errAccountOrPasswordInvalid
+		return
+	}
+	// 禁止非正常状态用户登录
+	if u.Status != schema.StatusEnabled {
+		err = hes.NewWithStatusCode("该账户不允许登录", http.StatusForbidden, errUserCategory)
+		return
+	}
+	return
+}
+
+// update 更新用户信息
+func (params *userUpdateMeParams) updateOneAccount(ctx context.Context, account string) (u *ent.User, err error) {
+
+	u, err = getEntClient().User.Query().
+		Where(user.Account(account)).
+		First(ctx)
+	if err != nil {
+		return
+	}
+	// 更新密码时需要先校验旧密码
+	if params.NewPassword != "" {
+		if u.Password != params.Password {
+			err = hes.New("旧密码错误，请重新输入", errUserCategory)
+			return
+		}
+	}
+	updateOne := u.Update()
+	if params.Name != "" {
+		updateOne = updateOne.SetName(params.Name)
+	}
+	if params.Email != "" {
+		updateOne = updateOne.SetEmail(params.Email)
+	}
+	if params.NewPassword != "" {
+		updateOne = updateOne.SetPassword(params.NewPassword)
+	}
+	return updateOne.Save(ctx)
+}
+
+// updateByID 通过ID更新信息
+func (params *userUpdateParams) updateByID(ctx context.Context, id int) (u *ent.User, err error) {
+	updateOne := getEntClient().User.UpdateOneID(id)
+	if len(params.Roles) != 0 {
+		updateOne = updateOne.SetRoles(params.Roles)
+	}
+	if params.Status != 0 {
+		updateOne = updateOne.SetStatus(params.Status)
+	}
+	return updateOne.Save(ctx)
+}
+
+// where 将查询条件中的参数转换为对应的where条件
+func (params *userListParams) where(query *ent.UserQuery) *ent.UserQuery {
+	if params.Keyword != "" {
+		query = query.Where(user.AccountContains(params.Keyword))
+	}
+	if params.Role != "" {
+		query = query.Where(predicate.User(func(s *sql.Selector) {
+			s.Where(sqljson.ValueContains(user.FieldRoles, params.Role))
+		}))
+
+	}
+	if params.Status != "" {
+		v, _ := strconv.Atoi(params.Status)
+		query = query.Where(user.Status(schema.Status(v)))
+	}
+	return query
+}
+
+// queryAll 查询用户列表
+func (params *userListParams) queryAll(ctx context.Context) (users []*ent.User, err error) {
+	query := getEntClient().User.Query()
+
+	query = query.Limit(params.GetLimit()).
+		Offset(params.GetOffset()).
+		Order(params.GetOrders()...)
+	query = params.where(query)
+
+	return query.All(ctx)
+}
+
+// count 计算总数
+func (params *userListParams) count(ctx context.Context) (count int, err error) {
+	query := getEntClient().User.Query()
+
+	query = params.where(query)
+
+	return query.Count(ctx)
+}
+
+// where 登录记录的where筛选
+func (params *userLoginListParams) where(query *ent.UserLoginQuery) *ent.UserLoginQuery {
+	if params.Account != "" {
+		query = query.Where(userlogin.AccountEQ(params.Account))
+	}
+	query = query.Where(userlogin.CreatedAtGTE(params.Begin))
+	query = query.Where(userlogin.CreatedAtLTE(params.End))
+	return query
+}
+
+// queryAll 查询所有的登录记录
+func (params *userLoginListParams) queryAll(ctx context.Context) (userLogins []*ent.UserLogin, err error) {
+	query := getEntClient().UserLogin.Query()
+	query = query.Limit(params.GetLimit()).
+		Offset(params.GetOffset()).
+		Order(params.GetOrders()...)
+	query = params.where(query)
+	return query.All(ctx)
+}
+
+// count 计算登录记录总数
+func (params *userLoginListParams) count(ctx context.Context) (count int, err error) {
+	query := getEntClient().UserLogin.Query()
+	query = params.where(query)
+	return query.Count(ctx)
+}
+
+// pickUserInfo 获取用户信息
+func pickUserInfo(c *elton.Context) (resp userInfoResp, err error) {
+	us := getUserSession(c)
+	userInfo, err := us.GetInfo()
+	if err != nil {
+		return
+	}
+	resp = userInfoResp{
+		Date: now(),
+	}
+	resp.UserSessionInfo = userInfo
+	return
+}
+
+// list 获取用户列表
+func (*userCtrl) list(c *elton.Context) (err error) {
+	params := userListParams{}
+	err = validate.Do(&params, c.Query())
+	if err != nil {
+		return
+	}
+	count := -1
+	if params.ShouldCount() {
+		count, err = params.count(c.Context())
+		if err != nil {
+			return
+		}
+	}
+	users, err := params.queryAll(c.Context())
+	if err != nil {
+		return
+	}
+	c.Body = &userListResp{
+		Count: count,
+		Users: users,
+	}
+
+	return
+}
+
+// findByID 通过ID查询用户信息
+func (*userCtrl) findByID(c *elton.Context) (err error) {
+	id, err := getIDFromParams(c)
+	if err != nil {
+		return
+	}
+	data, err := getEntClient().User.Get(c.Context(), id)
+	if err != nil {
+		return
+	}
+	c.Body = data
+	return
+}
+
+// updateByID 更新信息
+func (ctrl *userCtrl) updateByID(c *elton.Context) (err error) {
+	id, err := getIDFromParams(c)
+	if err != nil {
+		return
+	}
+	params := userUpdateParams{}
+	err = validate.Do(&params, c.RequestBody)
+	if err != nil {
+		return
+	}
+	user, err := params.updateByID(c.Context(), id)
 	if err != nil {
 		return
 	}
@@ -239,157 +487,207 @@ func (ctrl userCtrl) me(c *elton.Context) (err error) {
 	return
 }
 
-// 用户登录Token，用于客户登录密码加密
-// swagger:response usersLoginTokenResponse
-// nolint
-type usersLoginTokenResponse struct {
-	// in: body
-	Body *loginTokenResp
-}
-
-// swagger:route GET /users/v1/me/login users usersLoginToken
-// getLoginToken
-//
-// 获取用户登录Token
-// responses:
-// 	200: usersLoginTokenResponse
-func (ctrl userCtrl) getLoginToken(c *elton.Context) (err error) {
+// getLoginToken 获取登录的token
+func (*userCtrl) getLoginToken(c *elton.Context) (err error) {
 	us := getUserSession(c)
 	// 清除当前session id，确保每次登录的用户都是新的session
-	us.ClearSessionID()
-	token := util.RandomString(8)
-	err = us.SetLoginToken(token)
+	err = us.Destroy()
 	if err != nil {
 		return
 	}
-	c.Body = &loginTokenResp{
-		Token: token,
+	userInfo := service.UserSessionInfo{
+		Token: util.RandomString(8),
 	}
+	err = us.SetInfo(userInfo)
+	if err != nil {
+		return
+	}
+	c.Body = &userInfo
 	return
 }
 
-func omitUserInfo(u *service.User) {
-	u.Password = ""
+// me 获取用户信息
+func (*userCtrl) me(c *elton.Context) (err error) {
+	cookie, _ := c.Cookie(sessionConfig.TrackKey)
+	// ulid的长度为26
+	if cookie == nil || len(cookie.Value) != 26 {
+		uid := util.GenUlid()
+		c.AddCookie(&http.Cookie{
+			Name:     sessionConfig.TrackKey,
+			Value:    uid,
+			Path:     "/",
+			HttpOnly: true,
+			MaxAge:   365 * 24 * 3600,
+		})
+
+		ip := c.RealIP()
+		fields := map[string]interface{}{
+			cs.FieldUserAgent: c.GetRequestHeader("User-Agent"),
+			cs.FieldTID:       uid,
+			cs.FieldIP:        ip,
+		}
+
+		// 记录创建user track
+		go func() {
+			location, _ := service.GetLocationByIP(ip, nil)
+			if location.IP != "" {
+				fields[cs.FieldCountry] = location.Country
+				fields[cs.FieldProvince] = location.Province
+				fields[cs.FieldCity] = location.City
+				fields[cs.FieldISP] = location.ISP
+			}
+			getInfluxSrv().Write(cs.MeasurementUserAddTrack, nil, fields)
+		}()
+	}
+	resp, err := pickUserInfo(c)
+	if err != nil {
+		return
+	}
+	c.Body = &resp
+	return
 }
 
-// 用户注册响应
-// swagger:response usersRegisterResponse
-// nolint
-type usersRegisterResponse struct {
-	// in: body
-	Body *service.User
-}
-
-// swagger:parameters usersRegister usersMeLogin
-// nolint
-type usersRegisterParams struct {
-	// in: body
-	Payload *registerLoginUserParams
-	// in: header
-	Captcha string `json:"X-Captcha"`
-}
-
-// swagger:route POST /users/v1/me users usersRegister
-// userRegister
-//
-// 用户注册，注册需要使用通用图形验证码，在成功时返回用户信息
-// responses:
-// 	201: usersRegisterResponse
-func (ctrl userCtrl) register(c *elton.Context) (err error) {
-	params := registerLoginUserParams{}
+// register 用户注册
+func (*userCtrl) register(c *elton.Context) (err error) {
+	params := userRegisterLoginParams{}
 	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
 		return
 	}
-	u := &service.User{
-		Account:  params.Account,
-		Password: params.Password,
-	}
-	err = userSrv.Add(u)
+
+	user, err := params.save(c.Context())
 	if err != nil {
 		return
 	}
-	omitUserInfo(u)
-	c.Created(u)
+	// 第一个创建的用户添加su权限
+	if user.ID == 1 {
+		go func() {
+			_, _ = user.Update().
+				SetRoles([]string{
+					schema.UserRoleSu,
+				}).
+				Save(context.Background())
+		}()
+	}
+	c.Body = user
 	return
 }
 
-// 用户登录响应
-// swagger:response usersLoginResponse
-// nolint
-type usersLoginResponse struct {
-	// in: body
-	Body *service.User
-}
-
-// swagger:route POST /users/v1/me/login users usersMeLogin
-// login
-//
-// 用户登录，需要使用通用图形验证码
-// responses:
-// 	200: usersLoginResponse
-func (ctrl userCtrl) login(c *elton.Context) (err error) {
-	params := registerLoginUserParams{}
+// login 用户登录
+func (*userCtrl) login(c *elton.Context) (err error) {
+	params := userRegisterLoginParams{}
 	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
 		return
 	}
 	us := getUserSession(c)
-	token := us.GetLoginToken()
-	if token == "" {
-		err = errLoginTokenNil
-		return
-	}
-	u, err := userSrv.Login(params.Account, params.Password, token)
+	userInfo, err := us.GetInfo()
 	if err != nil {
 		return
 	}
-	loginRecord := &service.UserLoginRecord{
-		Account:       params.Account,
-		UserAgent:     c.GetRequestHeader("User-Agent"),
-		IP:            c.RealIP(),
-		TrackID:       util.GetTrackID(c),
-		SessionID:     util.GetSessionID(c),
-		XForwardedFor: c.GetRequestHeader("X-Forwarded-For"),
+
+	if userInfo.Token == "" {
+		err = hes.New("登录令牌不能为空", errUserCategory)
+		return
 	}
-	_ = userSrv.AddLoginRecord(loginRecord, c)
-	omitUserInfo(u)
-	_ = us.SetAccount(u.Account)
-	_ = us.SetRoles(u.Roles)
-	c.Body = u
+	// 登录
+	u, err := params.login(c.Context(), userInfo.Token)
+	if err != nil {
+		return
+	}
+	account := u.Account
+
+	// 设置session
+	err = us.SetInfo(service.UserSessionInfo{
+		Account: account,
+		ID:      u.ID,
+		Roles:   u.Roles,
+		// Groups: u.,
+	})
+	if err != nil {
+		return
+	}
+
+	ip := c.RealIP()
+	tid := util.GetTrackID(c)
+	sid := util.GetSessionID(c)
+	userAgent := c.GetRequestHeader("User-Agent")
+
+	xForwardedFor := c.GetRequestHeader("X-Forwarded-For")
+	go func() {
+		fields := map[string]interface{}{
+			cs.FieldAccount:   account,
+			cs.FieldUserAgent: userAgent,
+			cs.FieldIP:        ip,
+			cs.FieldTID:       tid,
+			cs.FieldSID:       sid,
+		}
+		location, _ := service.GetLocationByIP(ip, nil)
+		country := ""
+		province := ""
+		city := ""
+		isp := ""
+		if location.IP != "" {
+			country = location.Country
+			province = location.Province
+			city = location.City
+			isp = location.ISP
+			fields[cs.FieldCountry] = country
+			fields[cs.FieldProvince] = province
+			fields[cs.FieldCity] = city
+			fields[cs.FieldISP] = isp
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		// 记录至数据库
+		_, err := getEntClient().UserLogin.Create().
+			SetAccount(account).
+			SetUserAgent(userAgent).
+			SetIP(ip).
+			SetTrackID(tid).
+			SetSessionID(sid).
+			SetXForwardedFor(xForwardedFor).
+			SetCountry(country).
+			SetProvince(province).
+			SetCity(city).
+			SetIsp(isp).
+			Save(ctx)
+		if err != nil {
+			log.Default().Error("save user login fail",
+				zap.Error(err),
+			)
+		}
+		// 记录用户登录行为
+		getInfluxSrv().Write(cs.MeasurementUserLogin, nil, fields)
+	}()
+
+	// 返回用户信息
+	resp, err := pickUserInfo(c)
+	if err != nil {
+		return
+	}
+	c.Body = &resp
 	return
 }
 
-// logout user logout
-func (ctrl userCtrl) logout(c *elton.Context) (err error) {
+// logout 退出登录
+func (*userCtrl) logout(c *elton.Context) (err error) {
 	us := getUserSession(c)
-	if us != nil {
-		err = us.Destroy()
+	// 清除session
+	err = us.Destroy()
+	if err != nil {
+		return
 	}
 	c.NoContent()
 	return
 }
 
-// updateMe user update me
-func (ctrl userCtrl) updateMe(c *elton.Context) (err error) {
+// refresh 刷新用户session
+func (*userCtrl) refresh(c *elton.Context) (err error) {
 	us := getUserSession(c)
 	if us == nil {
 		c.NoContent()
 		return
-	}
-	// 最少有一个字段更新
-	params := updateUserMeParams{}
-	if len(c.RequestBody) > 2 {
-		err = validate.Do(&params, c.RequestBody)
-		if err != nil {
-			return
-		}
-		err = userSrv.UpdateByAccount(us.GetAccount(), service.User{
-			Email: params.Email,
-		})
-		if err != nil {
-			return
-		}
 	}
 
 	scf := config.GetSessionConfig()
@@ -412,101 +710,101 @@ func (ctrl userCtrl) updateMe(c *elton.Context) (err error) {
 		MaxAge:   int(scf.TTL.Seconds()),
 		HttpOnly: true,
 	})
-	if err != nil {
-		return
-	}
 
 	c.NoContent()
 	return
 }
 
-// list user list
-func (ctrl userCtrl) list(c *elton.Context) (err error) {
-	params := listUserParams{}
-	err = validate.Do(&params, c.Query())
-	if err != nil {
-		return
+// updateMe 更新用户信息
+func (ctrl *userCtrl) updateMe(c *elton.Context) (err error) {
+	// 如果没有数据要更新，如{}
+	if len(c.RequestBody) <= 2 {
+		return ctrl.refresh(c)
 	}
-	limit, _ := strconv.Atoi(params.Limit)
-	users, err := userSrv.List(service.UserQueryParams{
-		Role:    params.Role,
-		Keyword: params.Keyword,
-		Limit:   limit,
-	})
-	if err != nil {
-		return
-	}
-	c.Body = &struct {
-		Users []*service.User `json:"users,omitempty"`
-	}{
-		users,
-	}
-	return
-}
-
-// update user update
-func (ctrl userCtrl) update(c *elton.Context) (err error) {
-	id, err := strconv.Atoi(c.Param("userID"))
-	if err != nil {
-		return
-	}
-	params := updateUserParams{}
+	us := getUserSession(c)
+	params := userUpdateMeParams{}
 	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
 		return
 	}
-	// 只能su用户才可以添加su权限
-	if util.ContainsString(params.Roles, cs.UserRoleSu) {
-		roles := getUserSession(c).GetRoles()
-		if !util.ContainsString(roles, cs.UserRoleSu) {
-			err = hes.New("add su role is forbidden")
-			return
-		}
-	}
-	err = userSrv.UpdateByID(uint(id), map[string]interface{}{
-		"roles": pq.StringArray(params.Roles),
-	})
+
+	// 更新用户信息
+	_, err = params.updateOneAccount(c.Context(), us.MustGetInfo().Account)
 	if err != nil {
 		return
 	}
 	c.NoContent()
+	return
+}
+
+// getRoleList 获取用户角色列表
+func (*userCtrl) getRoleList(c *elton.Context) (err error) {
+	c.CacheMaxAge(time.Minute)
+	c.Body = &userRoleListResp{
+		UserRoles: schema.GetUserRoleList(),
+	}
 	return
 }
 
 // listLoginRecord list login record
 func (ctrl userCtrl) listLoginRecord(c *elton.Context) (err error) {
-	params := listUserLoginRecordParams{}
+	params := userLoginListParams{}
 	err = validate.Do(&params, c.Query())
 	if err != nil {
 		return
 	}
-	offset, _ := strconv.Atoi(params.Offset)
-	limit, _ := strconv.Atoi(params.Limit)
-	query := service.UserLoginRecordQueryParams{
-		Account: params.Account,
-		Limit:   limit,
-		Offset:  offset,
+	count := -1
+	if params.ShouldCount() {
+		count, err = params.count(c.Context())
+		if err != nil {
+			return
+		}
 	}
-	if !params.Begin.IsZero() {
-		query.Begin = util.FormatTime(params.Begin)
-	}
-	if !params.End.IsZero() {
-		query.End = util.FormatTime(params.End)
-	}
-	result, err := userSrv.ListLoginRecord(query)
+	userLogins, err := params.queryAll(c.Context())
 	if err != nil {
 		return
 	}
-	count := -1
-	if offset == 0 {
-		count, err = userSrv.CountLoginRecord(query)
+	c.Body = &userLoginListResp{
+		Count:      count,
+		UserLogins: userLogins,
 	}
-	c.Body = struct {
-		Logins []*service.UserLoginRecord `json:"logins,omitempty"`
-		Count  int                        `json:"count,omitempty"`
-	}{
-		result,
-		count,
+	return
+}
+
+// addUserAction add user action
+func (ctrl userCtrl) addUserAction(c *elton.Context) (err error) {
+	params := userActionAddParams{}
+	err = validate.Do(&params, c.RequestBody)
+	if err != nil {
+		return
+	}
+	now := time.Now().Unix()
+	us := getUserSession(c)
+	account := us.MustGetInfo().Account
+
+	count := 0
+	for _, item := range params.Actions {
+		// 如果时间大于当前时间或者一天前，则忽略
+		if item.Time > now || item.Time < now-24*3600 {
+			continue
+		}
+		count++
+		// 由于客户端的统计时间精度只到second
+		// 随机生成nano second填充
+		nsec := rand.Int() % int(time.Second)
+		t := time.Unix(item.Time, int64(nsec))
+		fields := map[string]interface{}{
+			cs.FieldAccount: account,
+			cs.FieldRoute:   item.Route,
+			cs.FieldPath:    item.Path,
+		}
+		fields = util.MergeMapStringInterface(fields, item.Extra)
+		getInfluxSrv().Write(cs.MeasurementUserAction, map[string]string{
+			cs.TagCategory: item.Category,
+		}, fields, t)
+	}
+	c.Body = map[string]int{
+		"count": count,
 	}
 	return
 }

@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,52 +21,100 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestConfigGet(t *testing.T) {
+func TestConfigENV(t *testing.T) {
 	assert := assert.New(t)
-	originEnv := env
+	originENV := env
+	defer func() {
+		env = originENV
+	}()
 
 	env = "test"
 	assert.Equal(env, GetENV())
-	env = originEnv
+}
 
-	key := "my-config-test"
+func TestBasicConfig(t *testing.T) {
+	assert := assert.New(t)
 
-	assert.Equal(0, GetInt(key))
-	defaultViper.Set(key, 1)
-	assert.Equal(1, GetInt(key))
+	basicConfig := GetBasicConfig()
+	assert.Equal("cybertect", basicConfig.Name)
+	assert.Equal(uint(1000), basicConfig.RequestLimit)
+	assert.Equal(":7001", basicConfig.Listen)
+}
 
-	assert.Equal(uint(1), GetUint(key))
-	assert.Equal(uint32(1), GetUint32(key))
+func TestSessionConfig(t *testing.T) {
+	assert := assert.New(t)
 
-	defaultViper.Set(key, nil)
-	assert.Equal(2, GetIntDefault(key, 2))
-	assert.Equal(uint32(2), GetUint32Default(key, 2))
+	sessionConfig := GetSessionConfig()
+	assert.Equal(240*time.Hour, sessionConfig.TTL)
+	assert.Equal("cybertect", sessionConfig.Key)
+	assert.Equal("/", sessionConfig.CookiePath)
+	assert.Equal([]string{"cuttlefish", "secret"}, sessionConfig.Keys)
+	assert.Equal("jt", sessionConfig.TrackKey)
+}
 
-	defaultViper.Set(key, "s")
-	assert.Equal("s", GetString(key))
-	defaultViper.Set(key, nil)
-	assert.Equal("ss", GetStringDefault(key, "ss"))
+func TestRedisConfig(t *testing.T) {
+	assert := assert.New(t)
 
-	defaultViper.Set(key, time.Second)
-	assert.Equal(time.Second, GetDuration(key))
-	defaultViper.Set(key, nil)
-	assert.Equal(time.Minute, GetDurationDefault(key, time.Minute))
+	redisConfig := GetRedisConfig()
+	assert.Equal("127.0.0.1:6379", redisConfig.Addr)
+	assert.Equal("", redisConfig.Password)
+	assert.Equal(0, redisConfig.DB)
+	assert.Equal(200*time.Millisecond, redisConfig.Slow)
+	assert.Equal(uint32(1000), redisConfig.MaxProcessing)
+}
 
-	defaultViper.Set(key, []string{
-		"a",
-		"b",
-	})
-	assert.Equal([]string{
-		"a",
-		"b",
-	}, GetStringSlice(key))
+func TestMailConfig(t *testing.T) {
+	assert := assert.New(t)
 
-	defaultViper.Set(key, map[string]interface{}{
-		"a": "b",
-		"c": 1,
-	})
-	assert.Equal(map[string]interface{}{
-		"a": "b",
-		"c": 1,
-	}, GetStringMap(key))
+	mailConfig := GetMailConfig()
+	assert.Equal("smtp.office365.com", mailConfig.Host)
+	assert.Equal(587, mailConfig.Port)
+	assert.Equal("tree.xie@outlook.com", mailConfig.User)
+	assert.Equal("EMAIL_PASS", mailConfig.Password)
+}
+
+func TestInfluxdbConfig(t *testing.T) {
+	assert := assert.New(t)
+
+	influxdbConfig := GetInfluxdbConfig()
+	assert.Equal("http://127.0.0.1:8086", influxdbConfig.URI)
+	assert.Equal("cybertect", influxdbConfig.Bucket)
+	assert.Equal("bigTree", influxdbConfig.Org)
+	assert.Equal("YcAmMWPl0XR_OKJYNIozsiBI0qBGIe4-Y_rWKUcNbQ8sYobWFrsMCgY_t0FRlpAMkVNgghhcQ1TgDixt92Qe6w==", influxdbConfig.Token)
+	assert.Equal(uint(100), influxdbConfig.BatchSize)
+	assert.Equal(10*time.Second, influxdbConfig.FlushInterval)
+	assert.False(influxdbConfig.Disabled)
+}
+
+func TestAlarmConfig(t *testing.T) {
+	assert := assert.New(t)
+
+	alarmConfig := GetAlarmConfig()
+	assert.Equal([]string{"tree.xie@outlook.com"}, alarmConfig.Receivers)
+}
+
+func TestGetPostgresConfig(t *testing.T) {
+	assert := assert.New(t)
+
+	postgresConfig := GetPostgresConfig()
+	assert.NotNil(postgresConfig.URI)
+}
+
+func TestGetLocationConfig(t *testing.T) {
+	assert := assert.New(t)
+
+	locationConfig := GetLocationConfig()
+	assert.Equal("https://ip.npmtrend.com", locationConfig.BaseURL)
+	assert.Equal("location", locationConfig.Name)
+	assert.Equal(3*time.Second, locationConfig.Timeout)
+}
+
+func TestGetMinioConfig(t *testing.T) {
+	assert := assert.New(t)
+
+	minioConfig := GetMinioConfig()
+	assert.Equal("127.0.0.1:9000", minioConfig.Endpoint)
+	assert.Equal("origin", minioConfig.AccessKeyID)
+	assert.Equal("test123456", minioConfig.SecretAccessKey)
+	assert.False(minioConfig.SSL)
 }

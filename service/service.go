@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,15 +15,9 @@
 package service
 
 import (
-	"github.com/vicanso/cybertect/helper"
-	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/cybertect/cache"
 )
 
 var (
-	pgCreate    = helper.PGCreate
-	pgGetClient = helper.PGGetClient
-
-	logger = log.Default()
-
-	redisSrv = new(helper.Redis)
+	redisSrv = cache.GetRedisCache()
 )

@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,155 +15,215 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
+	"regexp"
+	"strconv"
 
 	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/middleware"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
-	"github.com/vicanso/hes"
-
-	"go.uber.org/zap"
-
 	M "github.com/vicanso/elton/middleware"
+	"github.com/vicanso/hes"
+	"go.uber.org/zap"
 )
 
-var (
-	errShouldLogin  = hes.New("should login first")
-	errLoginAlready = hes.New("login already, please logout first")
-	errForbidden    = &hes.Error{
-		StatusCode: http.StatusForbidden,
-		Message:    "acccess forbidden",
-	}
-)
+type listParams = helper.EntListParams
 
 var (
-	logger     = log.Default()
-	now        = util.NowString
-	getTrackID = util.GetTrackID
+	getEntClient = helper.EntGetClient
+	now          = util.NowString
 
-	// 服务列表
-	// 配置服务
-	configSrv = new(service.ConfigurationSrv)
-	// 用户服务
-	userSrv = new(service.UserSrv)
+	getUserSession = service.NewUserSession
+	// 加载用户session
+	loadUserSession = elton.Compose(middleware.NewSession(), sessionInterceptorMiddleware)
+	// 判断用户是否登录
+	shouldBeLogin = checkLoginMiddleware
+	// 判断用户是否未登录
+	shouldBeAnonymous = checkAnonymousMiddleware
+	// 判断用户是否admin权限
+	shouldBeAdmin = newCheckRolesMiddleware([]string{
+		schema.UserRoleSu,
+		schema.UserRoleAdmin,
+	})
+	// shouldBeSu 判断用户是否su权限
+	shouldBeSu = newCheckRolesMiddleware([]string{
+		schema.UserRoleSu,
+	})
 
 	// 创建新的并发控制中间件
-	// newConcurrentLimit = middleware.NewConcurrentLimit
+	newConcurrentLimit = middleware.NewConcurrentLimit
 	// 创建IP限制中间件
 	newIPLimit = middleware.NewIPLimit
 	// 创建出错限制中间件
 	newErrorLimit = middleware.NewErrorLimit
-
-	getUserSession = service.NewUserSession
-	// 加载用户session
-	loadUserSession = middleware.NewSession()
-	// 判断用户是否登录
-	shouldLogined = elton.Compose(loadUserSession, checkLogin)
-	// 判断用户是否未登录
-	shouldAnonymous = elton.Compose(loadUserSession, checkAnonymous)
-	// 判断用户是否admin权限
-	shouldBeAdmin = elton.Compose(loadUserSession, isAdmin)
+	// noCacheIfRequestNoCache 请求参数指定no cache，则设置no-cache
+	noCacheIfRequestNoCache = middleware.NewNoCacheWithCondition("cacheControl", "no-cache")
 
 	// 图形验证码校验
-	captchaValidate elton.Handler
+	captchaValidate = newMagicalCaptchaValidate()
+	// 获取influx service
+	getInfluxSrv = helper.GetInfluxSrv
+	// 文件服务
+	fileSrv = &service.FileSrv{}
+	// prof服务
+	profSrv = &service.ProfSrv{}
 )
 
-func init() {
-	magicalValue := ""
+func newMagicalCaptchaValidate() elton.Handler {
+	magicValue := ""
 	if !util.IsProduction() {
-		magicalValue = cs.MagicalCaptcha
+		magicValue = "0145"
 	}
-	captchaValidate = middleware.ValidateCaptcha(magicalValue)
+	return middleware.ValidateCaptcha(magicValue)
 }
 
-func newTracker(action string) elton.Handler {
+// isLogin 判断是否登录状态
+func isLogin(c *elton.Context) bool {
+	us := service.NewUserSession(c)
+	return us.IsLogin()
+}
+
+func validateLogin(c *elton.Context) (err error) {
+	if !isLogin(c) {
+		err = hes.New("请先登录", errUserCategory)
+		return
+	}
+	return
+}
+
+// checkLoginMiddleware 校验是否登录中间件
+func checkLoginMiddleware(c *elton.Context) (err error) {
+	err = validateLogin(c)
+	if err != nil {
+		return
+	}
+	return c.Next()
+}
+
+// checkAnonymousMiddleware 判断是匿名状态
+func checkAnonymousMiddleware(c *elton.Context) (err error) {
+	if isLogin(c) {
+		err = hes.New("已是登录状态，请先退出登录", errUserCategory)
+		return
+	}
+	return c.Next()
+}
+
+// newCheckRolesMiddleware 创建用户角色校验中间件
+func newCheckRolesMiddleware(validRoles []string) elton.Handler {
+	return func(c *elton.Context) (err error) {
+		err = validateLogin(c)
+		if err != nil {
+			return
+		}
+		us := service.NewUserSession(c)
+		userInfo, err := us.GetInfo()
+		if err != nil {
+			return
+		}
+		valid := util.ContainsAny(validRoles, userInfo.Roles)
+		if valid {
+			return c.Next()
+		}
+		err = hes.NewWithStatusCode("禁止使用该功能", http.StatusForbidden, errUserCategory)
+		return
+	}
+}
+
+// newTrackerMiddleware 初始化用户行为跟踪中间件
+func newTrackerMiddleware(action string) elton.Handler {
+	marshalString := func(data interface{}) string {
+		buf, _ := json.Marshal(data)
+		return string(buf)
+	}
 	return M.NewTracker(M.TrackerConfig{
+		Mask: regexp.MustCompile(`(?i)password`),
 		OnTrack: func(info *M.TrackerInfo, c *elton.Context) {
 			account := ""
+			tid := util.GetTrackID(c)
 			us := service.NewUserSession(c)
-			if us != nil {
-				account = us.GetAccount()
+			if us != nil && us.IsLogin() {
+				account = us.MustGetInfo().Account
 			}
-			fields := make([]zap.Field, 0, 10)
-			fields = append(
-				fields,
+			ip := c.RealIP()
+			sid := util.GetSessionID(c)
+			zapFields := make([]zap.Field, 0, 10)
+			zapFields = append(
+				zapFields,
 				zap.String("action", action),
-				zap.String("cid", info.CID),
 				zap.String("account", account),
-				zap.String("ip", c.RealIP()),
-				zap.String("sid", util.GetSessionID(c)),
+				zap.String("ip", ip),
+				zap.String("sid", sid),
+				zap.String("tid", tid),
 				zap.Int("result", info.Result),
 			)
-			if info.Query != nil {
-				fields = append(fields, zap.Any("query", info.Query))
+			fields := map[string]interface{}{
+				cs.FieldAccount: account,
+				cs.FieldIP:      ip,
+				cs.FieldSID:     sid,
+				cs.FieldTID:     tid,
 			}
-			if info.Params != nil {
-				fields = append(fields, zap.Any("params", info.Params))
+			if len(info.Query) != 0 {
+				zapFields = append(zapFields, zap.Any("query", info.Query))
+				fields[cs.FieldQuery] = marshalString(info.Query)
 			}
-			if info.Form != nil {
-				fields = append(fields, zap.Any("form", info.Form))
+			if len(info.Params) != 0 {
+				zapFields = append(zapFields, zap.Any("params", info.Params))
+				fields[cs.FieldParams] = marshalString(info.Params)
+			}
+			if len(info.Form) != 0 {
+				zapFields = append(zapFields, zap.Any("form", info.Form))
+				fields[cs.FieldForm] = marshalString(info.Form)
 			}
 			if info.Err != nil {
-				fields = append(fields, zap.Error(info.Err))
+				zapFields = append(zapFields, zap.Error(info.Err))
+				fields[cs.FieldError] = info.Err.Error()
 			}
-			logger.Info("tracker", fields...)
+			log.Default().Info("tracker", zapFields...)
+			getInfluxSrv().Write(cs.MeasurementUserTracker, map[string]string{
+				cs.TagAction: action,
+				cs.TagResult: strconv.Itoa(info.Result),
+			}, fields)
 		},
 	})
 }
 
-func isLogin(c *elton.Context) bool {
-	us := service.NewUserSession(c)
-	if us == nil || us.GetAccount() == "" {
-		return false
-	}
-	return true
-}
-
-func checkLogin(c *elton.Context) (err error) {
-	if !isLogin(c) {
-		err = errShouldLogin
+// getIDFromParams get id form context params
+func getIDFromParams(c *elton.Context) (id int, err error) {
+	id, err = strconv.Atoi(c.Param("id"))
+	if err != nil {
+		he := hes.Wrap(err)
+		he.Category = "parseInt"
+		err = he
 		return
 	}
-	return c.Next()
+	return
 }
 
-func checkAnonymous(c *elton.Context) (err error) {
-	if isLogin(c) {
-		err = errLoginAlready
-		return
-	}
-	return c.Next()
-}
-
-// func newCheckRoles(validRoles []string) elton.Handler {
-// 	return func(c *elton.Context) (err error) {
-// 		if !isLogin(c) {
-// 			err = errShouldLogin
-// 			return
-// 		}
-// 		us := service.NewUserSession(c)
-// 		roles := us.GetRoles()
-// 		valid := util.UserRoleIsValid(validRoles, roles)
-// 		if valid {
-// 			return c.Next()
-// 		}
-// 		err = errForbidden
-// 		return
-// 	}
-// }
-
-func isAdmin(c *elton.Context) (err error) {
-	if !isLogin(c) {
-		err = errShouldLogin
-		return
-	}
-	us := service.NewUserSession(c)
-	if us.IsAdmin() {
+// sessionInterceptorMiddleware session的拦截
+func sessionInterceptorMiddleware(c *elton.Context) error {
+	interData, _ := service.GetSessionInterceptorData()
+	// 如果无配置，则直接跳过
+	if interData == nil {
 		return c.Next()
 	}
-	err = errForbidden
-	return
+	us := service.NewUserSession(c)
+	account := ""
+	if us.IsLogin() {
+		account = us.MustGetInfo().Account
+	}
+	// 如果配置该账号允许
+	if account != "" && util.ContainsString(interData.AllowAccounts, account) {
+		return c.Next()
+	}
+	// 如果有配置拦截信息，则以出错返回
+	he := hes.New(interData.Message)
+	he.Category = "sessionInterceptorMiddleware"
+	return he
 }

@@ -1,0 +1,18 @@
+# gowatch.yml configuration example
+# The name of the executable file generated under the current directory execution. The default is the current directory name.
+appname: "cybertect"
+# Need to increase environment variables, the current environment variables are loaded by default
+envs:
+  - GO_ENV=dev
+# Whether to listen to file changes in the 'vendor' folder
+vendor_watch: false
+# Directory that do not need to listen for file changes
+excluded_paths:
+  - web 
+# main package path, can also be a single file, multiple files separated by commas
+build_pkg: ""
+# build tags
+build_tags: ""
+
+# Whether to prohibit automatic operation
+disable_run: false

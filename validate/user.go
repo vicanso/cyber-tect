@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,48 +14,25 @@
 
 package validate
 
-import (
-	"reflect"
-
-	"github.com/go-playground/validator/v10"
-	"github.com/vicanso/cybertect/cs"
-)
-
 func init() {
-	// 账号
-	AddAlias("xUserAccount", "ascii,min=4,max=10")
+	// 用户账号
+	AddAlias("xUserAccount", "ascii,min=2,max=10")
+	// 用户密码
 	AddAlias("xUserPassword", "ascii,len=44")
-	AddAlias("xUserAccountKeyword", "ascii,min=0,max=10")
-	Add("xUserRole", func(fl validator.FieldLevel) bool {
-		return isZero(fl) || isInString(fl, []string{
-			cs.UserRoleSu,
-			cs.UserRoleAdmin,
-		})
-	})
-	Add("xUserRoles", func(fl validator.FieldLevel) bool {
-		if fl.Field().Kind() != reflect.Slice {
-			return false
-		}
-		v := fl.Field().Interface()
-		value, ok := v.([]string)
-		if !ok {
-			return false
-		}
-		valid := true
-		for _, item := range value {
-			exists := false
-			for _, role := range []string{
-				cs.UserRoleSu,
-				cs.UserRoleAdmin,
-			} {
-				if item == role {
-					exists = true
-				}
-			}
-			if !exists {
-				valid = false
-			}
-		}
-		return valid
-	})
+	// 用户名称
+	AddAlias("xUserName", "min=1,max=20")
+	// 用户邮箱
+	AddAlias("xUserEmail", "email")
+	// 用户角色
+	AddAlias("xUserRole", "ascii,min=1,max=10")
+	// 用户分组
+	AddAlias("xUserGroup", "ascii,min=1,max=10")
+	// 用户行为分类
+	Add("xUserActionCategory", newIsInString([]string{
+		"tap",
+		"confirm",
+		"cancel",
+	}))
+	// 用户行为触发所在路由
+	AddAlias("xUserActionRoute", "max=50")
 }

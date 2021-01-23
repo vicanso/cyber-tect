@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,29 +18,32 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/vicanso/elton"
-	"github.com/vicanso/cybertect/service"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/vicanso/elton"
 )
 
-func TestNewIPBlock(t *testing.T) {
+func TestNewIPBlocker(t *testing.T) {
 	assert := assert.New(t)
+	blockFn := func(ip string) bool {
+		return ip == "1.1.1.1"
+	}
+	fn := NewIPBlocker(blockFn)
 
-	fn := NewIPBlock()
 	req := httptest.NewRequest("GET", "/", nil)
 	req.Header.Set(elton.HeaderXForwardedFor, "1.1.1.1")
-	resp := httptest.NewRecorder()
-	c := elton.NewContext(resp, req)
+	c := elton.NewContext(nil, req)
+	err := fn(c)
+	assert.Equal(ErrIPNotAllow, err)
+
+	req.Header.Del(elton.HeaderXForwardedFor)
+	// 由于context的ip会缓存，因此重新创建
+	c = elton.NewContext(nil, req)
+	done := false
 	c.Next = func() error {
+		done = true
 		return nil
 	}
-	err := fn(c)
-	assert.Nil(err)
-
-	service.ResetIPBlocker([]string{
-		"1.1.1.1",
-	})
 	err = fn(c)
-	assert.Equal(errIPNotAllow, err)
+	assert.Nil(err)
+	assert.True(done)
 }

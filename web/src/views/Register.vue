@@ -1,19 +1,16 @@
 <template lang="pug">
-LoginRegister.register(
+login-register(
   type="register"
 )
 </template>
-<script>
-import LoginRegister from "@/components/LoginRegister.vue";
+<script lang="ts">
+import { defineComponent } from "vue";
 
-export default {
+import LoginRegister from "../components/LoginRegister.vue";
+export default defineComponent({
   name: "Register",
   components: {
     LoginRegister,
   },
-};
+});
 </script>
-<style lang="sass" scoped>
-.register
-  margin-top: 100px
-</style>

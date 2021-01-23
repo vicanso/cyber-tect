@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package util
 
 import (
@@ -19,36 +18,33 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/vicanso/elton"
-	"github.com/vicanso/cybertect/config"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/elton"
 )
 
 func TestGetTrackID(t *testing.T) {
 	assert := assert.New(t)
-	resp := httptest.NewRecorder()
+	sessionConfig = config.GetSessionConfig()
 	req := httptest.NewRequest("GET", "/", nil)
-	c := elton.NewContext(resp, req)
-	assert.Empty(GetTrackID(c))
 	cookie := http.Cookie{
-		Name:  config.GetTrackKey(),
+		Name:  sessionConfig.TrackKey,
 		Value: "abcd",
 	}
 	req.AddCookie(&cookie)
+	c := elton.NewContext(nil, req)
 	assert.Equal(cookie.Value, GetTrackID(c))
 }
 
 func TestGetSessionID(t *testing.T) {
 	assert := assert.New(t)
-	resp := httptest.NewRecorder()
+	sessionConfig = config.GetSessionConfig()
 	req := httptest.NewRequest("GET", "/", nil)
-	c := elton.NewContext(resp, req)
-	assert.Empty(GetSessionID(c))
 	cookie := http.Cookie{
-		Name:  config.GetSessionConfig().Key,
+		Name:  sessionConfig.Key,
 		Value: "abcd",
 	}
 	req.AddCookie(&cookie)
+	c := elton.NewContext(nil, req)
 	assert.Equal(cookie.Value, GetSessionID(c))
 }

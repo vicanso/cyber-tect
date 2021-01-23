@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,52 +15,57 @@
 package service
 
 import (
-	"runtime"
-	"sync/atomic"
+	"net"
+	"net/http"
+
+	performance "github.com/vicanso/go-performance"
 )
+
+var httpServerConnStats = performance.NewHttpServerConnStats()
+var requestProcessConcurrency = performance.NewConcurrency()
+
+// GetHTTPServerConnState get http server on conn state function
+func GetHTTPServerConnState() func(net.Conn, http.ConnState) {
+	return httpServerConnStats.ConnState
+}
 
 type (
-	// Performance performance
+	// Performance 应用性能指标
 	Performance struct {
-		GoMaxProcs   int    `json:"goMaxProcs,omitempty"`
-		Concurrency  uint32 `json:"concurrency,omitempty"`
-		Sys          int    `json:"sys,omitempty"`
-		HeapSys      int    `json:"heapSys,omitempty"`
-		HeapInuse    int    `json:"heapInuse,omitempty"`
-		RoutineCount int    `json:"routineCount,omitempty"`
+		Concurrency           int32 `json:"concurrency,omitempty"`
+		RequestProcessedTotal int64 `json:"requestProcessedTotal,omitempty"`
+		performance.CPUMemory
+		performance.ConnStats
 	}
 )
 
-var (
-	concurrency uint32
-)
-
-// GetPerformance get performance
-func GetPerformance() *Performance {
-	var mb uint64 = 1024 * 1024
-	m := &runtime.MemStats{}
-	runtime.ReadMemStats(m)
-	return &Performance{
-		GoMaxProcs:   runtime.GOMAXPROCS(0),
-		Concurrency:  GetConcurrency(),
-		Sys:          int(m.Sys / mb),
-		HeapSys:      int(m.HeapSys / mb),
-		HeapInuse:    int(m.HeapInuse / mb),
-		RoutineCount: runtime.NumGoroutine(),
+// GetPerformance 获取应用性能指标
+func GetPerformance() Performance {
+	return Performance{
+		Concurrency:           GetConcurrency(),
+		RequestProcessedTotal: requestProcessConcurrency.Total(),
+		CPUMemory:             performance.CurrentCPUMemory(),
+		ConnStats:             httpServerConnStats.Stats(),
 	}
+
 }
 
-// IncreaseConcurrency increase concurrency count
-func IncreaseConcurrency() uint32 {
-	return atomic.AddUint32(&concurrency, 1)
+// IncreaseConcurrency 当前并发请求+1
+func IncreaseConcurrency() int32 {
+	return requestProcessConcurrency.Inc()
 }
 
-// DecreaseConcurrency decrease concurrency count
-func DecreaseConcurrency() uint32 {
-	return atomic.AddUint32(&concurrency, ^uint32(0))
+// DecreaseConcurrency 当前并发请求-1
+func DecreaseConcurrency() int32 {
+	return requestProcessConcurrency.Dec()
 }
 
-// GetConcurrency get concurrency
-func GetConcurrency() uint32 {
-	return atomic.LoadUint32(&concurrency)
+// GetConcurrency 获取当前并发请求
+func GetConcurrency() int32 {
+	return requestProcessConcurrency.Current()
+}
+
+// UpdateCPUUsage 更新cpu使用率
+func UpdateCPUUsage() error {
+	return performance.UpdateCPUUsage()
 }

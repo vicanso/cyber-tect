@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,22 +15,48 @@
 package validate
 
 import (
+	"net/url"
 	"regexp"
 
 	"github.com/go-playground/validator/v10"
 )
 
 func init() {
-	AddAlias("xLimit", "number,min=0,max=10")
-	AddAlias("xOffset", "number,min=0,max=1000")
-	AddAlias("xFields", "min=0,max=100")
-
-	durationRegexp := regexp.MustCompile("^[1-9][0-9]*(ms|[smh])$")
-	Add("xDuration", func(fl validator.FieldLevel) bool {
-		value, ok := toString(fl)
+	// 客户端使用的limit，最多只允许一次拉取100条
+	Add("xLimit", newNumberRange(1, 100))
+	// 更大的数量限制，一般管理后台接口使用
+	Add("xLargerLimit", newNumberRange(1, 200))
+	// offset设置最多为1万已满足场景需要，如果有更多的处理再调整
+	Add("xOffset", newNumberRange(0, 10000))
+	AddAlias("xOrder", "ascii,min=0,max=100")
+	AddAlias("xFields", "ascii,min=0,max=100")
+	AddAlias("xKeyword", "min=1,max=10")
+	// 状态：启用、禁用
+	AddAlias("xStatus", "numeric,min=1,max=2")
+	// path校验
+	AddAlias("xPath", "startswith=/")
+	// boolean的字符串形式，0: false, 1:true
+	AddAlias("xBoolean", "oneof=0 1")
+	// http(s)校验
+	Add("xHTTP", func(fl validator.FieldLevel) bool {
+		v, ok := toString(fl)
 		if !ok {
 			return false
 		}
-		return durationRegexp.MatchString(value)
+		urlInfo, err := url.ParseRequestURI(v)
+		if err != nil {
+			return false
+		}
+		if urlInfo.Scheme != "http" &&
+			urlInfo.Scheme != "https" {
+			return false
+		}
+		return urlInfo.Host != "" && urlInfo.Path != ""
+	})
+	// duration配置
+	durationReg := regexp.MustCompile(`^\d+(ms|s|m)$`)
+	Add("xDuration", func(fl validator.FieldLevel) bool {
+		v, _ := toString(fl)
+		return durationReg.MatchString(v)
 	})
 }

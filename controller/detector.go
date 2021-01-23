@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2021 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,765 +15,248 @@
 package controller
 
 import (
-	"fmt"
-	"strconv"
-	"strings"
-	"time"
+	"context"
 
 	"github.com/vicanso/cybertect/cs"
-	"github.com/vicanso/cybertect/helper"
-
-	"github.com/lib/pq"
-	"github.com/vicanso/cybertect/detector"
+	"github.com/vicanso/cybertect/ent"
+	"github.com/vicanso/cybertect/ent/http"
+	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )
 
-var (
-	dnsSrv  = new(detector.DNSSrv)
-	tcpSrv  = new(detector.TCPSrv)
-	pingSrv = new(detector.PingSrv)
-	httpSrv = new(detector.HTTPSrv)
-)
-
-type detectorCtrl struct{}
-
 type (
-	queryDetectorParams struct {
-		Limit   string `json:"limit,omitempty" validate:"xLimit"`
-		Offset  string `json:"offset,omitempty" validate:"xOffset"`
-		Order   string `json:"order,omitempty"`
-		Status  string `json:"status,omitempty" validate:"omitempty,xDetectorResult"`
-		Owner   string `json:"owner,omitempty" validate:"omitempty,xUserAccount"`
-		Fields  string `json:"fields,omitempty" validate:"omitempty,xFields"`
-		Keyword string `json:"keyword,omitempty" validate:"omitempty,xDetectorKeyword"`
-	}
-	queryDetectorResultParams struct {
-		Count    string `json:"count,omitempty"`
-		Limit    string `json:"limit,omitempty" validate:"xLimit"`
-		Offset   string `json:"offset,omitempty" validate:"xOffset"`
-		Order    string `json:"order,omitempty"`
-		Task     string `json:"task,omitempty" validate:"omitempty,xDetectorTask"`
-		Tasks    string `json:"tasks,omitempty" validate:"omitempty,min=1,max=300"`
-		Result   string `json:"result,omitempty" validate:"omitempty,xDetectorResult"`
-		Duration string `json:"duration,omitempty" validate:"omitempty,xDuration"`
-		Fields   string `json:"fields,omitempty" validate:"omitempty,xFields"`
-	}
-	addDetectorParams struct {
-		Name        string         `json:"name,omitempty" validate:"xDetectorName"`
-		Timeout     string         `json:"timeout,omitempty" validate:"omitempty,xDuration"`
-		Status      int            `json:"status,omitempty" validate:"xDetectorStatus,required"`
-		Description string         `json:"description,omitempty" validate:"xDetectorDescription"`
-		Receivers   pq.StringArray `json:"receivers,omitempty" validate:"required"`
-	}
-	updateDetectorParams struct {
-		Name        string         `json:"name,omitempty" validate:"omitempty,xDetectorName"`
-		Timeout     string         `json:"timeout,omitempty" validate:"omitempty,xDuration"`
-		Status      int            `json:"status,omitempty" validate:"xDetectorStatus"`
-		Description string         `json:"description,omitempty" validate:"xDetectorDescription"`
-		Receivers   pq.StringArray `json:"receivers,omitempty" validate:"-"`
-	}
-	addDNSParams struct {
-		addDetectorParams
+	detectorCtrl struct{}
 
-		Server   string `json:"server,omitempty" validate:"xDNSServer,required"`
-		Hostname string `json:"hostname,omitempty" validate:"xDNSHostname,required"`
+	// detectorAddHTTPParams params of add http
+	detectorAddHTTPParams struct {
+		Name        string   `json:"name,omitempty" validate:"required,xDetectorName"`
+		Status      int      `json:"status,omitempty" validate:"required,xStatus"`
+		Description string   `json:"description,omitempty" validate:"required,xDetectorDesc"`
+		IPS         []string `json:"ips,omitempty" validate:"omitempty,dive,ip"`
+		Receivers   []string `json:"receivers,omitempty" validate:"required,dive,xUserAccount"`
+		URL         string   `json:"url,omitempty" validate:"required,xHTTP"`
+		Timeout     string   `json:"timeout,omitempty" validate:"required,xDuration"`
 	}
-	updateDNSParams struct {
-		updateDetectorParams
+	// detectorUpdateHTTPParams params of update http
+	detectorUpdateHTTPParams struct {
+		CurrentUser string
 
-		Server   string `json:"server,omitempty" validate:"xDNSServer"`
-		Hostname string `json:"hostname,omitempty" validate:"xDNSHostname"`
+		Name        string   `json:"name,omitempty" validate:"omitempty,xDetectorName"`
+		Status      int      `json:"status,omitempty" validate:"omitempty,xStatus"`
+		Description string   `json:"description,omitempty" validate:"omitempty,xDetectorDesc"`
+		IPS         []string `json:"ips,omitempty" validate:"omitempty,dive,ip"`
+		Receivers   []string `json:"receivers,omitempty" validate:"omitempty,dive,xUserAccount"`
+		URL         string   `json:"url,omitempty" validate:"omitempty,xHTTP"`
+		Timeout     string   `json:"timeout,omitempty" validate:"omitempty,xDuration"`
 	}
-	addTCPParams struct {
-		addDetectorParams
+	// detectorHTTPListParams params of list http
+	detectorHTTPListParams struct {
+		listParams
 
-		Network string `json:"network,omitempty" validate:"xTCPNetwork"`
-		IP      string `json:"ip,omitempty" validate:"ip,required"`
-		Port    int    `json:"port,omitempty" validate:"required"`
+		Owner string
 	}
-	updateTCPParams struct {
-		updateDetectorParams
-
-		Network string `json:"network,omitempty" validate:"xTCPNetwork"`
-		IP      string `json:"ip,omitempty" validate:"isdefault|ip"`
-		Port    int    `json:"port,omitempty"`
-	}
-	addPingParams struct {
-		addDetectorParams
-
-		Network string `json:"network,omitempty" validate:"xTCPNetwork"`
-		IP      string `json:"ip,omitempty" validate:"ip,required"`
-	}
-	updatePingParams struct {
-		updateDetectorParams
-
-		Network string `json:"network,omitempty" validate:"xTCPNetwork"`
-		IP      string `json:"ip,omitempty" validate:"isdefault|ip"`
-	}
-	addHTTPParams struct {
-		addDetectorParams
-
-		URL string `json:"url,omitempty" validate:"url,required"`
-		IP  string `json:"ip,omitempty" validate:"isdefault|ip"`
-	}
-	updateHTTPParams struct {
-		updateDetectorParams
-
-		URL string `json:"url,omitempty" validate:"isdefault|url"`
-		IP  string `json:"ip,omitempty" validate:"isdefault|ip"`
+	// detectorHTTPListResp response of list http
+	detectorHTTPListResp struct {
+		HTTPS []*ent.HTTP `json:"https,omitempty"`
+		Count int         `json:"count,omitempty"`
 	}
 )
 
 const (
-	catDNS  = "dns"
-	catTCP  = "tcp"
-	catPing = "ping"
-	catHTTP = "http"
-)
-
-var (
-	addDetectors         map[string]func(*elton.Context) (interface{}, error)
-	updateDetectors      map[string]func(uint, *elton.Context) error
-	getDetectors         map[string]func(uint) (interface{}, error)
-	countDetectors       map[string]func(queryDetectorParams) (int, error)
-	listDetectors        map[string]func(queryDetectorParams) (interface{}, error)
-	countDetectorResults map[string]func(queryDetectorResultParams) (int, error)
-	listDetectorResults  map[string]func(queryDetectorResultParams) (interface{}, error)
+	errDetectorCategory = "detector"
 )
 
 func init() {
+	g := router.NewGroup("/detectors", loadUserSession, shouldBeLogin)
+
 	ctrl := detectorCtrl{}
-	addDetectors = map[string]func(*elton.Context) (interface{}, error){
-		catDNS:  ctrl.addDNS,
-		catTCP:  ctrl.addTCP,
-		catPing: ctrl.addPing,
-		catHTTP: ctrl.addHTTP,
-	}
-	updateDetectors = map[string]func(uint, *elton.Context) error{
-		catDNS:  ctrl.updateDNS,
-		catTCP:  ctrl.updateTCP,
-		catPing: ctrl.updatePing,
-		catHTTP: ctrl.updateHTTP,
-	}
-	getDetectors = map[string]func(uint) (interface{}, error){
-		catDNS:  ctrl.findDNS,
-		catTCP:  ctrl.findTCP,
-		catPing: ctrl.findPing,
-		catHTTP: ctrl.findHTTP,
-	}
-	countDetectors = map[string]func(queryDetectorParams) (int, error){
-		catDNS:  ctrl.countDNS,
-		catTCP:  ctrl.countTCP,
-		catPing: ctrl.countPing,
-		catHTTP: ctrl.countHTTP,
-	}
-	listDetectors = map[string]func(queryDetectorParams) (interface{}, error){
-		catDNS:  ctrl.listDNS,
-		catTCP:  ctrl.listTCP,
-		catPing: ctrl.listPing,
-		catHTTP: ctrl.listHTTP,
-	}
 
-	countDetectorResults = map[string]func(queryDetectorResultParams) (int, error){
-		catDNS:  ctrl.countDNSResult,
-		catTCP:  ctrl.countTCPResult,
-		catPing: ctrl.countPingResult,
-		catHTTP: ctrl.countHTTPResult,
-	}
-	listDetectorResults = map[string]func(queryDetectorResultParams) (interface{}, error){
-		catDNS:  ctrl.listDNSResult,
-		catTCP:  ctrl.listTCPResult,
-		catPing: ctrl.listPingResult,
-		catHTTP: ctrl.listHTTPResult,
-	}
-	g := router.NewGroup("/detectors", loadUserSession, shouldLogined)
+	// 查询接收者列表
+	g.GET(
+		"/v1/receivers",
+		ctrl.listReceiver,
+	)
 
+	// 查询http配置
+	g.GET(
+		"/v1/https",
+		ctrl.listHTTP,
+	)
+	// 添加http配置
 	g.POST(
-		"/v1/{category}",
-		newTracker(cs.ActionDetectorAdd),
-		ctrl.checkCategory,
-		ctrl.add,
+		"/v1/https",
+		newTrackerMiddleware(cs.ActionDetectorHTTPAdd),
+		ctrl.addHTTP,
 	)
-	g.GET(
-		"/v1/{category}",
-		ctrl.checkCategory,
-		ctrl.list,
-	)
+	// 更新http配置
 	g.PATCH(
-		"/v1/{category}/{id}",
-		ctrl.checkCategory,
-		newTracker(cs.ActionDetectorUpdate),
-		ctrl.update,
-	)
-	g.GET(
-		"/v1/{category}/{id}",
-		ctrl.checkCategory,
-		ctrl.getByID,
-	)
-
-	g.GET(
-		"/v1/results/{category}",
-		ctrl.checkCategory,
-		ctrl.listResult,
+		"/v1/https/{id}",
+		newTrackerMiddleware(cs.ActionDetectorHTTPUpdate),
+		ctrl.updateHTTPByID,
 	)
 }
 
-func (params *queryDetectorResultParams) toConditions() (conditions []interface{}) {
-	queryList := make([]string, 0)
-	args := make([]interface{}, 0)
-
-	if params.Task != "" {
-		queryList = append(queryList, "task = ?")
-		args = append(args, params.Task)
-	}
-	if params.Tasks != "" {
-		queryList = append(queryList, "task IN (?)")
-		args = append(args, strings.Split(params.Tasks, ","))
-	}
-
-	if params.Result != "" {
-		queryList = append(queryList, "result = ?")
-		args = append(args, params.Result)
-	}
-	if params.Duration != "" {
-		d, _ := time.ParseDuration(params.Duration)
-		if d.Milliseconds() != 0 {
-			queryList = append(queryList, "duration >= ?")
-			args = append(args, d.Milliseconds())
-		}
-	}
-
-	conditions = make([]interface{}, 0)
-	if len(queryList) != 0 {
-		conditions = append(conditions, strings.Join(queryList, " AND "))
-		conditions = append(conditions, args...)
-	}
-
-	return
+// save http save
+func (params *detectorAddHTTPParams) save(ctx context.Context, owner string) (result *ent.HTTP, err error) {
+	return getEntClient().HTTP.Create().
+		SetName(params.Name).
+		SetStatus(schema.Status(params.Status)).
+		SetDescription(params.Description).
+		SetIps(params.IPS).
+		SetURL(params.URL).
+		SetReceivers(params.Receivers).
+		SetTimeout(params.Timeout).
+		SetOwner(owner).
+		Save(ctx)
 }
 
-func (params *queryDetectorResultParams) toQueryParams() (queryParams helper.PGQueryParams) {
-	queryParams.Limit, _ = strconv.Atoi(params.Limit)
-	queryParams.Offset, _ = strconv.Atoi(params.Offset)
-	queryParams.Order = params.Order
-	queryParams.Fields = params.Fields
-	return queryParams
-}
-
-func (params *queryDetectorParams) toConditions() (conditions []interface{}) {
-	queryList := make([]string, 0)
-	args := make([]interface{}, 0)
-
-	if params.Status != "" {
-		queryList = append(queryList, "status = ?")
-		args = append(args, params.Status)
-	}
+// where http where
+func (params *detectorHTTPListParams) where(query *ent.HTTPQuery) *ent.HTTPQuery {
 	if params.Owner != "" {
-		queryList = append(queryList, "owner = ?")
-		args = append(args, params.Owner)
+		query = query.Where(http.OwnerEQ(params.Owner))
 	}
-	if params.Keyword != "" {
-		queryList = append(queryList, "name LIKE ?")
-		args = append(args, "%"+params.Keyword+"%")
-	}
-	conditions = make([]interface{}, 0)
-	if len(queryList) != 0 {
-		conditions = append(conditions, strings.Join(queryList, " AND "))
-		conditions = append(conditions, args...)
-	}
-	return
+	return query
 }
 
-func (params *queryDetectorParams) toQueryParams() (queryParams helper.PGQueryParams) {
-	queryParams.Limit, _ = strconv.Atoi(params.Limit)
-	queryParams.Offset, _ = strconv.Atoi(params.Offset)
-	queryParams.Order = params.Order
-	queryParams.Fields = params.Fields
-	return queryParams
+// queryAll query all http detector
+func (params *detectorHTTPListParams) queryAll(ctx context.Context) (https []*ent.HTTP, err error) {
+	query := getEntClient().HTTP.Query()
+	query = query.Limit(params.GetLimit()).
+		Offset(params.GetOffset()).
+		Order(params.GetOrders()...)
+	query = params.where(query)
+
+	return query.All(ctx)
 }
 
-// addDNS 添加dns detector
-func (ctrl detectorCtrl) addDNS(c *elton.Context) (data interface{}, err error) {
-	params := addDNSParams{}
+// count count http detector
+func (params *detectorHTTPListParams) count(ctx context.Context) (count int, err error) {
+	query := getEntClient().HTTP.Query()
+	query = params.where(query)
+	return query.Count(ctx)
+}
+
+// updateByID update http detector by id
+func (params *detectorUpdateHTTPParams) updateByID(ctx context.Context, id int) (result *ent.HTTP, err error) {
+	currentHTTP, err := getEntClient().HTTP.Get(ctx, id)
+	if err != nil {
+		return
+	}
+	if currentHTTP.Owner != params.CurrentUser {
+		err = hes.New("仅能创建者允许修改配置", errDetectorCategory)
+		return
+	}
+
+	updateOne := getEntClient().HTTP.UpdateOneID(id)
+
+	if params.Name != "" {
+		updateOne = updateOne.SetName(params.Name)
+	}
+	if params.Status != 0 {
+		updateOne = updateOne.SetStatus(schema.Status(params.Status))
+	}
+	if params.Description != "" {
+		updateOne = updateOne.SetDescription(params.Description)
+	}
+	if len(params.IPS) != 0 {
+		updateOne = updateOne.SetIps(params.IPS)
+	}
+	if len(params.Receivers) != 0 {
+		updateOne = updateOne.SetReceivers(params.Receivers)
+	}
+	if params.URL != "" {
+		updateOne = updateOne.SetURL(params.URL)
+	}
+	if params.Timeout != "" {
+		updateOne = updateOne.SetTimeout(params.Timeout)
+	}
+	return updateOne.Save(ctx)
+}
+
+// addHTTP 添加http配置
+func (*detectorCtrl) addHTTP(c *elton.Context) (err error) {
+	params := detectorAddHTTPParams{}
 	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
 		return
 	}
 	us := getUserSession(c)
-	d := &detector.DNS{
-		Name:        params.Name,
-		Owner:       us.GetAccount(),
-		Server:      params.Server,
-		Hostname:    params.Hostname,
-		Timeout:     params.Timeout,
-		Status:      params.Status,
-		Description: params.Description,
-		Receivers:   params.Receivers,
-	}
-	err = dnsSrv.Add(d)
+	result, err := params.save(c.Context(), us.MustGetInfo().Account)
 	if err != nil {
 		return
 	}
-	data = d
+	c.Body = result
 	return
 }
 
-// updateDNS 更新dns detector
-func (ctrl detectorCtrl) updateDNS(id uint, c *elton.Context) (err error) {
-	us := getUserSession(c)
-	err = dnsSrv.ValidateOwner(id, us.GetAccount())
-	if err != nil {
-		return
-	}
-	params := updateDNSParams{}
-	err = validate.Do(&params, c.RequestBody)
-	if err != nil {
-		return
-	}
-	err = dnsSrv.UpdateByID(id, &detector.DNS{
-		Name:        params.Name,
-		Server:      params.Server,
-		Hostname:    params.Hostname,
-		Timeout:     params.Timeout,
-		Status:      params.Status,
-		Description: params.Description,
-		Receivers:   params.Receivers,
-	})
-	return
-}
-
-// findDNS find dns detector
-func (ctrl detectorCtrl) findDNS(id uint) (data interface{}, err error) {
-	d, err := dnsSrv.FindByID(id)
-	if err != nil {
-		return nil, err
-	}
-	data = d
-	return
-}
-
-// countDNS count dns detector
-func (ctrl detectorCtrl) countDNS(params queryDetectorParams) (count int, err error) {
-	return dnsSrv.Count(params.toConditions()...)
-}
-
-// listDNS list dns detector
-func (ctrl detectorCtrl) listDNS(params queryDetectorParams) (data interface{}, err error) {
-	detectors, err := dnsSrv.List(params.toQueryParams(), params.toConditions()...)
-	if err != nil {
-		return
-	}
-	data = detectors
-	return
-}
-
-// addTCP add tcp detector
-func (ctrl detectorCtrl) addTCP(c *elton.Context) (data interface{}, err error) {
-	params := addTCPParams{}
-	err = validate.Do(&params, c.RequestBody)
-	if err != nil {
-		return
-	}
-	us := getUserSession(c)
-	t := &detector.TCP{
-		Name:        params.Name,
-		Owner:       us.GetAccount(),
-		Status:      params.Status,
-		Description: params.Description,
-		Receivers:   params.Receivers,
-		Timeout:     params.Timeout,
-		Network:     params.Network,
-		IP:          params.IP,
-		Port:        params.Port,
-	}
-	err = tcpSrv.Add(t)
-	if err != nil {
-		return
-	}
-	data = t
-	return
-}
-
-// updateTCP update tcp detector
-func (ctrl detectorCtrl) updateTCP(id uint, c *elton.Context) (err error) {
-	us := getUserSession(c)
-	err = tcpSrv.ValidateOwner(id, us.GetAccount())
-	if err != nil {
-		return
-	}
-	params := updateTCPParams{}
-	err = validate.Do(&params, c.RequestBody)
-	if err != nil {
-		return
-	}
-	err = tcpSrv.UpdateByID(id, &detector.TCP{
-		Name:        params.Name,
-		Status:      params.Status,
-		Description: params.Description,
-		Receivers:   params.Receivers,
-		Timeout:     params.Timeout,
-		Network:     params.Network,
-		IP:          params.IP,
-		Port:        params.Port,
-	})
-	return
-}
-
-// findTCP find tcp detector
-func (ctrl detectorCtrl) findTCP(id uint) (data interface{}, err error) {
-	t, err := tcpSrv.FindByID(id)
-	if err != nil {
-		return nil, err
-	}
-	data = t
-	return
-}
-
-// countTCP count tcp detector
-func (ctrl detectorCtrl) countTCP(params queryDetectorParams) (count int, err error) {
-	return tcpSrv.Count(params.toConditions()...)
-}
-
-// listTCP list tcp detector
-func (ctrl detectorCtrl) listTCP(params queryDetectorParams) (data interface{}, err error) {
-	detectors, err := tcpSrv.List(params.toQueryParams(), params.toConditions()...)
-	if err != nil {
-		return
-	}
-	data = detectors
-	return
-}
-
-// addPing add ping detector
-func (ctrl detectorCtrl) addPing(c *elton.Context) (data interface{}, err error) {
-	params := addPingParams{}
-	err = validate.Do(&params, c.RequestBody)
-	if err != nil {
-		return
-	}
-	us := getUserSession(c)
-	p := &detector.Ping{
-		Name:        params.Name,
-		Owner:       us.GetAccount(),
-		Status:      params.Status,
-		Description: params.Description,
-		Receivers:   params.Receivers,
-		Timeout:     params.Timeout,
-		Network:     params.Network,
-		IP:          params.IP,
-	}
-	err = pingSrv.Add(p)
-	if err != nil {
-		return
-	}
-	data = p
-	return
-}
-
-// updatePing update ping detector
-func (ctrl detectorCtrl) updatePing(id uint, c *elton.Context) (err error) {
-	us := getUserSession(c)
-	err = pingSrv.ValidateOwner(id, us.GetAccount())
-	if err != nil {
-		return
-	}
-	params := updatePingParams{}
-	err = validate.Do(&params, c.RequestBody)
-	if err != nil {
-		return
-	}
-	err = pingSrv.UpdateByID(id, &detector.Ping{
-		Name:        params.Name,
-		Status:      params.Status,
-		Description: params.Description,
-		Receivers:   params.Receivers,
-		Timeout:     params.Timeout,
-		Network:     params.Network,
-		IP:          params.IP,
-	})
-	return
-}
-
-// findPing find ping detector
-func (ctrl detectorCtrl) findPing(id uint) (data interface{}, err error) {
-	p, err := pingSrv.FindByID(id)
-	if err != nil {
-		return nil, err
-	}
-	data = p
-	return
-}
-
-// countPing count ping detector
-func (ctrl detectorCtrl) countPing(params queryDetectorParams) (count int, err error) {
-	return pingSrv.Count(params.toConditions()...)
-}
-
-// listPing list ping detector
-func (ctrl detectorCtrl) listPing(params queryDetectorParams) (data interface{}, err error) {
-	detectors, err := pingSrv.List(params.toQueryParams(), params.toConditions()...)
-	if err != nil {
-		return
-	}
-	data = detectors
-	return
-}
-
-// addHTTP add http detector
-func (ctrl detectorCtrl) addHTTP(c *elton.Context) (data interface{}, err error) {
-	params := addHTTPParams{}
-	err = validate.Do(&params, c.RequestBody)
-	if err != nil {
-		return
-	}
-	us := getUserSession(c)
-	h := &detector.HTTP{
-		Name:        params.Name,
-		Owner:       us.GetAccount(),
-		Status:      params.Status,
-		Description: params.Description,
-		Receivers:   params.Receivers,
-		Timeout:     params.Timeout,
-		IP:          params.IP,
-		URL:         params.URL,
-	}
-	err = httpSrv.Add(h)
-	if err != nil {
-		return
-	}
-	data = h
-	return
-}
-
-// updateHTTP update http detector
-func (ctrl detectorCtrl) updateHTTP(id uint, c *elton.Context) (err error) {
-	us := getUserSession(c)
-	err = httpSrv.ValidateOwner(id, us.GetAccount())
-	if err != nil {
-		return
-	}
-	params := updateHTTPParams{}
-	err = validate.Do(&params, c.RequestBody)
-	if err != nil {
-		return
-	}
-	updateParams := &detector.HTTP{
-		Name:        params.Name,
-		Status:      params.Status,
-		Description: params.Description,
-		Receivers:   params.Receivers,
-		Timeout:     params.Timeout,
-		IP:          params.IP,
-		URL:         params.URL,
-	}
-	needToRemoveIP := false
-	// 如果是0.0.0.0表示删除
-	if updateParams.IP == "0.0.0.0" {
-		updateParams.IP = ""
-		needToRemoveIP = true
-	}
-	err = httpSrv.UpdateByID(id, updateParams)
-	if err != nil {
-		return
-	}
-	// TODO 后续再确认有无其它方法，暂时使用此方式（并未保证事务）
-	if needToRemoveIP {
-		err = httpSrv.UpdateByID(id, "ip", "")
-	}
-	return
-}
-
-// findHTTP find http detector
-func (ctrl detectorCtrl) findHTTP(id uint) (data interface{}, err error) {
-	h, err := httpSrv.FindByID(id)
-	if err != nil {
-		return nil, err
-	}
-	data = h
-	return
-}
-
-// countHTTP count http detector
-func (ctrl detectorCtrl) countHTTP(params queryDetectorParams) (count int, err error) {
-	return httpSrv.Count(params.toConditions()...)
-}
-
-// listHTTP list http detector
-func (ctrl detectorCtrl) listHTTP(params queryDetectorParams) (data interface{}, err error) {
-	detectors, err := httpSrv.List(params.toQueryParams(), params.toConditions()...)
-	if err != nil {
-		return
-	}
-	data = detectors
-	return
-}
-
-func (ctrl detectorCtrl) checkCategory(c *elton.Context) (err error) {
-	cat := c.Param("category")
-	switch cat {
-	case catDNS:
-	case catTCP:
-	case catPing:
-	case catHTTP:
-	default:
-		err = hes.New(fmt.Sprintf("Not support category:%s", cat))
-	}
-	if err != nil {
-		return
-	}
-	return c.Next()
-}
-
-func (ctrl detectorCtrl) add(c *elton.Context) (err error) {
-	fn := addDetectors[c.Param("category")]
-	data, err := fn(c)
-
-	if err != nil {
-		return
-	}
-	c.Created(data)
-	return
-}
-
-func (ctrl detectorCtrl) update(c *elton.Context) (err error) {
-	cat := c.Param("category")
-	v, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return
-	}
-
-	id := uint(v)
-	fn := updateDetectors[cat]
-	err = fn(id, c)
-	if err != nil {
-		return
-	}
-	c.NoContent()
-	return
-}
-
-func (ctrl detectorCtrl) list(c *elton.Context) (err error) {
-	cat := c.Param("category")
-
-	params := queryDetectorParams{}
+// listHTTP 获取http配置
+func (*detectorCtrl) listHTTP(c *elton.Context) (err error) {
+	params := detectorHTTPListParams{}
 	err = validate.Do(&params, c.Query())
 	if err != nil {
 		return
 	}
-
+	us := getUserSession(c)
+	params.Owner = us.MustGetInfo().Account
 	count := -1
-	offset, _ := strconv.Atoi(params.Offset)
-	if offset == 0 {
-		count, err = countDetectors[cat](params)
+	if params.ShouldCount() {
+		count, err = params.count(c.Context())
 		if err != nil {
 			return
 		}
 	}
-
-	data, err := listDetectors[cat](params)
+	https, err := params.queryAll(c.Context())
 	if err != nil {
 		return
 	}
-	c.Body = map[string]interface{}{
-		"count":     count,
-		"detectors": data,
+	c.Body = &detectorHTTPListResp{
+		Count: count,
+		HTTPS: https,
 	}
 	return
 }
 
-func (ctrl detectorCtrl) getByID(c *elton.Context) (err error) {
-	cat := c.Param("category")
-	v, err := strconv.Atoi(c.Param("id"))
+// updateHTTPByID 更新http配置
+func (*detectorCtrl) updateHTTPByID(c *elton.Context) (err error) {
+	id, err := getIDFromParams(c)
 	if err != nil {
 		return
 	}
-	fn := getDetectors[cat]
-	data, err := fn(uint(v))
+	params := detectorUpdateHTTPParams{}
+	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
 		return
 	}
-	c.Body = data
+	us := getUserSession(c)
+	params.CurrentUser = us.MustGetInfo().Account
+	result, err := params.updateByID(c.Context(), id)
+	if err != nil {
+		return
+	}
+	c.Body = result
 	return
 }
 
-func (ctrl detectorCtrl) listHTTPResult(params queryDetectorResultParams) (data interface{}, err error) {
-	results, err := httpSrv.ListResult(params.toQueryParams(), params.toConditions()...)
+// listReceiver 获取接收者列表
+func (*detectorCtrl) listReceiver(c *elton.Context) (err error) {
+
+	users, err := getEntClient().User.Query().
+		Where(user.StatusEQ(schema.StatusEnabled)).
+		Select("account").
+		All(c.Context())
 	if err != nil {
 		return
 	}
-	data = results
-	return
-}
-func (ctrl detectorCtrl) countHTTPResult(params queryDetectorResultParams) (count int, err error) {
-	return httpSrv.CountResult(params.toConditions()...)
-}
-
-func (ctrl detectorCtrl) listDNSResult(params queryDetectorResultParams) (data interface{}, err error) {
-	results, err := dnsSrv.ListResult(params.toQueryParams(), params.toConditions()...)
-	if err != nil {
-		return
+	receivers := make([]string, len(users))
+	for index, user := range users {
+		receivers[index] = user.Account
 	}
-	data = results
-	return
-}
-func (ctrl detectorCtrl) countDNSResult(params queryDetectorResultParams) (count int, err error) {
-	return dnsSrv.CountResult(params.toConditions()...)
-}
-
-func (ctrl detectorCtrl) listPingResult(params queryDetectorResultParams) (data interface{}, err error) {
-	results, err := pingSrv.ListResult(params.toQueryParams(), params.toConditions()...)
-	if err != nil {
-		return
-	}
-	data = results
-	return
-}
-func (ctrl detectorCtrl) countPingResult(params queryDetectorResultParams) (count int, err error) {
-	return pingSrv.CountResult(params.toConditions()...)
-}
-
-func (ctrl detectorCtrl) listTCPResult(params queryDetectorResultParams) (data interface{}, err error) {
-	results, err := tcpSrv.ListResult(params.toQueryParams(), params.toConditions()...)
-	if err != nil {
-		return
-	}
-	data = results
-	return
-}
-func (ctrl detectorCtrl) countTCPResult(params queryDetectorResultParams) (count int, err error) {
-	return tcpSrv.CountResult(params.toConditions()...)
-}
-
-func (ctrl detectorCtrl) listResult(c *elton.Context) (err error) {
-	cat := c.Param("category")
-
-	params := queryDetectorResultParams{}
-	err = validate.Do(&params, c.Query())
-	if err != nil {
-		return
-	}
-
-	offset, _ := strconv.Atoi(params.Offset)
-
-	count := -1
-	if offset == 0 && params.Count != "0" {
-		count, err = countDetectorResults[cat](params)
-		if err != nil {
-			return
-		}
-	}
-
-	fn := listDetectorResults[cat]
-	data, err := fn(params)
-	if err != nil {
-		return
-	}
-	c.Body = map[string]interface{}{
-		"count":   count,
-		"results": data,
+	c.Body = map[string][]string{
+		"receivers": receivers,
 	}
 	return
 }

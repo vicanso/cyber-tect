@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,92 +15,95 @@
 package helper
 
 import (
-	"errors"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/elton"
 	"github.com/vicanso/go-axios"
 	"github.com/vicanso/hes"
 )
 
-func TestGetHTTPStats(t *testing.T) {
+func TestHTTPStats(t *testing.T) {
 	assert := assert.New(t)
-	service := "test"
-	cid := "cid"
-	route := "/users/:id"
-	method := "get"
-	url := "/users/1"
-	status := 200
-	conf := &axios.Config{
-		Route:  route,
-		URL:    url,
-		Method: method,
-	}
-	conf.Set(cs.CID, cid)
-	resp := &axios.Response{
-		Status: status,
-		Config: conf,
-	}
-	tags, fields := getHTTPStats(service, resp)
-	assert.Equal(tags["route"], route)
-	assert.Equal(tags["service"], service)
-	assert.Equal(tags["method"], method)
-	assert.Equal(fields["cid"], cid)
-	assert.Equal(fields["url"], url)
-	assert.Equal(fields["status"], status)
+
+	data := []byte("abcd")
+	ins := NewHTTPInstance("test", "https://test.com", time.Second)
+	done := ins.Mock(&axios.Response{
+		Status: 200,
+		Data:   data,
+	})
+	defer done()
+	resp, err := ins.Get("/")
+	assert.Nil(err)
+	assert.Equal(200, resp.Status)
+	assert.Equal(data, resp.Data)
+	assert.NotNil(resp.Config.HTTPTrace)
 }
 
 func TestConvertResponseToError(t *testing.T) {
 	assert := assert.New(t)
-	service := "test"
-	fn := newConvertResponseToError(service)
-
+	fn := newHTTPConvertResponseToError("test")
+	data := []byte(`{
+		"message": "error message"
+	}`)
 	err := fn(&axios.Response{
-		Status: 200,
-	})
-	assert.Nil(err)
-
-	resp := &axios.Response{
 		Status: 400,
-		Data: []byte(`{
-			"message": "出错了"
-		}`),
-	}
-	err = fn(resp)
-	assert.NotNil(err)
-	assert.Equal("出错了", err.Error())
+		Data:   data,
+	})
+	assert.Equal("message=error message", err.Error())
+
+	ins := NewHTTPInstance("test", "https://test.com", time.Second)
+	done := ins.Mock(&axios.Response{
+		Status: 400,
+		Data:   data,
+	})
+	defer done()
+	resp, err := ins.Get("/")
+	assert.Equal("category=test, message=error message", err.Error())
+	assert.Equal(400, resp.Status)
+	assert.Equal(data, resp.Data)
 }
 
 func TestOnError(t *testing.T) {
 	assert := assert.New(t)
-	service := "test"
-	message := "error message"
-	conf := &axios.Config{}
-	fn := newOnError(service)
-	err := fn(errors.New(message), conf)
-	he, ok := err.(*hes.Error)
-	assert.True(ok)
-	assert.Equal(message, he.Message)
-}
+	data := []byte(`{
+		"message": "error message"
+	}`)
+	ins := NewHTTPInstance("test", "https://test.com", time.Second)
+	done := ins.Mock(&axios.Response{
+		Status: 400,
+		Data:   data,
+	})
+	resp, err := ins.Request(&axios.Config{
+		Route: "/",
+	})
+	done()
+	he := hes.Wrap(err)
+	assert.Equal(`{"statusCode":400,"category":"test","message":"error message","extra":{"requestCURL":"curl -XGET 'https://test.com'","requestRoute":"/","requestService":"test"}}`, string(he.ToJSON()))
+	assert.Equal("/", resp.Config.Route)
 
-func TestNewInstance(t *testing.T) {
-	assert := assert.New(t)
-	timeout := 10 * time.Second
-	baseURL := "https://example.com"
-	ins := NewInstance("test", baseURL, timeout)
-	assert.Equal(timeout, ins.Config.Timeout)
-	assert.Equal(baseURL, ins.Config.BaseURL)
+	data = []byte("abc")
+	done = ins.Mock(&axios.Response{
+		Status: 400,
+		Data:   data,
+	})
+	resp, err = ins.Request(&axios.Config{
+		Route: "/",
+	})
+	done()
+	he = hes.Wrap(err)
+	assert.Equal(`{"statusCode":400,"category":"test","message":"abc","extra":{"requestCURL":"curl -XGET 'https://test.com'","requestRoute":"/","requestService":"test"}}`, string(he.ToJSON()))
+	assert.Equal("/", resp.Config.Route)
 }
 
 func TestAttachWithContext(t *testing.T) {
 	assert := assert.New(t)
-	c := elton.NewContext(nil, httptest.NewRequest("GET", "/", nil))
-	c.ID = "context id"
-	conf := &axios.Config{}
-	AttachWithContext(conf, c)
-	assert.Equal(c.ID, conf.GetString(cs.CID))
+	config := &axios.Config{}
+	req := httptest.NewRequest("GET", "/", nil)
+	c := elton.NewContext(nil, req)
+	c.ID = "abcd"
+	AttachWithContext(config, c)
+	assert.Equal(c.Context(), config.Context)
 }

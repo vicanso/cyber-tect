@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,32 +14,8 @@
 
 package validate
 
-import (
-	"github.com/go-playground/validator/v10"
-)
-
 func init() {
-	Add("xDetectorStatus", func(fl validator.FieldLevel) bool {
-		return isZero(fl) || isInInt(fl, []int{
-			1,
-			2,
-		})
-	})
-	AddAlias("xDetectorName", "min=1,max=20")
-	AddAlias("xDetectorDescription", "min=0,max=1000")
-
-	AddAlias("xDNSServer", "isdefault|ip|hostname_port")
-
-	AddAlias("xDNSHostname", "isdefault|hostname")
-
-	Add("xTCPNetwork", func(fl validator.FieldLevel) bool {
-		return isZero(fl) || isInString(fl, []string{
-			"ip4:icmp",
-			"tcp",
-		})
-	})
-
-	AddAlias("xDetectorTask", "number")
-	AddAlias("xDetectorResult", "eq=1|eq=2")
-	AddAlias("xDetectorKeyword", "min=1,max=20")
+	AddAlias("xDetectorName", "min=1,max=30")
+	AddAlias("xDetectorDesc", "min=1,max=300")
+	AddAlias("xDetectorReceiver", "email")
 }

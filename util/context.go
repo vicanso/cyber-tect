@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
 package util
 
 import (
-	"github.com/vicanso/elton"
-
 	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/elton"
 )
 
-// GetTrackID get track id
+var sessionConfig = config.GetSessionConfig()
+
+// GetTrackID 获取track id
 func GetTrackID(c *elton.Context) string {
-	trackCookie := config.GetTrackKey()
+	trackCookie := sessionConfig.TrackKey
 	if trackCookie == "" {
 		return ""
 	}
@@ -33,10 +34,9 @@ func GetTrackID(c *elton.Context) string {
 	return cookie.Value
 }
 
-// GetSessionID get session id
+// GetSessionID 获取session id
 func GetSessionID(c *elton.Context) string {
-	scf := config.GetSessionConfig()
-	cookie, _ := c.Cookie(scf.Key)
+	cookie, _ := c.Cookie(sessionConfig.Key)
 	if cookie == nil {
 		return ""
 	}

@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,24 +18,35 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/vicanso/elton"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/vicanso/elton"
 )
 
 func TestNewEntry(t *testing.T) {
 	assert := assert.New(t)
-
-	fn := NewEntry()
 	req := httptest.NewRequest("GET", "/", nil)
-	resp := httptest.NewRecorder()
-	c := elton.NewContext(resp, req)
-	c.ID = "context id"
+	c := elton.NewContext(httptest.NewRecorder(), req)
+	c.ID = "abc"
+	done := false
 	c.Next = func() error {
+		done = true
 		return nil
 	}
+	doneEntry := false
+	doneExit := false
+
+	fn := NewEntry(func() int32 {
+		doneEntry = true
+		return 0
+	}, func() int32 {
+		doneExit = true
+		return 0
+	})
 	err := fn(c)
 	assert.Nil(err)
-	assert.Equal(c.ID, c.GetHeader(xResponseID))
-	assert.Equal("no-cache", c.GetHeader(elton.HeaderCacheControl))
+	assert.True(done)
+	assert.True(doneEntry)
+	assert.True(doneExit)
+	assert.Equal("abc", c.GetHeader(xResponseID))
+	assert.Equal("no-cache", c.GetHeader("Cache-Control"))
 }

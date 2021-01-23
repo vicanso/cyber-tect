@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,113 +12,126 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// 公共的处理函数，包括程序基本信息、性能指标等
+
 package controller
 
 import (
 	"bytes"
+	"net/http"
+	"runtime"
 	"strconv"
+	"time"
 
+	"github.com/dustin/go-humanize"
+	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
-
-	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/elton"
+	"github.com/vicanso/hes"
 )
 
 type (
 	commonCtrl struct{}
+
+	// applicationInfoResp 应用信息响应
+	applicationInfoResp struct {
+		// 版本号
+		Version string `json:"version,omitempty"`
+		// 构建时间
+		BuildedAt string `json:"buildedAt,omitempty"`
+		// 运行时长
+		Uptime string `json:"uptime,omitempty"`
+		// os类型
+		OS string `json:"os,omitempty"`
+		// go版本
+		GO string `json:"go,omitempty"`
+		// 架构类型
+		ARCH string `json:"arch,omitempty"`
+		// 运行环境配置
+		ENV string `json:"env,omitempty"`
+	}
+	// routersResp 路由列表响应
+	routersResp struct {
+		// 路由信息
+		Routers []elton.RouterInfo `json:"routers,omitempty"`
+	}
+	// statusListResp 状态列表响应
+	statusListResp struct {
+		Statuses []*schema.StatusInfo `json:"statuses,omitempty"`
+	}
+	// randomKeysResp 随机字符
+	randomKeysResp struct {
+		Keys []string `json:"keys,omitempty"`
+	}
+)
+
+const (
+	errCommonCategory = "common"
+)
+
+var (
+	// applicationStartedAt 应用启动时间
+	applicationStartedAt = time.Now()
 )
 
 func init() {
 	ctrl := commonCtrl{}
-	g := router.NewGroup("")
+	router.NewGroup("").GET("/ping", ctrl.ping)
+	g := router.NewGroup("/commons")
 
-	g.GET("/ping", ctrl.ping)
-
-	g.GET("/commons/ip-location", ctrl.location)
-
-	g.GET("/commons/routers", ctrl.routers)
-
-	g.GET("/commons/random-keys", ctrl.randomKeys)
-
-	g.GET("/commons/captcha", ctrl.captcha)
-
-	g.GET("/commons/performance", ctrl.getPerformance)
+	g.GET("/application", ctrl.getApplicationInfo)
+	g.GET("/routers", ctrl.getRouters)
+	g.GET("/captcha", ctrl.getCaptcha)
+	g.GET("/performance", ctrl.getPerformance)
+	g.GET("/schema-statuses", ctrl.listStatus)
+	g.GET("/random-keys", ctrl.getRandomKeys)
+	// 获取系统prof指标
+	g.GET(
+		"/prof",
+		loadUserSession,
+		shouldBeAdmin,
+		ctrl.getProf,
+	)
 }
 
-// 服务检测ping的响应
-// swagger:response pingResponse
-// nolint
-type pongResponse struct {
-
-	// in: body
-	Payload string
-}
-
-// swagger:route GET /ping common ping
-// ping
-//
-// 服务正常启动后则返回`pong`，主要用于反向代理的health check
-// Responses:
-// 	200: pingResponse
-// Produces:
-// 	- plain/text
-func (ctrl commonCtrl) ping(c *elton.Context) error {
+// ping 用于检测服务是否可用
+func (*commonCtrl) ping(c *elton.Context) error {
+	if !service.ApplicationIsRunning() {
+		return hes.NewWithStatusCode("应用服务不可用", http.StatusServiceUnavailable, errCommonCategory)
+	}
 	c.BodyBuffer = bytes.NewBufferString("pong")
 	return nil
 }
 
-// IP定位信息
-// swagger:response locationResponse
-// nolint
-type locationResponse struct {
-
-	// in: body
-	Payload *service.Location
-}
-
-// swagger:route GET /commons/ip-location common commonsIPLocation
-// ip2Location
-//
-// 从客户的真实IP地址获取定位信息
-// Responses:
-// 	200: locationResponse
-func (ctrl commonCtrl) location(c *elton.Context) (err error) {
-	info, err := service.GetLocationByIP(c.RealIP(), c)
-	if err != nil {
-		return
-	}
-	c.Body = info
-	return
-}
-
-func (ctrl commonCtrl) routers(c *elton.Context) (err error) {
-	c.Body = map[string]interface{}{
-		"routers": c.Elton().GetRouters(),
+// getApplicationInfo 获取应用信息
+func (*commonCtrl) getApplicationInfo(c *elton.Context) (err error) {
+	c.CacheMaxAge(time.Minute)
+	c.Body = &applicationInfoResp{
+		Version:   service.GetApplicationVersion(),
+		BuildedAt: service.GetApplicationBuildedAt(),
+		Uptime:    humanize.Time(applicationStartedAt),
+		OS:        runtime.GOOS,
+		GO:        runtime.Version(),
+		ARCH:      runtime.GOARCH,
+		ENV:       config.GetENV(),
 	}
 	return
 }
 
-func (ctrl commonCtrl) randomKeys(c *elton.Context) (err error) {
-	n, _ := strconv.Atoi(c.QueryParam("n"))
-	size, _ := strconv.Atoi(c.QueryParam("size"))
-	if size < 1 {
-		size = 1
-	}
-	if n < 1 {
-		n = 1
-	}
-	result := make([]string, size)
-	for index := 0; index < size; index++ {
-		result[index] = util.RandomString(n)
-	}
-	c.Body = map[string][]string{
-		"keys": result,
+// getRouters 获取系统的路由
+func (*commonCtrl) getRouters(c *elton.Context) (err error) {
+	c.CacheMaxAge(time.Minute)
+	c.Body = &routersResp{
+		Routers: c.Elton().GetRouters(),
 	}
 	return
 }
 
-func (ctrl commonCtrl) captcha(c *elton.Context) (err error) {
+// getCaptcha 获取图形验证码
+func (*commonCtrl) getCaptcha(c *elton.Context) (err error) {
 	bgColor := c.QueryParam("bg")
 	fontColor := c.QueryParam("color")
 	if bgColor == "" {
@@ -127,18 +140,69 @@ func (ctrl commonCtrl) captcha(c *elton.Context) (err error) {
 	if fontColor == "" {
 		fontColor = "102,102,102"
 	}
-	info, err := service.GetCaptcha(fontColor, bgColor)
+	info, err := service.GetCaptcha(c.Context(), fontColor, bgColor)
 	if err != nil {
 		return
 	}
-	// c.SetContentTypeByExt(".jpeg")
-	// c.Body = info.Data
+	// 防止此字段未设置好，序列化至前端
+	info.Value = ""
 	c.NoStore()
-	c.Body = info
+	c.Body = &info
 	return
 }
 
-func (ctrl commonCtrl) getPerformance(c *elton.Context) (err error) {
-	c.Body = service.GetPerformance()
+// getPerformance 获取应用性能指标
+func (*commonCtrl) getPerformance(c *elton.Context) (err error) {
+	p := service.GetPerformance()
+	c.Body = &p
+	return
+}
+
+// listStatus 获取状态列表
+func (*commonCtrl) listStatus(c *elton.Context) (err error) {
+	c.CacheMaxAge(5 * time.Minute)
+	c.Body = &statusListResp{
+		Statuses: schema.GetStatusList(),
+	}
+	return
+}
+
+// getRandomKeys 获取随机字符串
+func (*commonCtrl) getRandomKeys(c *elton.Context) (err error) {
+	n, _ := strconv.Atoi(c.QueryParam("n"))
+	size, _ := strconv.Atoi(c.QueryParam("size"))
+	if size < 1 {
+		size = 10
+	}
+	if n < 1 {
+		n = 1
+	}
+	result := make([]string, n)
+	for index := 0; index < n; index++ {
+		result[index] = util.RandomString(size)
+	}
+	c.Body = &randomKeysResp{
+		Keys: result,
+	}
+	return
+}
+
+// getProf 获取prof信息
+func (*commonCtrl) getProf(c *elton.Context) (err error) {
+	d := 30 * time.Second
+	v := c.QueryParam("d")
+	if v != "" {
+		d, err = time.ParseDuration(v)
+		if err != nil {
+			return
+		}
+	}
+	result, err := profSrv.Get(d)
+	if err != nil {
+		return
+	}
+	c.SetHeader(elton.HeaderContentType, elton.MIMEBinary)
+	c.SetHeader("Content-Disposition", `attachment; filename="gprof"`)
+	c.BodyBuffer = result
 	return
 }

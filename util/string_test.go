@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 package util
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,9 +23,20 @@ import (
 
 func TestRandomString(t *testing.T) {
 	assert := assert.New(t)
-	assert.Equal(8, len(RandomString(8)))
-	assert.Equal(4, len(RandomDigit(4)))
+	assert.Equal(10, len(RandomString(10)))
+
+	reg := regexp.MustCompile(`\d{10}`)
+	assert.True(reg.MatchString(RandomDigit(10)))
+}
+
+func TestGenUlid(t *testing.T) {
+	assert := assert.New(t)
 	assert.Equal(26, len(GenUlid()))
+}
+
+func TestSha256(t *testing.T) {
+	assert := assert.New(t)
+	assert.Equal("ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=", Sha256("abc"))
 }
 
 func TestContainsString(t *testing.T) {
@@ -39,19 +51,19 @@ func TestContainsString(t *testing.T) {
 	}, "c"))
 }
 
-func TestUserRoleIsValid(t *testing.T) {
+func TestContainsAny(t *testing.T) {
 	assert := assert.New(t)
-	assert.True(UserRoleIsValid([]string{
-		"admin",
+	assert.True(ContainsAny([]string{
+		"a",
+		"b",
 	}, []string{
-		"admin",
-		"su",
+		"a",
 	}))
-	assert.False(UserRoleIsValid([]string{
-		"staff",
+	assert.False(ContainsAny([]string{
+		"a",
+		"b",
 	}, []string{
-		"admin",
-		"su",
+		"c",
 	}))
 }
 
@@ -65,4 +77,10 @@ func TestEncrypt(t *testing.T) {
 	result, err = Decrypt(key, result)
 	assert.Nil(err)
 	assert.Equal(data, result)
+}
+
+func TestGetFirstLetter(t *testing.T) {
+	assert := assert.New(t)
+	value := GetFirstLetter("测试")
+	assert.Equal("C", value)
 }

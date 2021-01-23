@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,6 @@ import (
 
 func TestGetStack(t *testing.T) {
 	assert := assert.New(t)
-	arr := GetStack(1)
-	assert.Equal(1, len(arr))
+	stacks := GetStack(5)
+	assert.NotEmpty(stacks)
 }

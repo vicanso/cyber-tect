@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,19 +20,51 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTime(t *testing.T) {
+func TestNow(t *testing.T) {
 	assert := assert.New(t)
+	defer SetMockTime("")
 	mockTime := "2020-04-26T20:34:33+08:00"
 	SetMockTime(mockTime)
-	defer SetMockTime("")
 
 	assert.Equal(int64(1587904473000000000), Now().UnixNano())
+	// travis中为0时区
 	// assert.Equal(mockTime, NowString())
+
 	assert.Equal("2020-04-26 12:34:33 +0000 UTC", UTCNow().String())
+	assert.Equal("2020-04-26T12:34:33Z", UTCNowString())
 
 	value, err := ParseTime(mockTime)
 	assert.Nil(err)
 	assert.Equal("2020-04-26T20:34:33+08:00", FormatTime(value))
 
-	assert.Equal("2020-04-26T20:34:33+08:00", FormatTime(ChinaNow()))
+	chinaNow, err := ChinaNow()
+	assert.Nil(err)
+	assert.Equal("2020-04-26T20:34:33+08:00", FormatTime(chinaNow))
+
+	chinaToday, err := ChinaToday()
+	assert.Nil(err)
+	assert.Equal("2020-04-26T00:00:00+08:00", FormatTime(chinaToday))
+
+	chinaYesterday, err := ChinaYesterday()
+	assert.Nil(err)
+	assert.Equal("2020-04-25T00:00:00+08:00", FormatTime(chinaYesterday))
+}
+
+func TestIsBetween(t *testing.T) {
+	assert := assert.New(t)
+	defer SetMockTime("")
+	mockTime := "2020-04-26T20:34:33+08:00"
+	SetMockTime(mockTime)
+
+	start, _ := ParseTime("2020-04-26T19:34:33+08:00")
+	end, _ := ParseTime("2020-04-26T21:34:33+08:00")
+	assert.True(IsBetween(start, end))
+	assert.False(IsBetween(start, start))
+	assert.False(IsBetween(end, end))
+}
+
+func TestNewTimeWithRandomNS(t *testing.T) {
+	assert := assert.New(t)
+	date := NewTimeWithRandomNS(0)
+	assert.Equal(int64(0), date.Unix())
 }

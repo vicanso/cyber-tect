@@ -1,60 +1,117 @@
 <template lang="pug">
-  #app
-    MainHeader.header
-    MainNav.nav
-    .mainContent
-      router-view
-</template>
-<script>
-import { mapActions, mapState } from "vuex";
+#app(
+  :class="{ shrinking: shrinking }"
+)
+  //- 主头部
+  main-header.header
+  //- 主导航
+  main-nav.nav(
+    v-if="inited"
+    :shrinking="shrinking"
+    @toggle="toggleNav"
+  )
+  //- 内容区域
+  .mainContent
+    router-view(
+      v-if="inited"
+    )
+    p.tac(
+      v-else
+    ) ...
 
-import MainHeader from "@/components/MainHeader";
-import MainNav from "@/components/MainNav";
-export default {
+</template>
+
+<script lang="ts">
+import { defineComponent } from "vue";
+import MainHeader from "./components/MainHeader.vue";
+import MainNav from "./components/MainNav.vue";
+
+import { useUserStore } from "./store";
+import { getLoginRouteName } from "./router";
+import { loadSetting, getSetting, saveSetting } from "./services/setting";
+
+export default defineComponent({
+  name: "App",
   components: {
     MainHeader,
     MainNav,
   },
-  name: "App",
-  computed: mapState({
-    userAccount: (state) => state.user.account,
-  }),
-  methods: {
-    ...mapActions(["fetchUser", "updateUser"]),
-    refreshSessionTTL() {
-      if (!this.userAccount) {
-        return;
-      }
-      this.updateUser({});
-    },
+  setup() {
+    const userStore = useUserStore();
+    return {
+      userInfo: userStore.state.info,
+      fetchUserInfo: () => userStore.dispatch("fetch"),
+    };
   },
-  async mounted() {
-    setInterval(() => {
-      this.refreshSessionTTL();
-    }, 5 * 60 * 1000);
+  data() {
+    return {
+      shrinking: false,
+      // 是否初始化完成
+      inited: false,
+    };
+  },
+  async beforeMount() {
     try {
-      await this.fetchUser();
+      await loadSetting();
+      const setting = getSetting();
+      this.shrinking = setting.mainNavShrinking;
     } catch (err) {
-      this.$message.error(err.message);
+      this.$error(err);
     }
   },
-};
+  mounted() {
+    this.fetch();
+  },
+  methods: {
+    toggleNav() {
+      this.shrinking = !this.shrinking;
+      const setting = getSetting();
+      setting.mainNavShrinking = this.shrinking;
+      saveSetting(setting);
+    },
+    async fetch() {
+      const { userInfo, $router } = this;
+      try {
+        await this.fetchUserInfo();
+        // 如果未登录则跳转至登录
+        if (!userInfo.account) {
+          $router.push({
+            name: getLoginRouteName(),
+          });
+        }
+      } catch (err) {
+        this.$error(err);
+      } finally {
+        this.inited = true;
+      }
+    },
+  },
+});
 </script>
-<style lang="sass" scoped>
-@import "@/common.sass"
+
+<style lang="stylus" scoped>
+@import "./common";
+.shrinking
+  .header
+    left: $mainNavShrinkingWidth
+  .nav
+    width: $mainNavShrinkingWidth
+  .mainContent
+    padding-left: $mainNavShrinkingWidth
 .header
   position: fixed
-  left: 0
+  left: $mainNavWidth
   top: 0
   right: 0
   z-index: 9
 .nav
   position: fixed
   width: $mainNavWidth
-  top: $mainHeaderHeight
+  top: 0
   bottom: 0
   left: 0
-  background-color: $white
+  overflow: hidden
+  overflow-y: auto
 .mainContent
   padding-left: $mainNavWidth
   padding-top: $mainHeaderHeight

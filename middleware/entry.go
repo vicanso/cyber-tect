@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,20 +15,29 @@
 package middleware
 
 import (
+	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
-	"github.com/vicanso/cybertect/service"
 )
 
 const (
 	xResponseID = "X-Response-Id"
 )
 
+type EntryFunc func() int32
+type ExitFunc func() int32
+
 // NewEntry create an entry middleware
-func NewEntry() elton.Handler {
+func NewEntry(entryFn EntryFunc, exitFn ExitFunc) elton.Handler {
 	return func(c *elton.Context) (err error) {
-		service.IncreaseConcurrency()
-		defer service.DecreaseConcurrency()
-		c.SetHeader(xResponseID, c.ID)
+		entryFn()
+		defer exitFn()
+		if c.ID != "" {
+			c.SetHeader(xResponseID, c.ID)
+		}
+		// 测试环境返回x-forwarded-for，方便确认链路
+		if !util.IsProduction() {
+			c.SetHeader(elton.HeaderXForwardedFor, c.GetRequestHeader(elton.HeaderXForwardedFor))
+		}
 
 		// 设置所有的请求响应默认都为no cache
 		c.NoCache()

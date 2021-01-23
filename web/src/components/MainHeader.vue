@@ -1,95 +1,98 @@
 <template lang="pug">
 header.header
+  //- 用户信息
   .userInfo
     span(
-      v-if="fetchingUserInfo"
-    ) 加载用户信息...
-    div(
-      v-else-if="!userAccount"
-    )
-      router-link(
-        :to="LOGIN"
-      )
-        el-link(type="primary") 登录
-      span.divided |
-      router-link(
-        :to="REGISTER"
-      )
-        el-link(type="info") 注册
+      v-if="user.processing"
+    ) 正在加载...
     .functions(
-      v-else
+      v-else-if="user.account"
     )
-      router-link.userinfoUpdate(
-        :to="USER_INFO"
-        title="用户信息"
+      router-link(
+        :to="{ name: profileRoute }"
       )
-        span {{userAccount}}
         i.el-icon-user
+        span {{user.account}}
       span.divided |
       a.logout(
         href="#"
         title="退出登录"
-        @click="logout"
+        @click.preventDefault="onLogout"
       )
         i.el-icon-switch-button
-  h3
-    router-link(
-      :to="HOME"
+    div(
+      v-else
     )
-      i.el-icon-cpu
-      | Cyber Detect
+      router-link.login(
+        :to="{ name: loginRoute }"
+      )
+        i.el-icon-user
+        | 登录
+      span.divided |
+      router-link.register(
+        :to="{ name: registerRoute }"
+      )
+        i.el-icon-circle-plus
+        | 注册
 </template>
 
-<script>
-import { mapState, mapActions } from "vuex";
-import { HOME, LOGIN, REGISTER, USER_INFO } from "@/paths";
+<script lang="ts">
+import { defineComponent } from "vue";
 
-export default {
+import { useUserStore } from "../store";
+import {
+  getHomeRouteName,
+  getLoginRouteName,
+  getRegisterRouteName,
+} from "../router";
+
+export default defineComponent({
   name: "MainHeader",
-  data() {
+  setup() {
+    const userStore = useUserStore();
     return {
-      HOME,
-      LOGIN,
-      REGISTER,
-      USER_INFO,
+      user: userStore.state.info,
+      logout: () => userStore.dispatch("logout"),
     };
   },
-  computed: mapState({
-    fetchingUserInfo: (state) => state.user.fetching,
-    userAccount: (state) => state.user.account,
-  }),
-  methods: {
-    ...mapActions(["logout"]),
+  data() {
+    return {
+      profileRoute: getHomeRouteName(),
+      loginRoute: getLoginRouteName(),
+      registerRoute: getRegisterRouteName(),
+    };
   },
-};
+  methods: {
+    async onLogout() {
+      try {
+        await this.logout();
+        this.$router.push({
+          name: getHomeRouteName(),
+        });
+      } catch (err) {
+        this.$error(err);
+      }
+    },
+  },
+});
 </script>
-<style lang="sass" scoped>
-@import "@/common.sass"
+
+<style lang="stylus" scoped>
+@import "../common";
 .header
   height: $mainHeaderHeight
-  background-color: $dark
-  line-height: $mainHeaderHeight
-  color: $white
-h3
-  margin-left: 15px
-  a
-    font-size: 16px
-    color: $white
-    i
-      font-weight: bold
-      margin-right: 5px
+  background-color: $white
+  padding: 5px 0
+  line-height: $mainHeaderHeight - 10
+  color: $darkBlue
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08)
 .userInfo
-  font-size: 13px
   float: right
-  margin: 10px 30px
-  line-height: $mainHeaderHeight - 20
+  font-size: 13px
+  margin-right: $mainMargin
+  i
+    margin-right: 3px
+    font-weight: bold
 .divided
   margin: 0 15px
-  color: $lightGray
-.userinfoUpdate
-  color: $white
-  i
-    margin-left: 3px
-.logout
-  color: $white
 </style>

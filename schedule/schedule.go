@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
 package schedule
 
 import (
-	"github.com/vicanso/cybertect/cs"
-	"github.com/vicanso/cybertect/detector"
+	"time"
 
 	"github.com/robfig/cron/v3"
+	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/service"
@@ -26,76 +26,161 @@ import (
 	"go.uber.org/zap"
 )
 
+type (
+	taskFn      func() error
+	statsTaskFn func() map[string]interface{}
+)
+
+const logCategory = "schedule"
+
 func init() {
 	c := cron.New()
-	_, _ = c.AddFunc("@every 5m", redisCheck)
+	_, _ = c.AddFunc("@every 1m", redisPing)
+	_, _ = c.AddFunc("@every 1m", entPing)
+	_, _ = c.AddFunc("@every 1m", influxdbPing)
 	_, _ = c.AddFunc("@every 1m", configRefresh)
-	_, _ = c.AddFunc("@every 5m", redisStats)
-	_, _ = c.AddFunc("@every 1m", pgStats)
-	// DNS检测5分钟一次则可
-	_, _ = c.AddFunc("@every 5m", dnsCheck)
-	_, _ = c.AddFunc("@every 1m", tcpCheck)
-	_, _ = c.AddFunc("@every 1m", pingCheck)
-	_, _ = c.AddFunc("@every 1m", httpCheck)
-	_, _ = c.AddFunc("@every 5m", removeOlderDetectResult)
+	_, _ = c.AddFunc("@every 1m", redisStats)
+	_, _ = c.AddFunc("@every 1m", entStats)
+	_, _ = c.AddFunc("@every 30s", cpuUsageStats)
+	_, _ = c.AddFunc("@every 1m", performanceStats)
+	_, _ = c.AddFunc("@every 1m", httpInstanceStats)
+	_, _ = c.AddFunc("@every 1m", routerConcurrencyStats)
 	c.Start()
 }
 
-func redisCheck() {
-	err := helper.RedisPing()
+func doTask(desc string, fn taskFn) {
+	startedAt := time.Now()
+	err := fn()
+	use := time.Since(startedAt)
 	if err != nil {
-		log.Default().Error("redis check fail",
+		log.Default().Error(desc+" fail",
+			zap.String("category", logCategory),
+			zap.Duration("use", use),
 			zap.Error(err),
 		)
-		service.AlarmError("redis check fail")
+		service.AlarmError(desc + " fail, " + err.Error())
+	} else {
+		log.Default().Info(desc+" success",
+			zap.String("category", logCategory),
+			zap.Duration("use", use),
+		)
 	}
+}
+
+func doStatsTask(desc string, fn statsTaskFn) {
+	startedAt := time.Now()
+	stats := fn()
+	log.Default().Info(desc,
+		zap.String("category", logCategory),
+		zap.Duration("use", time.Since(startedAt)),
+		zap.Any("stats", stats),
+	)
+}
+
+func redisPing() {
+	doTask("redis ping", helper.RedisPing)
 }
 
 func configRefresh() {
 	configSrv := new(service.ConfigurationSrv)
-	err := configSrv.Refresh()
-	if err != nil {
-		log.Default().Error("config refresh fail",
-			zap.Error(err),
-		)
-		service.AlarmError("config refresh fail")
-	}
-}
-
-func removeOlderDetectResult() {
-	logger := log.Default()
-	err := detector.RemoveOlderDetectResult()
-	if err != nil {
-		logger.Error("remove older detect result fail",
-			zap.Error(err),
-		)
-	} else {
-		logger.Info("remove older detect result done")
-	}
+	doTask("config refresh", configSrv.Refresh)
 }
 
 func redisStats() {
-	stats := helper.RedisStats()
-	helper.GetInfluxSrv().Write(cs.MeasurementRedisStats, stats, nil)
+	doStatsTask("redis stats", func() map[string]interface{} {
+		// 统计中除了redis数据库的统计，还有当前实例的统计指标，因此所有实例都会写入统计
+		stats := helper.RedisStats()
+		helper.GetInfluxSrv().Write(cs.MeasurementRedisStats, nil, stats)
+		return stats
+	})
 }
 
-func pgStats() {
-	stats := helper.PGStats()
-	helper.GetInfluxSrv().Write(cs.MeasurementPGStats, stats, nil)
+func entPing() {
+	doTask("ent ping", helper.EntPing)
 }
 
-func dnsCheck() {
-	(&detector.DNSSrv{}).Detect()
+// entStats ent的性能统计
+func entStats() {
+	doStatsTask("ent stats", func() map[string]interface{} {
+		stats := helper.EntGetStats()
+		helper.GetInfluxSrv().Write(cs.MeasurementEntStats, nil, stats)
+		return stats
+	})
 }
 
-func tcpCheck() {
-	(&detector.TCPSrv{}).Detect()
+// cpuUsageStats cpu使用率
+func cpuUsageStats() {
+	doTask("update cpu usage", service.UpdateCPUUsage)
 }
 
-func pingCheck() {
-	(&detector.PingSrv{}).Detect()
+// prevMemFrees 上一次 memory objects 释放的数量
+var prevMemFrees uint64
+
+// prevNumGC 上一次 gc 的次数
+var prevNumGC uint32
+
+// prevPauseTotal 上一次 pause 的总时长
+var prevPauseTotal time.Duration
+
+// performanceStats 系统性能
+func performanceStats() {
+	doStatsTask("performance stats", func() map[string]interface{} {
+		data := service.GetPerformance()
+		fields := map[string]interface{}{
+			cs.FieldGoMaxProcs:   data.GoMaxProcs,
+			cs.FieldProcessing:   int(data.Concurrency),
+			cs.FieldThreadCount:  int(data.ThreadCount),
+			cs.FieldMemSys:       data.MemSys,
+			cs.FieldMemHeapSys:   data.MemHeapSys,
+			cs.FieldMemHeapInuse: data.MemHeapInuse,
+			cs.FieldMemFrees:     int(data.MemFrees - prevMemFrees),
+			cs.FieldRoutineCount: data.RoutineCount,
+			cs.FieldCpuUsage:     int(data.CPUUsage),
+			cs.FieldNumGC:        int(data.NumGC - prevNumGC),
+			cs.FieldPauseNS:      int((data.PauseTotalNs - prevPauseTotal).Milliseconds()),
+		}
+		prevMemFrees = data.MemFrees
+		prevNumGC = data.NumGC
+		prevPauseTotal = data.PauseTotalNs
+
+		helper.GetInfluxSrv().Write(cs.MeasurementPerformance, nil, fields)
+		return fields
+	})
 }
 
-func httpCheck() {
-	(&detector.HTTPSrv{}).Detect()
+// httpInstanceStats http instance stats
+func httpInstanceStats() {
+	doStatsTask("http instance stats", func() map[string]interface{} {
+		fields := helper.GetHTTPInstanceStats()
+		helper.GetInfluxSrv().Write(cs.MeasurementHTTPInstanceStats, nil, fields)
+		return fields
+	})
+}
+
+// influxdbPing influxdb ping
+func influxdbPing() {
+	doTask("influxdb ping", helper.GetInfluxSrv().Health)
+}
+
+// routerConcurrencyStats router concurrency stats
+func routerConcurrencyStats() {
+	doStatsTask("router concurrency stats", func() map[string]interface{} {
+		result := service.GetRouterConcurrencyLimiter().GetStats()
+		fields := make(map[string]interface{})
+
+		influxSrv := helper.GetInfluxSrv()
+		for key, value := range result {
+			// 如果并发为0，则不记录
+			if value == 0 {
+				continue
+			}
+			fields[key] = value
+			influxSrv.Write(cs.MeasurementRouterConcurrency, map[string]string{
+				cs.TagRoute: key,
+			}, map[string]interface{}{
+				cs.FieldCount: int(value),
+			})
+		}
+		return fields
+	})
 }

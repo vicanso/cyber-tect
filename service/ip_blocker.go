@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,37 +15,57 @@
 package service
 
 import (
-	"sync/atomic"
-	"unsafe"
+	"sync"
 
 	"github.com/vicanso/ips"
 )
 
 var (
 	ipBlocker = &IPBlocker{
-		IPS: ips.New(),
+		mutex: sync.RWMutex{},
+		IPS:   ips.New(),
 	}
 )
 
 type (
-	// IPBlocker ip blocker
+	// IPBlocker IP拦截器
+
 	IPBlocker struct {
-		IPS *ips.IPS
+		mutex sync.RWMutex
+		IPS   *ips.IPS
 	}
 )
 
-// ResetIPBlocker reset the ip blocker
+// ResetIPBlocker 重置IP拦截器的IP列表
 func ResetIPBlocker(ipList []string) {
-	iPS := ips.New()
+	// blocker 有读写锁，因此ips可以使用无锁
+	list := ips.NewWithoutMutex()
 	for _, value := range ipList {
-		_ = iPS.Add(value)
+		_ = list.Add(value)
 	}
-	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&ipBlocker.IPS)), unsafe.Pointer(iPS))
+	ipBlocker.mutex.Lock()
+	defer ipBlocker.mutex.Unlock()
+	ipBlocker.IPS = list
 }
 
-// IsBlockIP check the ip is blocked
+// IsBlockIP 判断该IP是否有需要拦截
 func IsBlockIP(ip string) bool {
-	iPS := (*ips.IPS)(atomic.LoadPointer((*unsafe.Pointer)(unsafe.Pointer(&ipBlocker.IPS))))
-	blocked := iPS.Contains(ip)
+	ipBlocker.mutex.RLock()
+	defer ipBlocker.mutex.RUnlock()
+	blocked := ipBlocker.IPS.Contains(ip)
 	return blocked
+}
+
+// GetIPBlockList 获取block的ip地址列表
+func GetIPBlockList() []string {
+	ipBlocker.mutex.RLock()
+	defer ipBlocker.mutex.RUnlock()
+	ipList := make([]string, 0)
+	for _, item := range ipBlocker.IPS.IPList {
+		ipList = append(ipList, item.String())
+	}
+	for _, item := range ipBlocker.IPS.IPNetList {
+		ipList = append(ipList, item.String())
+	}
+	return ipList
 }

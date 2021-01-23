@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,22 +14,9 @@
 
 package validate
 
-import (
-	"github.com/go-playground/validator/v10"
-	"github.com/vicanso/cybertect/cs"
-)
-
 func init() {
 	// 应用配置名称
-	AddAlias("xConfigName", "alphanum,min=2,max=20")
-	AddAlias("xConfigCategory", "alphanum,min=2,max=20")
-	AddAlias("xConfigData", "min=0,max=500")
-	AddAlias("xConfigNames", "min=0,max=100")
-
-	Add("xConfigStatus", func(fl validator.FieldLevel) bool {
-		return isInInt(fl, []int{
-			cs.ConfigEnabled,
-			cs.ConfigDiabled,
-		})
-	})
+	AddAlias("xConfigurationName", "min=2,max=20")
+	AddAlias("xConfigurationCategory", "alphanum,min=2,max=20")
+	AddAlias("xConfigurationData", "min=0,max=500")
 }

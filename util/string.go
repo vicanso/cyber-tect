@@ -1,4 +1,4 @@
-// Copyright 2019 tree xie
+// Copyright 2020 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,8 +23,10 @@ import (
 	"errors"
 	"io"
 	"math/rand"
+	"strings"
 	"time"
 
+	"github.com/mozillazg/go-pinyin"
 	"github.com/oklog/ulid/v2"
 )
 
@@ -37,7 +39,7 @@ const (
 )
 const digitBytes = "0123456789"
 
-// randomString create a random string
+// randomString 生成随机的字符串
 func randomString(baseLetters string, n int) string {
 	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, n)
@@ -57,25 +59,24 @@ func randomString(baseLetters string, n int) string {
 	return string(b)
 }
 
-// RandomString create a random string
+// RandomString 创建指定长度的字符串
 func RandomString(n int) string {
 	return randomString(letterBytes, n)
 }
 
-// RandomDigit create a random digit string
+// RandomDigit 创建指定长度的数字字符串
 func RandomDigit(n int) string {
 	return randomString(digitBytes, n)
 }
 
-var entropy = rand.New(rand.NewSource(time.Unix(0, 0).UnixNano()))
-
-// GenUlid generate ulid
+// GenUlid 生成ulid
 func GenUlid() string {
+	entropy := rand.New(rand.NewSource(time.Now().UnixNano()))
 	t := time.Now()
 	return ulid.MustNew(ulid.Timestamp(t), entropy).String()
 }
 
-// Sha256 gen sha256 string
+// Sha256 对字符串做sha256后返回base64字符串
 func Sha256(str string) string {
 	hash := sha256.New()
 	_, _ = hash.Write([]byte(str))
@@ -83,7 +84,7 @@ func Sha256(str string) string {
 	return base64.StdEncoding.EncodeToString(hashBytes)
 }
 
-// ContainsString check the string slice contain the string
+// ContainsString 判断字符串数组是否包含该字符串
 func ContainsString(arr []string, str string) (found bool) {
 	for _, v := range arr {
 		if found {
@@ -96,11 +97,11 @@ func ContainsString(arr []string, str string) (found bool) {
 	return
 }
 
-// UserRoleIsValid check user rols is valid
-func UserRoleIsValid(validRoles []string, userRoles []string) bool {
+// ContainsAny 判断该字符串数据是否包含其中任意一个字符串
+func ContainsAny(targets []string, checkArr []string) bool {
 	valid := false
-	for _, role := range validRoles {
-		if ContainsString(userRoles, role) {
+	for _, item := range targets {
+		if ContainsString(checkArr, item) {
 			valid = true
 			break
 		}
@@ -108,7 +109,7 @@ func UserRoleIsValid(validRoles []string, userRoles []string) bool {
 	return valid
 }
 
-// Encrypt encrypt
+// Encrypt 数据加密
 // https://stackoverflow.com/questions/18817336/golang-encrypting-a-string-with-aes-and-base64
 func Encrypt(key, text []byte) ([]byte, error) {
 	// 需要注意 key的长度必须为32字节
@@ -127,7 +128,7 @@ func Encrypt(key, text []byte) ([]byte, error) {
 	return ciphertext, nil
 }
 
-// Decrypt decrypt
+// Decrypt 数据解密
 // https://stackoverflow.com/questions/18817336/golang-encrypting-a-string-with-aes-and-base64
 func Decrypt(key, text []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
@@ -146,4 +147,22 @@ func Decrypt(key, text []byte) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+// GetFirstLetter 获取字符串首字母
+func GetFirstLetter(str string) string {
+	arr := pinyin.LazyPinyin(str, pinyin.NewArgs())
+	if len(arr) == 0 {
+		return strings.ToUpper(str[0:1])
+	}
+	return strings.ToUpper(arr[0][0:1])
+}
+
+// CutRune 按rune截断字符串
+func CutRune(str string, max int) string {
+	result := []rune(str)
+	if len(result) < max {
+		return str
+	}
+	return string(result[:max]) + "..."
 }

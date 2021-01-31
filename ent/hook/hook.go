@@ -22,15 +22,106 @@ func (f ConfigurationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return f(ctx, mv)
 }
 
-// The HTTPFunc type is an adapter to allow the use of ordinary
-// function as HTTP mutator.
-type HTTPFunc func(context.Context, *ent.HTTPMutation) (ent.Value, error)
+// The DNSDetectorFunc type is an adapter to allow the use of ordinary
+// function as DNSDetector mutator.
+type DNSDetectorFunc func(context.Context, *ent.DNSDetectorMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f HTTPFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.HTTPMutation)
+func (f DNSDetectorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.DNSDetectorMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HTTPMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DNSDetectorMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The DNSDetectorResultFunc type is an adapter to allow the use of ordinary
+// function as DNSDetectorResult mutator.
+type DNSDetectorResultFunc func(context.Context, *ent.DNSDetectorResultMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f DNSDetectorResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.DNSDetectorResultMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DNSDetectorResultMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The HTTPDetectorFunc type is an adapter to allow the use of ordinary
+// function as HTTPDetector mutator.
+type HTTPDetectorFunc func(context.Context, *ent.HTTPDetectorMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f HTTPDetectorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.HTTPDetectorMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HTTPDetectorMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The HTTPDetectorResultFunc type is an adapter to allow the use of ordinary
+// function as HTTPDetectorResult mutator.
+type HTTPDetectorResultFunc func(context.Context, *ent.HTTPDetectorResultMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f HTTPDetectorResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.HTTPDetectorResultMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HTTPDetectorResultMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The PingDetectorFunc type is an adapter to allow the use of ordinary
+// function as PingDetector mutator.
+type PingDetectorFunc func(context.Context, *ent.PingDetectorMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PingDetectorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PingDetectorMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PingDetectorMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The PingDetectorResultFunc type is an adapter to allow the use of ordinary
+// function as PingDetectorResult mutator.
+type PingDetectorResultFunc func(context.Context, *ent.PingDetectorResultMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PingDetectorResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.PingDetectorResultMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PingDetectorResultMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The TCPDetectorFunc type is an adapter to allow the use of ordinary
+// function as TCPDetector mutator.
+type TCPDetectorFunc func(context.Context, *ent.TCPDetectorMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TCPDetectorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TCPDetectorMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TCPDetectorMutation", m)
+	}
+	return f(ctx, mv)
+}
+
+// The TCPDetectorResultFunc type is an adapter to allow the use of ordinary
+// function as TCPDetectorResult mutator.
+type TCPDetectorResultFunc func(context.Context, *ent.TCPDetectorResultMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f TCPDetectorResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TCPDetectorResultMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TCPDetectorResultMutation", m)
 	}
 	return f(ctx, mv)
 }

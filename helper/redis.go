@@ -202,7 +202,7 @@ func RedisStats() map[string]interface{} {
 		cs.FieldStaleConns:    int(stats.StaleConns),
 		cs.FieldProcessing:    int(processing),
 		cs.FilePipeProcessing: int(pipeProcessing),
-		cs.FieldTotal:         total,
+		cs.FieldTotal:         int(total),
 	}
 }
 

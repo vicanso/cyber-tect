@@ -5,6 +5,7 @@ import {
   FLUXES_TRACKERS,
   FLUXES_HTTP_ERRORS,
   FLUXES_TAG_VALUES,
+  FLUXES_ACTIONS,
 } from "../../constants/url";
 
 const prefix = "flux";
@@ -17,13 +18,22 @@ const prefixHTTPError = `${prefix}.httpError`;
 const mutationHTTPErrorListProcessing = `${prefixHTTPError}.processing`;
 const mutationHTTPErrorList = `${prefixHTTPError}.list`;
 
-const prefixAction = `${prefix}.action`;
-const mutationActionListProcessing = `${prefixAction}.processing`;
-const mutationActionList = `${prefixAction}.list`;
+const prefixTrackerAction = `${prefix}.trackerAction`;
+const mutationTrackerActionListProcessing = `${prefixTrackerAction}.processing`;
+const mutationTrackerActionList = `${prefixTrackerAction}.list`;
 
 const prefixHTTPErrorCategory = `${prefix}.httpError.category`;
 const mutationHTTPErrorCategoryListProcessing = `${prefixHTTPErrorCategory}.processing`;
 const mutationHTTPErrorCategoryList = `${prefixHTTPErrorCategory}.list`;
+
+// 客户端上传的user action类型
+const prefixUserActionCategory = `${prefix}.userActionCategory`;
+const mutationUserActionCategoryListProcessing = `${prefixUserActionCategory}.processing`;
+const mutationUserActionCategoryList = `${prefixUserActionCategory}.list`;
+
+const prefixUserAction = `${prefix}.userAction`;
+const mutationUserActionListProcessing = `${prefixUserAction}.processing`;
+const mutationUserActionList = `${prefixUserAction}.list`;
 
 interface TrackerList {
   processing: boolean;
@@ -33,7 +43,7 @@ interface HTTPErrorList {
   processing: boolean;
   items: any[];
 }
-interface ActionList {
+interface TrackerActionList {
   processing: boolean;
   items: any[];
 }
@@ -41,12 +51,21 @@ interface HTTPErrorCategoryList {
   processing: boolean;
   items: any[];
 }
-
+interface UserActionCategoryList {
+  processing: boolean;
+  items: any[];
+}
+interface UserActionList {
+  processing: boolean;
+  items: any[];
+}
 interface FluxState {
   trackers: TrackerList;
   httpErrors: HTTPErrorList;
-  actions: ActionList;
+  trackerActions: TrackerActionList;
   httpErrorCategories: HTTPErrorCategoryList;
+  userActionCategories: UserActionCategoryList;
+  userActions: UserActionList;
 }
 
 const trackers: TrackerList = {
@@ -59,7 +78,7 @@ const httpErrors: HTTPErrorList = {
   items: [],
 };
 
-const actions: ActionList = {
+const trackerActions: TrackerActionList = {
   processing: false,
   items: [],
 };
@@ -67,12 +86,22 @@ const httpErrorCategories: HTTPErrorCategoryList = {
   processing: false,
   items: [],
 };
+const userActionCategories: UserActionCategoryList = {
+  processing: false,
+  items: [],
+};
+const userActions: UserActionList = {
+  processing: false,
+  items: [],
+};
 
 const state: FluxState = {
   trackers,
   httpErrors,
-  actions,
+  trackerActions,
   httpErrorCategories,
+  userActionCategories,
+  userActions,
 };
 
 function fluxItemsSort(items: any[]) {
@@ -109,12 +138,15 @@ export const fluxStore = createStore<FluxState>({
       state.httpErrors.items = fluxItemsSort(data.httpErrors);
     },
     // 设置正在查询action列表
-    [mutationActionListProcessing](state: FluxState, processing: boolean) {
-      state.actions.processing = processing;
+    [mutationTrackerActionListProcessing](
+      state: FluxState,
+      processing: boolean
+    ) {
+      state.trackerActions.processing = processing;
     },
     // 设置action列表
-    [mutationActionList](state: FluxState, data: { values: any[] }) {
-      state.actions.items = data.values || [];
+    [mutationTrackerActionList](state: FluxState, data: { values: any[] }) {
+      state.trackerActions.items = data.values || [];
     },
     // 设置正在查询http error category列表
     [mutationHTTPErrorCategoryListProcessing](
@@ -126,6 +158,28 @@ export const fluxStore = createStore<FluxState>({
     // 设置http error category列表
     [mutationHTTPErrorCategoryList](state: FluxState, data: { values: any[] }) {
       state.httpErrorCategories.items = data.values || [];
+    },
+    // 设置正在查询分类
+    [mutationUserActionCategoryListProcessing](
+      state: FluxState,
+      processing: boolean
+    ) {
+      state.userActionCategories.processing = processing;
+    },
+    // 设置user action分类
+    [mutationUserActionCategoryList](
+      state: FluxState,
+      data: { values: any[] }
+    ) {
+      state.userActionCategories.items = data.values || [];
+    },
+    // 设置正在查询客户端行为
+    [mutationUserActionListProcessing](state: FluxState, processing: boolean) {
+      state.userActions.processing = processing;
+    },
+    // 设置客户端行为记录
+    [mutationUserActionList](state: FluxState, data: { actions: any[] }) {
+      state.userActions.items = data.actions || [];
     },
   },
   actions: {
@@ -151,23 +205,23 @@ export const fluxStore = createStore<FluxState>({
         context.commit(mutationHTTPErrorListProcessing, false);
       }
     },
-    async listActions(context: { commit: Commit }) {
-      if (state.actions.items?.length !== 0) {
+    async listTrackerActions(context: { commit: Commit }) {
+      if (state.trackerActions.items?.length !== 0) {
         return;
       }
-      context.commit(mutationActionListProcessing, true);
+      context.commit(mutationTrackerActionListProcessing, true);
       try {
         const url = FLUXES_TAG_VALUES.replace(
           ":measurement",
           "userTracker"
         ).replace(":tag", "action");
         const { data } = await request.get(url);
-        context.commit(mutationActionList, data);
+        context.commit(mutationTrackerActionList, data);
       } finally {
-        context.commit(mutationActionListProcessing, false);
+        context.commit(mutationTrackerActionListProcessing, false);
       }
     },
-    async listHTTPErrorCategories(context: { commit: Commit }) {
+    async listHTTPErrorCategory(context: { commit: Commit }) {
       if (state.httpErrorCategories.items?.length !== 0) {
         return;
       }
@@ -181,6 +235,33 @@ export const fluxStore = createStore<FluxState>({
         context.commit(mutationHTTPErrorCategoryList, data);
       } finally {
         context.commit(mutationHTTPErrorCategoryListProcessing, false);
+      }
+    },
+    async listUserActionCategory(context: { commit: Commit }) {
+      if (state.userActionCategories.items?.length !== 0) {
+        return;
+      }
+      context.commit(mutationUserActionCategoryListProcessing, true);
+      try {
+        const url = FLUXES_TAG_VALUES.replace(
+          ":measurement",
+          "userAction"
+        ).replace(":tag", "category");
+        const { data } = await request.get(url);
+        context.commit(mutationUserActionCategoryList, data);
+      } finally {
+        context.commit(mutationUserActionCategoryListProcessing, false);
+      }
+    },
+    async listAction(context: { commit: Commit }, params) {
+      context.commit(mutationUserActionListProcessing, true);
+      try {
+        const { data } = await request.get(FLUXES_ACTIONS, {
+          params,
+        });
+        context.commit(mutationUserActionList, data);
+      } finally {
+        context.commit(mutationUserActionListProcessing, false);
       }
     },
   },

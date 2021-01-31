@@ -6,8 +6,15 @@ import (
 	"time"
 
 	"github.com/vicanso/cybertect/ent/configuration"
-	"github.com/vicanso/cybertect/ent/http"
+	"github.com/vicanso/cybertect/ent/dnsdetector"
+	"github.com/vicanso/cybertect/ent/dnsdetectorresult"
+	"github.com/vicanso/cybertect/ent/httpdetector"
+	"github.com/vicanso/cybertect/ent/httpdetectorresult"
+	"github.com/vicanso/cybertect/ent/pingdetector"
+	"github.com/vicanso/cybertect/ent/pingdetectorresult"
 	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/ent/tcpdetector"
+	"github.com/vicanso/cybertect/ent/tcpdetectorresult"
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/ent/userlogin"
 )
@@ -51,45 +58,278 @@ func init() {
 	configurationDescData := configurationFields[3].Descriptor()
 	// configuration.DataValidator is a validator for the "data" field. It is called by the builders before save.
 	configuration.DataValidator = configurationDescData.Validators[0].(func(string) error)
-	httpMixin := schema.HTTP{}.Mixin()
-	httpMixinFields0 := httpMixin[0].Fields()
-	_ = httpMixinFields0
-	httpMixinFields1 := httpMixin[1].Fields()
-	_ = httpMixinFields1
-	httpFields := schema.HTTP{}.Fields()
-	_ = httpFields
-	// httpDescCreatedAt is the schema descriptor for created_at field.
-	httpDescCreatedAt := httpMixinFields0[0].Descriptor()
-	// http.DefaultCreatedAt holds the default value on creation for the created_at field.
-	http.DefaultCreatedAt = httpDescCreatedAt.Default.(func() time.Time)
-	// httpDescUpdatedAt is the schema descriptor for updated_at field.
-	httpDescUpdatedAt := httpMixinFields0[1].Descriptor()
-	// http.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	http.DefaultUpdatedAt = httpDescUpdatedAt.Default.(func() time.Time)
-	// http.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	http.UpdateDefaultUpdatedAt = httpDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// httpDescStatus is the schema descriptor for status field.
-	httpDescStatus := httpMixinFields1[0].Descriptor()
-	// http.DefaultStatus holds the default value on creation for the status field.
-	http.DefaultStatus = schema.Status(httpDescStatus.Default.(int8))
-	// http.StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	http.StatusValidator = httpDescStatus.Validators[0].(func(int8) error)
-	// httpDescName is the schema descriptor for name field.
-	httpDescName := httpFields[0].Descriptor()
-	// http.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	http.NameValidator = httpDescName.Validators[0].(func(string) error)
-	// httpDescOwner is the schema descriptor for owner field.
-	httpDescOwner := httpFields[1].Descriptor()
-	// http.OwnerValidator is a validator for the "owner" field. It is called by the builders before save.
-	http.OwnerValidator = httpDescOwner.Validators[0].(func(string) error)
-	// httpDescURL is the schema descriptor for url field.
-	httpDescURL := httpFields[5].Descriptor()
-	// http.URLValidator is a validator for the "url" field. It is called by the builders before save.
-	http.URLValidator = httpDescURL.Validators[0].(func(string) error)
-	// httpDescTimeout is the schema descriptor for timeout field.
-	httpDescTimeout := httpFields[6].Descriptor()
-	// http.TimeoutValidator is a validator for the "timeout" field. It is called by the builders before save.
-	http.TimeoutValidator = httpDescTimeout.Validators[0].(func(string) error)
+	dnsdetectorMixin := schema.DNSDetector{}.Mixin()
+	dnsdetectorMixinFields0 := dnsdetectorMixin[0].Fields()
+	_ = dnsdetectorMixinFields0
+	dnsdetectorMixinFields1 := dnsdetectorMixin[1].Fields()
+	_ = dnsdetectorMixinFields1
+	dnsdetectorMixinFields2 := dnsdetectorMixin[2].Fields()
+	_ = dnsdetectorMixinFields2
+	dnsdetectorFields := schema.DNSDetector{}.Fields()
+	_ = dnsdetectorFields
+	// dnsdetectorDescCreatedAt is the schema descriptor for created_at field.
+	dnsdetectorDescCreatedAt := dnsdetectorMixinFields0[0].Descriptor()
+	// dnsdetector.DefaultCreatedAt holds the default value on creation for the created_at field.
+	dnsdetector.DefaultCreatedAt = dnsdetectorDescCreatedAt.Default.(func() time.Time)
+	// dnsdetectorDescUpdatedAt is the schema descriptor for updated_at field.
+	dnsdetectorDescUpdatedAt := dnsdetectorMixinFields0[1].Descriptor()
+	// dnsdetector.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	dnsdetector.DefaultUpdatedAt = dnsdetectorDescUpdatedAt.Default.(func() time.Time)
+	// dnsdetector.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	dnsdetector.UpdateDefaultUpdatedAt = dnsdetectorDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// dnsdetectorDescStatus is the schema descriptor for status field.
+	dnsdetectorDescStatus := dnsdetectorMixinFields1[0].Descriptor()
+	// dnsdetector.DefaultStatus holds the default value on creation for the status field.
+	dnsdetector.DefaultStatus = schema.Status(dnsdetectorDescStatus.Default.(int8))
+	// dnsdetector.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	dnsdetector.StatusValidator = dnsdetectorDescStatus.Validators[0].(func(int8) error)
+	// dnsdetectorDescName is the schema descriptor for name field.
+	dnsdetectorDescName := dnsdetectorMixinFields2[0].Descriptor()
+	// dnsdetector.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	dnsdetector.NameValidator = dnsdetectorDescName.Validators[0].(func(string) error)
+	// dnsdetectorDescOwner is the schema descriptor for owner field.
+	dnsdetectorDescOwner := dnsdetectorMixinFields2[1].Descriptor()
+	// dnsdetector.OwnerValidator is a validator for the "owner" field. It is called by the builders before save.
+	dnsdetector.OwnerValidator = dnsdetectorDescOwner.Validators[0].(func(string) error)
+	// dnsdetectorDescTimeout is the schema descriptor for timeout field.
+	dnsdetectorDescTimeout := dnsdetectorMixinFields2[4].Descriptor()
+	// dnsdetector.TimeoutValidator is a validator for the "timeout" field. It is called by the builders before save.
+	dnsdetector.TimeoutValidator = dnsdetectorDescTimeout.Validators[0].(func(string) error)
+	// dnsdetectorDescHost is the schema descriptor for host field.
+	dnsdetectorDescHost := dnsdetectorFields[0].Descriptor()
+	// dnsdetector.HostValidator is a validator for the "host" field. It is called by the builders before save.
+	dnsdetector.HostValidator = dnsdetectorDescHost.Validators[0].(func(string) error)
+	dnsdetectorresultMixin := schema.DNSDetectorResult{}.Mixin()
+	dnsdetectorresultMixinFields0 := dnsdetectorresultMixin[0].Fields()
+	_ = dnsdetectorresultMixinFields0
+	dnsdetectorresultMixinFields1 := dnsdetectorresultMixin[1].Fields()
+	_ = dnsdetectorresultMixinFields1
+	dnsdetectorresultMixinFields2 := dnsdetectorresultMixin[2].Fields()
+	_ = dnsdetectorresultMixinFields2
+	dnsdetectorresultFields := schema.DNSDetectorResult{}.Fields()
+	_ = dnsdetectorresultFields
+	// dnsdetectorresultDescCreatedAt is the schema descriptor for created_at field.
+	dnsdetectorresultDescCreatedAt := dnsdetectorresultMixinFields0[0].Descriptor()
+	// dnsdetectorresult.DefaultCreatedAt holds the default value on creation for the created_at field.
+	dnsdetectorresult.DefaultCreatedAt = dnsdetectorresultDescCreatedAt.Default.(func() time.Time)
+	// dnsdetectorresultDescUpdatedAt is the schema descriptor for updated_at field.
+	dnsdetectorresultDescUpdatedAt := dnsdetectorresultMixinFields0[1].Descriptor()
+	// dnsdetectorresult.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	dnsdetectorresult.DefaultUpdatedAt = dnsdetectorresultDescUpdatedAt.Default.(func() time.Time)
+	// dnsdetectorresult.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	dnsdetectorresult.UpdateDefaultUpdatedAt = dnsdetectorresultDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// dnsdetectorresultDescStatus is the schema descriptor for status field.
+	dnsdetectorresultDescStatus := dnsdetectorresultMixinFields1[0].Descriptor()
+	// dnsdetectorresult.DefaultStatus holds the default value on creation for the status field.
+	dnsdetectorresult.DefaultStatus = schema.Status(dnsdetectorresultDescStatus.Default.(int8))
+	// dnsdetectorresult.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	dnsdetectorresult.StatusValidator = dnsdetectorresultDescStatus.Validators[0].(func(int8) error)
+	// dnsdetectorresultDescResult is the schema descriptor for result field.
+	dnsdetectorresultDescResult := dnsdetectorresultMixinFields2[1].Descriptor()
+	// dnsdetectorresult.ResultValidator is a validator for the "result" field. It is called by the builders before save.
+	dnsdetectorresult.ResultValidator = dnsdetectorresultDescResult.Validators[0].(func(int8) error)
+	httpdetectorMixin := schema.HTTPDetector{}.Mixin()
+	httpdetectorMixinFields0 := httpdetectorMixin[0].Fields()
+	_ = httpdetectorMixinFields0
+	httpdetectorMixinFields1 := httpdetectorMixin[1].Fields()
+	_ = httpdetectorMixinFields1
+	httpdetectorMixinFields2 := httpdetectorMixin[2].Fields()
+	_ = httpdetectorMixinFields2
+	httpdetectorFields := schema.HTTPDetector{}.Fields()
+	_ = httpdetectorFields
+	// httpdetectorDescCreatedAt is the schema descriptor for created_at field.
+	httpdetectorDescCreatedAt := httpdetectorMixinFields0[0].Descriptor()
+	// httpdetector.DefaultCreatedAt holds the default value on creation for the created_at field.
+	httpdetector.DefaultCreatedAt = httpdetectorDescCreatedAt.Default.(func() time.Time)
+	// httpdetectorDescUpdatedAt is the schema descriptor for updated_at field.
+	httpdetectorDescUpdatedAt := httpdetectorMixinFields0[1].Descriptor()
+	// httpdetector.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	httpdetector.DefaultUpdatedAt = httpdetectorDescUpdatedAt.Default.(func() time.Time)
+	// httpdetector.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	httpdetector.UpdateDefaultUpdatedAt = httpdetectorDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// httpdetectorDescStatus is the schema descriptor for status field.
+	httpdetectorDescStatus := httpdetectorMixinFields1[0].Descriptor()
+	// httpdetector.DefaultStatus holds the default value on creation for the status field.
+	httpdetector.DefaultStatus = schema.Status(httpdetectorDescStatus.Default.(int8))
+	// httpdetector.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	httpdetector.StatusValidator = httpdetectorDescStatus.Validators[0].(func(int8) error)
+	// httpdetectorDescName is the schema descriptor for name field.
+	httpdetectorDescName := httpdetectorMixinFields2[0].Descriptor()
+	// httpdetector.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	httpdetector.NameValidator = httpdetectorDescName.Validators[0].(func(string) error)
+	// httpdetectorDescOwner is the schema descriptor for owner field.
+	httpdetectorDescOwner := httpdetectorMixinFields2[1].Descriptor()
+	// httpdetector.OwnerValidator is a validator for the "owner" field. It is called by the builders before save.
+	httpdetector.OwnerValidator = httpdetectorDescOwner.Validators[0].(func(string) error)
+	// httpdetectorDescTimeout is the schema descriptor for timeout field.
+	httpdetectorDescTimeout := httpdetectorMixinFields2[4].Descriptor()
+	// httpdetector.TimeoutValidator is a validator for the "timeout" field. It is called by the builders before save.
+	httpdetector.TimeoutValidator = httpdetectorDescTimeout.Validators[0].(func(string) error)
+	// httpdetectorDescURL is the schema descriptor for url field.
+	httpdetectorDescURL := httpdetectorFields[1].Descriptor()
+	// httpdetector.URLValidator is a validator for the "url" field. It is called by the builders before save.
+	httpdetector.URLValidator = httpdetectorDescURL.Validators[0].(func(string) error)
+	httpdetectorresultMixin := schema.HTTPDetectorResult{}.Mixin()
+	httpdetectorresultMixinFields0 := httpdetectorresultMixin[0].Fields()
+	_ = httpdetectorresultMixinFields0
+	httpdetectorresultMixinFields1 := httpdetectorresultMixin[1].Fields()
+	_ = httpdetectorresultMixinFields1
+	httpdetectorresultMixinFields2 := httpdetectorresultMixin[2].Fields()
+	_ = httpdetectorresultMixinFields2
+	httpdetectorresultFields := schema.HTTPDetectorResult{}.Fields()
+	_ = httpdetectorresultFields
+	// httpdetectorresultDescCreatedAt is the schema descriptor for created_at field.
+	httpdetectorresultDescCreatedAt := httpdetectorresultMixinFields0[0].Descriptor()
+	// httpdetectorresult.DefaultCreatedAt holds the default value on creation for the created_at field.
+	httpdetectorresult.DefaultCreatedAt = httpdetectorresultDescCreatedAt.Default.(func() time.Time)
+	// httpdetectorresultDescUpdatedAt is the schema descriptor for updated_at field.
+	httpdetectorresultDescUpdatedAt := httpdetectorresultMixinFields0[1].Descriptor()
+	// httpdetectorresult.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	httpdetectorresult.DefaultUpdatedAt = httpdetectorresultDescUpdatedAt.Default.(func() time.Time)
+	// httpdetectorresult.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	httpdetectorresult.UpdateDefaultUpdatedAt = httpdetectorresultDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// httpdetectorresultDescStatus is the schema descriptor for status field.
+	httpdetectorresultDescStatus := httpdetectorresultMixinFields1[0].Descriptor()
+	// httpdetectorresult.DefaultStatus holds the default value on creation for the status field.
+	httpdetectorresult.DefaultStatus = schema.Status(httpdetectorresultDescStatus.Default.(int8))
+	// httpdetectorresult.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	httpdetectorresult.StatusValidator = httpdetectorresultDescStatus.Validators[0].(func(int8) error)
+	// httpdetectorresultDescResult is the schema descriptor for result field.
+	httpdetectorresultDescResult := httpdetectorresultMixinFields2[1].Descriptor()
+	// httpdetectorresult.ResultValidator is a validator for the "result" field. It is called by the builders before save.
+	httpdetectorresult.ResultValidator = httpdetectorresultDescResult.Validators[0].(func(int8) error)
+	pingdetectorMixin := schema.PingDetector{}.Mixin()
+	pingdetectorMixinFields0 := pingdetectorMixin[0].Fields()
+	_ = pingdetectorMixinFields0
+	pingdetectorMixinFields1 := pingdetectorMixin[1].Fields()
+	_ = pingdetectorMixinFields1
+	pingdetectorMixinFields2 := pingdetectorMixin[2].Fields()
+	_ = pingdetectorMixinFields2
+	pingdetectorFields := schema.PingDetector{}.Fields()
+	_ = pingdetectorFields
+	// pingdetectorDescCreatedAt is the schema descriptor for created_at field.
+	pingdetectorDescCreatedAt := pingdetectorMixinFields0[0].Descriptor()
+	// pingdetector.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pingdetector.DefaultCreatedAt = pingdetectorDescCreatedAt.Default.(func() time.Time)
+	// pingdetectorDescUpdatedAt is the schema descriptor for updated_at field.
+	pingdetectorDescUpdatedAt := pingdetectorMixinFields0[1].Descriptor()
+	// pingdetector.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	pingdetector.DefaultUpdatedAt = pingdetectorDescUpdatedAt.Default.(func() time.Time)
+	// pingdetector.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	pingdetector.UpdateDefaultUpdatedAt = pingdetectorDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// pingdetectorDescStatus is the schema descriptor for status field.
+	pingdetectorDescStatus := pingdetectorMixinFields1[0].Descriptor()
+	// pingdetector.DefaultStatus holds the default value on creation for the status field.
+	pingdetector.DefaultStatus = schema.Status(pingdetectorDescStatus.Default.(int8))
+	// pingdetector.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	pingdetector.StatusValidator = pingdetectorDescStatus.Validators[0].(func(int8) error)
+	// pingdetectorDescName is the schema descriptor for name field.
+	pingdetectorDescName := pingdetectorMixinFields2[0].Descriptor()
+	// pingdetector.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	pingdetector.NameValidator = pingdetectorDescName.Validators[0].(func(string) error)
+	// pingdetectorDescOwner is the schema descriptor for owner field.
+	pingdetectorDescOwner := pingdetectorMixinFields2[1].Descriptor()
+	// pingdetector.OwnerValidator is a validator for the "owner" field. It is called by the builders before save.
+	pingdetector.OwnerValidator = pingdetectorDescOwner.Validators[0].(func(string) error)
+	// pingdetectorDescTimeout is the schema descriptor for timeout field.
+	pingdetectorDescTimeout := pingdetectorMixinFields2[4].Descriptor()
+	// pingdetector.TimeoutValidator is a validator for the "timeout" field. It is called by the builders before save.
+	pingdetector.TimeoutValidator = pingdetectorDescTimeout.Validators[0].(func(string) error)
+	pingdetectorresultMixin := schema.PingDetectorResult{}.Mixin()
+	pingdetectorresultMixinFields0 := pingdetectorresultMixin[0].Fields()
+	_ = pingdetectorresultMixinFields0
+	pingdetectorresultMixinFields1 := pingdetectorresultMixin[1].Fields()
+	_ = pingdetectorresultMixinFields1
+	pingdetectorresultMixinFields2 := pingdetectorresultMixin[2].Fields()
+	_ = pingdetectorresultMixinFields2
+	pingdetectorresultFields := schema.PingDetectorResult{}.Fields()
+	_ = pingdetectorresultFields
+	// pingdetectorresultDescCreatedAt is the schema descriptor for created_at field.
+	pingdetectorresultDescCreatedAt := pingdetectorresultMixinFields0[0].Descriptor()
+	// pingdetectorresult.DefaultCreatedAt holds the default value on creation for the created_at field.
+	pingdetectorresult.DefaultCreatedAt = pingdetectorresultDescCreatedAt.Default.(func() time.Time)
+	// pingdetectorresultDescUpdatedAt is the schema descriptor for updated_at field.
+	pingdetectorresultDescUpdatedAt := pingdetectorresultMixinFields0[1].Descriptor()
+	// pingdetectorresult.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	pingdetectorresult.DefaultUpdatedAt = pingdetectorresultDescUpdatedAt.Default.(func() time.Time)
+	// pingdetectorresult.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	pingdetectorresult.UpdateDefaultUpdatedAt = pingdetectorresultDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// pingdetectorresultDescStatus is the schema descriptor for status field.
+	pingdetectorresultDescStatus := pingdetectorresultMixinFields1[0].Descriptor()
+	// pingdetectorresult.DefaultStatus holds the default value on creation for the status field.
+	pingdetectorresult.DefaultStatus = schema.Status(pingdetectorresultDescStatus.Default.(int8))
+	// pingdetectorresult.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	pingdetectorresult.StatusValidator = pingdetectorresultDescStatus.Validators[0].(func(int8) error)
+	// pingdetectorresultDescResult is the schema descriptor for result field.
+	pingdetectorresultDescResult := pingdetectorresultMixinFields2[1].Descriptor()
+	// pingdetectorresult.ResultValidator is a validator for the "result" field. It is called by the builders before save.
+	pingdetectorresult.ResultValidator = pingdetectorresultDescResult.Validators[0].(func(int8) error)
+	tcpdetectorMixin := schema.TCPDetector{}.Mixin()
+	tcpdetectorMixinFields0 := tcpdetectorMixin[0].Fields()
+	_ = tcpdetectorMixinFields0
+	tcpdetectorMixinFields1 := tcpdetectorMixin[1].Fields()
+	_ = tcpdetectorMixinFields1
+	tcpdetectorMixinFields2 := tcpdetectorMixin[2].Fields()
+	_ = tcpdetectorMixinFields2
+	tcpdetectorFields := schema.TCPDetector{}.Fields()
+	_ = tcpdetectorFields
+	// tcpdetectorDescCreatedAt is the schema descriptor for created_at field.
+	tcpdetectorDescCreatedAt := tcpdetectorMixinFields0[0].Descriptor()
+	// tcpdetector.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tcpdetector.DefaultCreatedAt = tcpdetectorDescCreatedAt.Default.(func() time.Time)
+	// tcpdetectorDescUpdatedAt is the schema descriptor for updated_at field.
+	tcpdetectorDescUpdatedAt := tcpdetectorMixinFields0[1].Descriptor()
+	// tcpdetector.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tcpdetector.DefaultUpdatedAt = tcpdetectorDescUpdatedAt.Default.(func() time.Time)
+	// tcpdetector.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tcpdetector.UpdateDefaultUpdatedAt = tcpdetectorDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tcpdetectorDescStatus is the schema descriptor for status field.
+	tcpdetectorDescStatus := tcpdetectorMixinFields1[0].Descriptor()
+	// tcpdetector.DefaultStatus holds the default value on creation for the status field.
+	tcpdetector.DefaultStatus = schema.Status(tcpdetectorDescStatus.Default.(int8))
+	// tcpdetector.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	tcpdetector.StatusValidator = tcpdetectorDescStatus.Validators[0].(func(int8) error)
+	// tcpdetectorDescName is the schema descriptor for name field.
+	tcpdetectorDescName := tcpdetectorMixinFields2[0].Descriptor()
+	// tcpdetector.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	tcpdetector.NameValidator = tcpdetectorDescName.Validators[0].(func(string) error)
+	// tcpdetectorDescOwner is the schema descriptor for owner field.
+	tcpdetectorDescOwner := tcpdetectorMixinFields2[1].Descriptor()
+	// tcpdetector.OwnerValidator is a validator for the "owner" field. It is called by the builders before save.
+	tcpdetector.OwnerValidator = tcpdetectorDescOwner.Validators[0].(func(string) error)
+	// tcpdetectorDescTimeout is the schema descriptor for timeout field.
+	tcpdetectorDescTimeout := tcpdetectorMixinFields2[4].Descriptor()
+	// tcpdetector.TimeoutValidator is a validator for the "timeout" field. It is called by the builders before save.
+	tcpdetector.TimeoutValidator = tcpdetectorDescTimeout.Validators[0].(func(string) error)
+	tcpdetectorresultMixin := schema.TCPDetectorResult{}.Mixin()
+	tcpdetectorresultMixinFields0 := tcpdetectorresultMixin[0].Fields()
+	_ = tcpdetectorresultMixinFields0
+	tcpdetectorresultMixinFields1 := tcpdetectorresultMixin[1].Fields()
+	_ = tcpdetectorresultMixinFields1
+	tcpdetectorresultMixinFields2 := tcpdetectorresultMixin[2].Fields()
+	_ = tcpdetectorresultMixinFields2
+	tcpdetectorresultFields := schema.TCPDetectorResult{}.Fields()
+	_ = tcpdetectorresultFields
+	// tcpdetectorresultDescCreatedAt is the schema descriptor for created_at field.
+	tcpdetectorresultDescCreatedAt := tcpdetectorresultMixinFields0[0].Descriptor()
+	// tcpdetectorresult.DefaultCreatedAt holds the default value on creation for the created_at field.
+	tcpdetectorresult.DefaultCreatedAt = tcpdetectorresultDescCreatedAt.Default.(func() time.Time)
+	// tcpdetectorresultDescUpdatedAt is the schema descriptor for updated_at field.
+	tcpdetectorresultDescUpdatedAt := tcpdetectorresultMixinFields0[1].Descriptor()
+	// tcpdetectorresult.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	tcpdetectorresult.DefaultUpdatedAt = tcpdetectorresultDescUpdatedAt.Default.(func() time.Time)
+	// tcpdetectorresult.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	tcpdetectorresult.UpdateDefaultUpdatedAt = tcpdetectorresultDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// tcpdetectorresultDescStatus is the schema descriptor for status field.
+	tcpdetectorresultDescStatus := tcpdetectorresultMixinFields1[0].Descriptor()
+	// tcpdetectorresult.DefaultStatus holds the default value on creation for the status field.
+	tcpdetectorresult.DefaultStatus = schema.Status(tcpdetectorresultDescStatus.Default.(int8))
+	// tcpdetectorresult.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	tcpdetectorresult.StatusValidator = tcpdetectorresultDescStatus.Validators[0].(func(int8) error)
+	// tcpdetectorresultDescResult is the schema descriptor for result field.
+	tcpdetectorresultDescResult := tcpdetectorresultMixinFields2[1].Descriptor()
+	// tcpdetectorresult.ResultValidator is a validator for the "result" field. It is called by the builders before save.
+	tcpdetectorresult.ResultValidator = tcpdetectorresultDescResult.Validators[0].(func(int8) error)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

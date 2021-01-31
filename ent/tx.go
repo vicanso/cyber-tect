@@ -14,8 +14,22 @@ type Tx struct {
 	config
 	// Configuration is the client for interacting with the Configuration builders.
 	Configuration *ConfigurationClient
-	// HTTP is the client for interacting with the HTTP builders.
-	HTTP *HTTPClient
+	// DNSDetector is the client for interacting with the DNSDetector builders.
+	DNSDetector *DNSDetectorClient
+	// DNSDetectorResult is the client for interacting with the DNSDetectorResult builders.
+	DNSDetectorResult *DNSDetectorResultClient
+	// HTTPDetector is the client for interacting with the HTTPDetector builders.
+	HTTPDetector *HTTPDetectorClient
+	// HTTPDetectorResult is the client for interacting with the HTTPDetectorResult builders.
+	HTTPDetectorResult *HTTPDetectorResultClient
+	// PingDetector is the client for interacting with the PingDetector builders.
+	PingDetector *PingDetectorClient
+	// PingDetectorResult is the client for interacting with the PingDetectorResult builders.
+	PingDetectorResult *PingDetectorResultClient
+	// TCPDetector is the client for interacting with the TCPDetector builders.
+	TCPDetector *TCPDetectorClient
+	// TCPDetectorResult is the client for interacting with the TCPDetectorResult builders.
+	TCPDetectorResult *TCPDetectorResultClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserLogin is the client for interacting with the UserLogin builders.
@@ -156,7 +170,14 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Configuration = NewConfigurationClient(tx.config)
-	tx.HTTP = NewHTTPClient(tx.config)
+	tx.DNSDetector = NewDNSDetectorClient(tx.config)
+	tx.DNSDetectorResult = NewDNSDetectorResultClient(tx.config)
+	tx.HTTPDetector = NewHTTPDetectorClient(tx.config)
+	tx.HTTPDetectorResult = NewHTTPDetectorResultClient(tx.config)
+	tx.PingDetector = NewPingDetectorClient(tx.config)
+	tx.PingDetectorResult = NewPingDetectorResultClient(tx.config)
+	tx.TCPDetector = NewTCPDetectorClient(tx.config)
+	tx.TCPDetectorResult = NewTCPDetectorResultClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserLogin = NewUserLoginClient(tx.config)
 }

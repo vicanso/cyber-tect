@@ -1,6 +1,8 @@
 // 用户相关url
 // 用户信息
 export const USERS_ME = "/users/v1/me";
+// 用户详细信息
+export const USERS_ME_DETAIL = "/users/v1/detail";
 // 用户登录
 export const USERS_LOGIN = "/users/v1/me/login";
 // 用户行为
@@ -19,6 +21,8 @@ export const USERS_ID = "/users/v1/:id";
 export const FLUXES_TRACKERS = "/fluxes/v1/trackers";
 // http出错列表
 export const FLUXES_HTTP_ERRORS = "/fluxes/v1/http-errors";
+// 客户端上传的action日志列表
+export const FLUXES_ACTIONS = "/fluxes/v1/actions";
 // tag value列表
 export const FLUXES_TAG_VALUES = "/fluxes/v1/tag-values/:measurement/:tag";
 
@@ -41,9 +45,21 @@ export const CONFIGS_ID = "/configurations/v1/:id";
 export const CONFIGS_CURRENT_VALID = "/configurations/v1/current-valid";
 
 // 检测配置url
-// http检测配置
+// 获取接收者列表
+export const DETECTORS_RECEIVERS = "/detectors/v1/receivers";
+// HTTP检测配置
 export const DETECTORS_HTTPS = "/detectors/v1/https";
 // 更新HTTP检测配置
 export const DETECTORS_HTTPS_UPDATE = "/detectors/v1/https/:id";
-// 获取接收者列表
-export const DETECTORS_RECEIVERS = "/detectors/v1/receivers";
+// DNS检测配置
+export const DETECTORS_DNSES = "/detectors/v1/dnses";
+// 更新DNS检测配置
+export const DETECTORS_DNSES_UPDATE = "/detectors/v1/dnses/:id";
+// TCP检测配置
+export const DETECTORS_TCPS = "/detectors/v1/tcps";
+// 更新TCP检测配置
+export const DETECTORS_TCPS_UPDATE = "/detectors/v1/tcps/:id";
+// Ping检测配置
+export const DETECTORS_PINGS = "/detectors/v1/pings";
+// 更新Ping检测配置
+export const DETECTORS_PINGS_UPDATE = "/detectors/v1/pings/:id";

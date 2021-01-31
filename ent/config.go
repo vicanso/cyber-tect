@@ -24,10 +24,17 @@ type config struct {
 
 // hooks per client, for fast access.
 type hooks struct {
-	Configuration []ent.Hook
-	HTTP          []ent.Hook
-	User          []ent.Hook
-	UserLogin     []ent.Hook
+	Configuration      []ent.Hook
+	DNSDetector        []ent.Hook
+	DNSDetectorResult  []ent.Hook
+	HTTPDetector       []ent.Hook
+	HTTPDetectorResult []ent.Hook
+	PingDetector       []ent.Hook
+	PingDetectorResult []ent.Hook
+	TCPDetector        []ent.Hook
+	TCPDetectorResult  []ent.Hook
+	User               []ent.Hook
+	UserLogin          []ent.Hook
 }
 
 // Options applies the options on the config object.

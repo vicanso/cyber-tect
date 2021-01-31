@@ -56,7 +56,7 @@ el-card.configurationList
       prop="startedAt"
       key="startedAt"
       label="开始时间"
-      width="180"
+      width="160"
     ): template(
       #default="scope"
     ): time-formater(
@@ -68,7 +68,7 @@ el-card.configurationList
       prop="endedAt"
       key="endedAt"
       label="结束时间"
-      width="180"
+      width="160"
     ): template(
       #default="scope"
     ): time-formater(
@@ -82,8 +82,9 @@ el-card.configurationList
       :width="configWidth"
     ): template(
       #default="scope"
-    ): config-data(
+    ): base-json(
       :content="scope.row.data"
+      icon="el-icon-info"
     )
     //- 创建者
     el-table-column(
@@ -98,7 +99,7 @@ el-card.configurationList
       prop="updatedAt"
       key="updatedAt"
       label="更新时间"
-      width="180"
+      width="160"
     ): template(
       #default="scope"
     ): time-formater(
@@ -128,7 +129,7 @@ el-card.configurationList
 import { defineComponent } from "vue";
 
 import TimeFormater from "../TimeFormater.vue";
-import ConfigData from "./ConfigData.vue";
+import BaseJson from "../base/JSON.vue";
 import ExButton from "../ExButton.vue";
 import { useConfigStore, useUserStore } from "../../store";
 import { CONFIG_ENABLED, CONFIG_EDIT_MODE } from "../../constants/common";
@@ -137,7 +138,7 @@ export default defineComponent({
   name: "ConfigurationList",
   components: {
     TimeFormater,
-    ConfigData,
+    BaseJson,
     ExButton,
   },
   props: {

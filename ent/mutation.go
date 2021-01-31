@@ -9,9 +9,16 @@ import (
 	"time"
 
 	"github.com/vicanso/cybertect/ent/configuration"
-	"github.com/vicanso/cybertect/ent/http"
+	"github.com/vicanso/cybertect/ent/dnsdetector"
+	"github.com/vicanso/cybertect/ent/dnsdetectorresult"
+	"github.com/vicanso/cybertect/ent/httpdetector"
+	"github.com/vicanso/cybertect/ent/httpdetectorresult"
+	"github.com/vicanso/cybertect/ent/pingdetector"
+	"github.com/vicanso/cybertect/ent/pingdetectorresult"
 	"github.com/vicanso/cybertect/ent/predicate"
 	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/ent/tcpdetector"
+	"github.com/vicanso/cybertect/ent/tcpdetectorresult"
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/ent/userlogin"
 
@@ -27,10 +34,17 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeConfiguration = "Configuration"
-	TypeHTTP          = "HTTP"
-	TypeUser          = "User"
-	TypeUserLogin     = "UserLogin"
+	TypeConfiguration      = "Configuration"
+	TypeDNSDetector        = "DNSDetector"
+	TypeDNSDetectorResult  = "DNSDetectorResult"
+	TypeHTTPDetector       = "HTTPDetector"
+	TypeHTTPDetectorResult = "HTTPDetectorResult"
+	TypePingDetector       = "PingDetector"
+	TypePingDetectorResult = "PingDetectorResult"
+	TypeTCPDetector        = "TCPDetector"
+	TypeTCPDetectorResult  = "TCPDetectorResult"
+	TypeUser               = "User"
+	TypeUserLogin          = "UserLogin"
 )
 
 // ConfigurationMutation represents an operation that mutates the Configuration nodes in the graph.
@@ -788,8 +802,8 @@ func (m *ConfigurationMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown Configuration edge %s", name)
 }
 
-// HTTPMutation represents an operation that mutates the HTTP nodes in the graph.
-type HTTPMutation struct {
+// DNSDetectorMutation represents an operation that mutates the DNSDetector nodes in the graph.
+type DNSDetectorMutation struct {
 	config
 	op            Op
 	typ           string
@@ -802,26 +816,27 @@ type HTTPMutation struct {
 	owner         *string
 	description   *string
 	receivers     *[]string
-	ips           *[]string
-	url           *string
 	timeout       *string
+	host          *string
+	ips           *[]string
+	servers       *[]string
 	clearedFields map[string]struct{}
 	done          bool
-	oldValue      func(context.Context) (*HTTP, error)
-	predicates    []predicate.HTTP
+	oldValue      func(context.Context) (*DNSDetector, error)
+	predicates    []predicate.DNSDetector
 }
 
-var _ ent.Mutation = (*HTTPMutation)(nil)
+var _ ent.Mutation = (*DNSDetectorMutation)(nil)
 
-// httpOption allows management of the mutation configuration using functional options.
-type httpOption func(*HTTPMutation)
+// dnsdetectorOption allows management of the mutation configuration using functional options.
+type dnsdetectorOption func(*DNSDetectorMutation)
 
-// newHTTPMutation creates new mutation for the HTTP entity.
-func newHTTPMutation(c config, op Op, opts ...httpOption) *HTTPMutation {
-	m := &HTTPMutation{
+// newDNSDetectorMutation creates new mutation for the DNSDetector entity.
+func newDNSDetectorMutation(c config, op Op, opts ...dnsdetectorOption) *DNSDetectorMutation {
+	m := &DNSDetectorMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeHTTP,
+		typ:           TypeDNSDetector,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -830,20 +845,20 @@ func newHTTPMutation(c config, op Op, opts ...httpOption) *HTTPMutation {
 	return m
 }
 
-// withHTTPID sets the ID field of the mutation.
-func withHTTPID(id int) httpOption {
-	return func(m *HTTPMutation) {
+// withDNSDetectorID sets the ID field of the mutation.
+func withDNSDetectorID(id int) dnsdetectorOption {
+	return func(m *DNSDetectorMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *HTTP
+			value *DNSDetector
 		)
-		m.oldValue = func(ctx context.Context) (*HTTP, error) {
+		m.oldValue = func(ctx context.Context) (*DNSDetector, error) {
 			once.Do(func() {
 				if m.done {
 					err = fmt.Errorf("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().HTTP.Get(ctx, id)
+					value, err = m.Client().DNSDetector.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -852,10 +867,10 @@ func withHTTPID(id int) httpOption {
 	}
 }
 
-// withHTTP sets the old HTTP of the mutation.
-func withHTTP(node *HTTP) httpOption {
-	return func(m *HTTPMutation) {
-		m.oldValue = func(context.Context) (*HTTP, error) {
+// withDNSDetector sets the old DNSDetector of the mutation.
+func withDNSDetector(node *DNSDetector) dnsdetectorOption {
+	return func(m *DNSDetectorMutation) {
+		m.oldValue = func(context.Context) (*DNSDetector, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -864,7 +879,7 @@ func withHTTP(node *HTTP) httpOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m HTTPMutation) Client() *Client {
+func (m DNSDetectorMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -872,7 +887,7 @@ func (m HTTPMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m HTTPMutation) Tx() (*Tx, error) {
+func (m DNSDetectorMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
 	}
@@ -883,7 +898,7 @@ func (m HTTPMutation) Tx() (*Tx, error) {
 
 // ID returns the ID value in the mutation. Note that the ID
 // is only available if it was provided to the builder.
-func (m *HTTPMutation) ID() (id int, exists bool) {
+func (m *DNSDetectorMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -891,12 +906,12 @@ func (m *HTTPMutation) ID() (id int, exists bool) {
 }
 
 // SetCreatedAt sets the "created_at" field.
-func (m *HTTPMutation) SetCreatedAt(t time.Time) {
+func (m *DNSDetectorMutation) SetCreatedAt(t time.Time) {
 	m.created_at = &t
 }
 
 // CreatedAt returns the value of the "created_at" field in the mutation.
-func (m *HTTPMutation) CreatedAt() (r time.Time, exists bool) {
+func (m *DNSDetectorMutation) CreatedAt() (r time.Time, exists bool) {
 	v := m.created_at
 	if v == nil {
 		return
@@ -904,10 +919,10 @@ func (m *HTTPMutation) CreatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldCreatedAt returns the old "created_at" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *DNSDetectorMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
 	}
@@ -922,17 +937,17 @@ func (m *HTTPMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error
 }
 
 // ResetCreatedAt resets all changes to the "created_at" field.
-func (m *HTTPMutation) ResetCreatedAt() {
+func (m *DNSDetectorMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
 // SetUpdatedAt sets the "updated_at" field.
-func (m *HTTPMutation) SetUpdatedAt(t time.Time) {
+func (m *DNSDetectorMutation) SetUpdatedAt(t time.Time) {
 	m.updated_at = &t
 }
 
 // UpdatedAt returns the value of the "updated_at" field in the mutation.
-func (m *HTTPMutation) UpdatedAt() (r time.Time, exists bool) {
+func (m *DNSDetectorMutation) UpdatedAt() (r time.Time, exists bool) {
 	v := m.updated_at
 	if v == nil {
 		return
@@ -940,10 +955,10 @@ func (m *HTTPMutation) UpdatedAt() (r time.Time, exists bool) {
 	return *v, true
 }
 
-// OldUpdatedAt returns the old "updated_at" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
+// OldUpdatedAt returns the old "updated_at" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+func (m *DNSDetectorMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldUpdatedAt is only allowed on UpdateOne operations")
 	}
@@ -958,18 +973,18 @@ func (m *HTTPMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error
 }
 
 // ResetUpdatedAt resets all changes to the "updated_at" field.
-func (m *HTTPMutation) ResetUpdatedAt() {
+func (m *DNSDetectorMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
 // SetStatus sets the "status" field.
-func (m *HTTPMutation) SetStatus(s schema.Status) {
+func (m *DNSDetectorMutation) SetStatus(s schema.Status) {
 	m.status = &s
 	m.addstatus = nil
 }
 
 // Status returns the value of the "status" field in the mutation.
-func (m *HTTPMutation) Status() (r schema.Status, exists bool) {
+func (m *DNSDetectorMutation) Status() (r schema.Status, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -977,10 +992,10 @@ func (m *HTTPMutation) Status() (r schema.Status, exists bool) {
 	return *v, true
 }
 
-// OldStatus returns the old "status" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
+// OldStatus returns the old "status" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
+func (m *DNSDetectorMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
 	}
@@ -995,7 +1010,7 @@ func (m *HTTPMutation) OldStatus(ctx context.Context) (v schema.Status, err erro
 }
 
 // AddStatus adds s to the "status" field.
-func (m *HTTPMutation) AddStatus(s schema.Status) {
+func (m *DNSDetectorMutation) AddStatus(s schema.Status) {
 	if m.addstatus != nil {
 		*m.addstatus += s
 	} else {
@@ -1004,7 +1019,7 @@ func (m *HTTPMutation) AddStatus(s schema.Status) {
 }
 
 // AddedStatus returns the value that was added to the "status" field in this mutation.
-func (m *HTTPMutation) AddedStatus() (r schema.Status, exists bool) {
+func (m *DNSDetectorMutation) AddedStatus() (r schema.Status, exists bool) {
 	v := m.addstatus
 	if v == nil {
 		return
@@ -1013,18 +1028,18 @@ func (m *HTTPMutation) AddedStatus() (r schema.Status, exists bool) {
 }
 
 // ResetStatus resets all changes to the "status" field.
-func (m *HTTPMutation) ResetStatus() {
+func (m *DNSDetectorMutation) ResetStatus() {
 	m.status = nil
 	m.addstatus = nil
 }
 
 // SetName sets the "name" field.
-func (m *HTTPMutation) SetName(s string) {
+func (m *DNSDetectorMutation) SetName(s string) {
 	m.name = &s
 }
 
 // Name returns the value of the "name" field in the mutation.
-func (m *HTTPMutation) Name() (r string, exists bool) {
+func (m *DNSDetectorMutation) Name() (r string, exists bool) {
 	v := m.name
 	if v == nil {
 		return
@@ -1032,10 +1047,10 @@ func (m *HTTPMutation) Name() (r string, exists bool) {
 	return *v, true
 }
 
-// OldName returns the old "name" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
+// OldName returns the old "name" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *DNSDetectorMutation) OldName(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
 	}
@@ -1050,17 +1065,17 @@ func (m *HTTPMutation) OldName(ctx context.Context) (v string, err error) {
 }
 
 // ResetName resets all changes to the "name" field.
-func (m *HTTPMutation) ResetName() {
+func (m *DNSDetectorMutation) ResetName() {
 	m.name = nil
 }
 
 // SetOwner sets the "owner" field.
-func (m *HTTPMutation) SetOwner(s string) {
+func (m *DNSDetectorMutation) SetOwner(s string) {
 	m.owner = &s
 }
 
 // Owner returns the value of the "owner" field in the mutation.
-func (m *HTTPMutation) Owner() (r string, exists bool) {
+func (m *DNSDetectorMutation) Owner() (r string, exists bool) {
 	v := m.owner
 	if v == nil {
 		return
@@ -1068,10 +1083,10 @@ func (m *HTTPMutation) Owner() (r string, exists bool) {
 	return *v, true
 }
 
-// OldOwner returns the old "owner" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
+// OldOwner returns the old "owner" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldOwner(ctx context.Context) (v string, err error) {
+func (m *DNSDetectorMutation) OldOwner(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldOwner is only allowed on UpdateOne operations")
 	}
@@ -1086,17 +1101,17 @@ func (m *HTTPMutation) OldOwner(ctx context.Context) (v string, err error) {
 }
 
 // ResetOwner resets all changes to the "owner" field.
-func (m *HTTPMutation) ResetOwner() {
+func (m *DNSDetectorMutation) ResetOwner() {
 	m.owner = nil
 }
 
 // SetDescription sets the "description" field.
-func (m *HTTPMutation) SetDescription(s string) {
+func (m *DNSDetectorMutation) SetDescription(s string) {
 	m.description = &s
 }
 
 // Description returns the value of the "description" field in the mutation.
-func (m *HTTPMutation) Description() (r string, exists bool) {
+func (m *DNSDetectorMutation) Description() (r string, exists bool) {
 	v := m.description
 	if v == nil {
 		return
@@ -1104,10 +1119,10 @@ func (m *HTTPMutation) Description() (r string, exists bool) {
 	return *v, true
 }
 
-// OldDescription returns the old "description" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
+// OldDescription returns the old "description" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldDescription(ctx context.Context) (v string, err error) {
+func (m *DNSDetectorMutation) OldDescription(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldDescription is only allowed on UpdateOne operations")
 	}
@@ -1122,17 +1137,17 @@ func (m *HTTPMutation) OldDescription(ctx context.Context) (v string, err error)
 }
 
 // ResetDescription resets all changes to the "description" field.
-func (m *HTTPMutation) ResetDescription() {
+func (m *DNSDetectorMutation) ResetDescription() {
 	m.description = nil
 }
 
 // SetReceivers sets the "receivers" field.
-func (m *HTTPMutation) SetReceivers(s []string) {
+func (m *DNSDetectorMutation) SetReceivers(s []string) {
 	m.receivers = &s
 }
 
 // Receivers returns the value of the "receivers" field in the mutation.
-func (m *HTTPMutation) Receivers() (r []string, exists bool) {
+func (m *DNSDetectorMutation) Receivers() (r []string, exists bool) {
 	v := m.receivers
 	if v == nil {
 		return
@@ -1140,10 +1155,10 @@ func (m *HTTPMutation) Receivers() (r []string, exists bool) {
 	return *v, true
 }
 
-// OldReceivers returns the old "receivers" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
+// OldReceivers returns the old "receivers" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldReceivers(ctx context.Context) (v []string, err error) {
+func (m *DNSDetectorMutation) OldReceivers(ctx context.Context) (v []string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldReceivers is only allowed on UpdateOne operations")
 	}
@@ -1158,89 +1173,17 @@ func (m *HTTPMutation) OldReceivers(ctx context.Context) (v []string, err error)
 }
 
 // ResetReceivers resets all changes to the "receivers" field.
-func (m *HTTPMutation) ResetReceivers() {
+func (m *DNSDetectorMutation) ResetReceivers() {
 	m.receivers = nil
 }
 
-// SetIps sets the "ips" field.
-func (m *HTTPMutation) SetIps(s []string) {
-	m.ips = &s
-}
-
-// Ips returns the value of the "ips" field in the mutation.
-func (m *HTTPMutation) Ips() (r []string, exists bool) {
-	v := m.ips
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldIps returns the old "ips" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldIps(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldIps is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldIps requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldIps: %w", err)
-	}
-	return oldValue.Ips, nil
-}
-
-// ResetIps resets all changes to the "ips" field.
-func (m *HTTPMutation) ResetIps() {
-	m.ips = nil
-}
-
-// SetURL sets the "url" field.
-func (m *HTTPMutation) SetURL(s string) {
-	m.url = &s
-}
-
-// URL returns the value of the "url" field in the mutation.
-func (m *HTTPMutation) URL() (r string, exists bool) {
-	v := m.url
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldURL returns the old "url" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldURL(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldURL is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldURL requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldURL: %w", err)
-	}
-	return oldValue.URL, nil
-}
-
-// ResetURL resets all changes to the "url" field.
-func (m *HTTPMutation) ResetURL() {
-	m.url = nil
-}
-
 // SetTimeout sets the "timeout" field.
-func (m *HTTPMutation) SetTimeout(s string) {
+func (m *DNSDetectorMutation) SetTimeout(s string) {
 	m.timeout = &s
 }
 
 // Timeout returns the value of the "timeout" field in the mutation.
-func (m *HTTPMutation) Timeout() (r string, exists bool) {
+func (m *DNSDetectorMutation) Timeout() (r string, exists bool) {
 	v := m.timeout
 	if v == nil {
 		return
@@ -1248,10 +1191,10 @@ func (m *HTTPMutation) Timeout() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTimeout returns the old "timeout" field's value of the HTTP entity.
-// If the HTTP object wasn't provided to the builder, the object is fetched from the database.
+// OldTimeout returns the old "timeout" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPMutation) OldTimeout(ctx context.Context) (v string, err error) {
+func (m *DNSDetectorMutation) OldTimeout(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldTimeout is only allowed on UpdateOne operations")
 	}
@@ -1266,54 +1209,165 @@ func (m *HTTPMutation) OldTimeout(ctx context.Context) (v string, err error) {
 }
 
 // ResetTimeout resets all changes to the "timeout" field.
-func (m *HTTPMutation) ResetTimeout() {
+func (m *DNSDetectorMutation) ResetTimeout() {
 	m.timeout = nil
 }
 
+// SetHost sets the "host" field.
+func (m *DNSDetectorMutation) SetHost(s string) {
+	m.host = &s
+}
+
+// Host returns the value of the "host" field in the mutation.
+func (m *DNSDetectorMutation) Host() (r string, exists bool) {
+	v := m.host
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHost returns the old "host" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorMutation) OldHost(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldHost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldHost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHost: %w", err)
+	}
+	return oldValue.Host, nil
+}
+
+// ResetHost resets all changes to the "host" field.
+func (m *DNSDetectorMutation) ResetHost() {
+	m.host = nil
+}
+
+// SetIps sets the "ips" field.
+func (m *DNSDetectorMutation) SetIps(s []string) {
+	m.ips = &s
+}
+
+// Ips returns the value of the "ips" field in the mutation.
+func (m *DNSDetectorMutation) Ips() (r []string, exists bool) {
+	v := m.ips
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIps returns the old "ips" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorMutation) OldIps(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldIps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldIps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIps: %w", err)
+	}
+	return oldValue.Ips, nil
+}
+
+// ResetIps resets all changes to the "ips" field.
+func (m *DNSDetectorMutation) ResetIps() {
+	m.ips = nil
+}
+
+// SetServers sets the "servers" field.
+func (m *DNSDetectorMutation) SetServers(s []string) {
+	m.servers = &s
+}
+
+// Servers returns the value of the "servers" field in the mutation.
+func (m *DNSDetectorMutation) Servers() (r []string, exists bool) {
+	v := m.servers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldServers returns the old "servers" field's value of the DNSDetector entity.
+// If the DNSDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorMutation) OldServers(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldServers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldServers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldServers: %w", err)
+	}
+	return oldValue.Servers, nil
+}
+
+// ResetServers resets all changes to the "servers" field.
+func (m *DNSDetectorMutation) ResetServers() {
+	m.servers = nil
+}
+
 // Op returns the operation name.
-func (m *HTTPMutation) Op() Op {
+func (m *DNSDetectorMutation) Op() Op {
 	return m.op
 }
 
-// Type returns the node type of this mutation (HTTP).
-func (m *HTTPMutation) Type() string {
+// Type returns the node type of this mutation (DNSDetector).
+func (m *DNSDetectorMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *HTTPMutation) Fields() []string {
-	fields := make([]string, 0, 10)
+func (m *DNSDetectorMutation) Fields() []string {
+	fields := make([]string, 0, 11)
 	if m.created_at != nil {
-		fields = append(fields, http.FieldCreatedAt)
+		fields = append(fields, dnsdetector.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
-		fields = append(fields, http.FieldUpdatedAt)
+		fields = append(fields, dnsdetector.FieldUpdatedAt)
 	}
 	if m.status != nil {
-		fields = append(fields, http.FieldStatus)
+		fields = append(fields, dnsdetector.FieldStatus)
 	}
 	if m.name != nil {
-		fields = append(fields, http.FieldName)
+		fields = append(fields, dnsdetector.FieldName)
 	}
 	if m.owner != nil {
-		fields = append(fields, http.FieldOwner)
+		fields = append(fields, dnsdetector.FieldOwner)
 	}
 	if m.description != nil {
-		fields = append(fields, http.FieldDescription)
+		fields = append(fields, dnsdetector.FieldDescription)
 	}
 	if m.receivers != nil {
-		fields = append(fields, http.FieldReceivers)
-	}
-	if m.ips != nil {
-		fields = append(fields, http.FieldIps)
-	}
-	if m.url != nil {
-		fields = append(fields, http.FieldURL)
+		fields = append(fields, dnsdetector.FieldReceivers)
 	}
 	if m.timeout != nil {
-		fields = append(fields, http.FieldTimeout)
+		fields = append(fields, dnsdetector.FieldTimeout)
+	}
+	if m.host != nil {
+		fields = append(fields, dnsdetector.FieldHost)
+	}
+	if m.ips != nil {
+		fields = append(fields, dnsdetector.FieldIps)
+	}
+	if m.servers != nil {
+		fields = append(fields, dnsdetector.FieldServers)
 	}
 	return fields
 }
@@ -1321,28 +1375,30 @@ func (m *HTTPMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *HTTPMutation) Field(name string) (ent.Value, bool) {
+func (m *DNSDetectorMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case http.FieldCreatedAt:
+	case dnsdetector.FieldCreatedAt:
 		return m.CreatedAt()
-	case http.FieldUpdatedAt:
+	case dnsdetector.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case http.FieldStatus:
+	case dnsdetector.FieldStatus:
 		return m.Status()
-	case http.FieldName:
+	case dnsdetector.FieldName:
 		return m.Name()
-	case http.FieldOwner:
+	case dnsdetector.FieldOwner:
 		return m.Owner()
-	case http.FieldDescription:
+	case dnsdetector.FieldDescription:
 		return m.Description()
-	case http.FieldReceivers:
+	case dnsdetector.FieldReceivers:
 		return m.Receivers()
-	case http.FieldIps:
-		return m.Ips()
-	case http.FieldURL:
-		return m.URL()
-	case http.FieldTimeout:
+	case dnsdetector.FieldTimeout:
 		return m.Timeout()
+	case dnsdetector.FieldHost:
+		return m.Host()
+	case dnsdetector.FieldIps:
+		return m.Ips()
+	case dnsdetector.FieldServers:
+		return m.Servers()
 	}
 	return nil, false
 }
@@ -1350,117 +1406,126 @@ func (m *HTTPMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *HTTPMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *DNSDetectorMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case http.FieldCreatedAt:
+	case dnsdetector.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
-	case http.FieldUpdatedAt:
+	case dnsdetector.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case http.FieldStatus:
+	case dnsdetector.FieldStatus:
 		return m.OldStatus(ctx)
-	case http.FieldName:
+	case dnsdetector.FieldName:
 		return m.OldName(ctx)
-	case http.FieldOwner:
+	case dnsdetector.FieldOwner:
 		return m.OldOwner(ctx)
-	case http.FieldDescription:
+	case dnsdetector.FieldDescription:
 		return m.OldDescription(ctx)
-	case http.FieldReceivers:
+	case dnsdetector.FieldReceivers:
 		return m.OldReceivers(ctx)
-	case http.FieldIps:
-		return m.OldIps(ctx)
-	case http.FieldURL:
-		return m.OldURL(ctx)
-	case http.FieldTimeout:
+	case dnsdetector.FieldTimeout:
 		return m.OldTimeout(ctx)
+	case dnsdetector.FieldHost:
+		return m.OldHost(ctx)
+	case dnsdetector.FieldIps:
+		return m.OldIps(ctx)
+	case dnsdetector.FieldServers:
+		return m.OldServers(ctx)
 	}
-	return nil, fmt.Errorf("unknown HTTP field %s", name)
+	return nil, fmt.Errorf("unknown DNSDetector field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *HTTPMutation) SetField(name string, value ent.Value) error {
+func (m *DNSDetectorMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case http.FieldCreatedAt:
+	case dnsdetector.FieldCreatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCreatedAt(v)
 		return nil
-	case http.FieldUpdatedAt:
+	case dnsdetector.FieldUpdatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
 		return nil
-	case http.FieldStatus:
+	case dnsdetector.FieldStatus:
 		v, ok := value.(schema.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
 		return nil
-	case http.FieldName:
+	case dnsdetector.FieldName:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
 		return nil
-	case http.FieldOwner:
+	case dnsdetector.FieldOwner:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOwner(v)
 		return nil
-	case http.FieldDescription:
+	case dnsdetector.FieldDescription:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
 		return nil
-	case http.FieldReceivers:
+	case dnsdetector.FieldReceivers:
 		v, ok := value.([]string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetReceivers(v)
 		return nil
-	case http.FieldIps:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetIps(v)
-		return nil
-	case http.FieldURL:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetURL(v)
-		return nil
-	case http.FieldTimeout:
+	case dnsdetector.FieldTimeout:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTimeout(v)
 		return nil
+	case dnsdetector.FieldHost:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHost(v)
+		return nil
+	case dnsdetector.FieldIps:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIps(v)
+		return nil
+	case dnsdetector.FieldServers:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetServers(v)
+		return nil
 	}
-	return fmt.Errorf("unknown HTTP field %s", name)
+	return fmt.Errorf("unknown DNSDetector field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *HTTPMutation) AddedFields() []string {
+func (m *DNSDetectorMutation) AddedFields() []string {
 	var fields []string
 	if m.addstatus != nil {
-		fields = append(fields, http.FieldStatus)
+		fields = append(fields, dnsdetector.FieldStatus)
 	}
 	return fields
 }
@@ -1468,9 +1533,9 @@ func (m *HTTPMutation) AddedFields() []string {
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *HTTPMutation) AddedField(name string) (ent.Value, bool) {
+func (m *DNSDetectorMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case http.FieldStatus:
+	case dnsdetector.FieldStatus:
 		return m.AddedStatus()
 	}
 	return nil, false
@@ -1479,9 +1544,9 @@ func (m *HTTPMutation) AddedField(name string) (ent.Value, bool) {
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *HTTPMutation) AddField(name string, value ent.Value) error {
+func (m *DNSDetectorMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case http.FieldStatus:
+	case dnsdetector.FieldStatus:
 		v, ok := value.(schema.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -1489,112 +1554,5850 @@ func (m *HTTPMutation) AddField(name string, value ent.Value) error {
 		m.AddStatus(v)
 		return nil
 	}
-	return fmt.Errorf("unknown HTTP numeric field %s", name)
+	return fmt.Errorf("unknown DNSDetector numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *HTTPMutation) ClearedFields() []string {
+func (m *DNSDetectorMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *HTTPMutation) FieldCleared(name string) bool {
+func (m *DNSDetectorMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *HTTPMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown HTTP nullable field %s", name)
+func (m *DNSDetectorMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown DNSDetector nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *HTTPMutation) ResetField(name string) error {
+func (m *DNSDetectorMutation) ResetField(name string) error {
 	switch name {
-	case http.FieldCreatedAt:
+	case dnsdetector.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
-	case http.FieldUpdatedAt:
+	case dnsdetector.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
-	case http.FieldStatus:
+	case dnsdetector.FieldStatus:
 		m.ResetStatus()
 		return nil
-	case http.FieldName:
+	case dnsdetector.FieldName:
 		m.ResetName()
 		return nil
-	case http.FieldOwner:
+	case dnsdetector.FieldOwner:
 		m.ResetOwner()
 		return nil
-	case http.FieldDescription:
+	case dnsdetector.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case http.FieldReceivers:
+	case dnsdetector.FieldReceivers:
 		m.ResetReceivers()
 		return nil
-	case http.FieldIps:
-		m.ResetIps()
-		return nil
-	case http.FieldURL:
-		m.ResetURL()
-		return nil
-	case http.FieldTimeout:
+	case dnsdetector.FieldTimeout:
 		m.ResetTimeout()
 		return nil
+	case dnsdetector.FieldHost:
+		m.ResetHost()
+		return nil
+	case dnsdetector.FieldIps:
+		m.ResetIps()
+		return nil
+	case dnsdetector.FieldServers:
+		m.ResetServers()
+		return nil
 	}
-	return fmt.Errorf("unknown HTTP field %s", name)
+	return fmt.Errorf("unknown DNSDetector field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *HTTPMutation) AddedEdges() []string {
+func (m *DNSDetectorMutation) AddedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *HTTPMutation) AddedIDs(name string) []ent.Value {
+func (m *DNSDetectorMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *HTTPMutation) RemovedEdges() []string {
+func (m *DNSDetectorMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *HTTPMutation) RemovedIDs(name string) []ent.Value {
+func (m *DNSDetectorMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *HTTPMutation) ClearedEdges() []string {
+func (m *DNSDetectorMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *HTTPMutation) EdgeCleared(name string) bool {
+func (m *DNSDetectorMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *HTTPMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown HTTP unique edge %s", name)
+func (m *DNSDetectorMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown DNSDetector unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *HTTPMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown HTTP edge %s", name)
+func (m *DNSDetectorMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown DNSDetector edge %s", name)
+}
+
+// DNSDetectorResultMutation represents an operation that mutates the DNSDetectorResult nodes in the graph.
+type DNSDetectorResultMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	status         *schema.Status
+	addstatus      *schema.Status
+	task           *int
+	addtask        *int
+	result         *int8
+	addresult      *int8
+	maxDuration    *int
+	addmaxDuration *int
+	messages       *[]string
+	host           *string
+	results        *schema.DNSDetectorSubResults
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*DNSDetectorResult, error)
+	predicates     []predicate.DNSDetectorResult
+}
+
+var _ ent.Mutation = (*DNSDetectorResultMutation)(nil)
+
+// dnsdetectorresultOption allows management of the mutation configuration using functional options.
+type dnsdetectorresultOption func(*DNSDetectorResultMutation)
+
+// newDNSDetectorResultMutation creates new mutation for the DNSDetectorResult entity.
+func newDNSDetectorResultMutation(c config, op Op, opts ...dnsdetectorresultOption) *DNSDetectorResultMutation {
+	m := &DNSDetectorResultMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeDNSDetectorResult,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withDNSDetectorResultID sets the ID field of the mutation.
+func withDNSDetectorResultID(id int) dnsdetectorresultOption {
+	return func(m *DNSDetectorResultMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *DNSDetectorResult
+		)
+		m.oldValue = func(ctx context.Context) (*DNSDetectorResult, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().DNSDetectorResult.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withDNSDetectorResult sets the old DNSDetectorResult of the mutation.
+func withDNSDetectorResult(node *DNSDetectorResult) dnsdetectorresultOption {
+	return func(m *DNSDetectorResultMutation) {
+		m.oldValue = func(context.Context) (*DNSDetectorResult, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m DNSDetectorResultMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m DNSDetectorResultMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *DNSDetectorResultMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *DNSDetectorResultMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *DNSDetectorResultMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the DNSDetectorResult entity.
+// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorResultMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *DNSDetectorResultMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *DNSDetectorResultMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *DNSDetectorResultMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the DNSDetectorResult entity.
+// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorResultMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *DNSDetectorResultMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *DNSDetectorResultMutation) SetStatus(s schema.Status) {
+	m.status = &s
+	m.addstatus = nil
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *DNSDetectorResultMutation) Status() (r schema.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the DNSDetectorResult entity.
+// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorResultMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// AddStatus adds s to the "status" field.
+func (m *DNSDetectorResultMutation) AddStatus(s schema.Status) {
+	if m.addstatus != nil {
+		*m.addstatus += s
+	} else {
+		m.addstatus = &s
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *DNSDetectorResultMutation) AddedStatus() (r schema.Status, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *DNSDetectorResultMutation) ResetStatus() {
+	m.status = nil
+	m.addstatus = nil
+}
+
+// SetTask sets the "task" field.
+func (m *DNSDetectorResultMutation) SetTask(i int) {
+	m.task = &i
+	m.addtask = nil
+}
+
+// Task returns the value of the "task" field in the mutation.
+func (m *DNSDetectorResultMutation) Task() (r int, exists bool) {
+	v := m.task
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTask returns the old "task" field's value of the DNSDetectorResult entity.
+// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorResultMutation) OldTask(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTask is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTask requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTask: %w", err)
+	}
+	return oldValue.Task, nil
+}
+
+// AddTask adds i to the "task" field.
+func (m *DNSDetectorResultMutation) AddTask(i int) {
+	if m.addtask != nil {
+		*m.addtask += i
+	} else {
+		m.addtask = &i
+	}
+}
+
+// AddedTask returns the value that was added to the "task" field in this mutation.
+func (m *DNSDetectorResultMutation) AddedTask() (r int, exists bool) {
+	v := m.addtask
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTask resets all changes to the "task" field.
+func (m *DNSDetectorResultMutation) ResetTask() {
+	m.task = nil
+	m.addtask = nil
+}
+
+// SetResult sets the "result" field.
+func (m *DNSDetectorResultMutation) SetResult(i int8) {
+	m.result = &i
+	m.addresult = nil
+}
+
+// Result returns the value of the "result" field in the mutation.
+func (m *DNSDetectorResultMutation) Result() (r int8, exists bool) {
+	v := m.result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResult returns the old "result" field's value of the DNSDetectorResult entity.
+// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorResultMutation) OldResult(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
+	}
+	return oldValue.Result, nil
+}
+
+// AddResult adds i to the "result" field.
+func (m *DNSDetectorResultMutation) AddResult(i int8) {
+	if m.addresult != nil {
+		*m.addresult += i
+	} else {
+		m.addresult = &i
+	}
+}
+
+// AddedResult returns the value that was added to the "result" field in this mutation.
+func (m *DNSDetectorResultMutation) AddedResult() (r int8, exists bool) {
+	v := m.addresult
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetResult resets all changes to the "result" field.
+func (m *DNSDetectorResultMutation) ResetResult() {
+	m.result = nil
+	m.addresult = nil
+}
+
+// SetMaxDuration sets the "maxDuration" field.
+func (m *DNSDetectorResultMutation) SetMaxDuration(i int) {
+	m.maxDuration = &i
+	m.addmaxDuration = nil
+}
+
+// MaxDuration returns the value of the "maxDuration" field in the mutation.
+func (m *DNSDetectorResultMutation) MaxDuration() (r int, exists bool) {
+	v := m.maxDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxDuration returns the old "maxDuration" field's value of the DNSDetectorResult entity.
+// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorResultMutation) OldMaxDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldMaxDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldMaxDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxDuration: %w", err)
+	}
+	return oldValue.MaxDuration, nil
+}
+
+// AddMaxDuration adds i to the "maxDuration" field.
+func (m *DNSDetectorResultMutation) AddMaxDuration(i int) {
+	if m.addmaxDuration != nil {
+		*m.addmaxDuration += i
+	} else {
+		m.addmaxDuration = &i
+	}
+}
+
+// AddedMaxDuration returns the value that was added to the "maxDuration" field in this mutation.
+func (m *DNSDetectorResultMutation) AddedMaxDuration() (r int, exists bool) {
+	v := m.addmaxDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxDuration resets all changes to the "maxDuration" field.
+func (m *DNSDetectorResultMutation) ResetMaxDuration() {
+	m.maxDuration = nil
+	m.addmaxDuration = nil
+}
+
+// SetMessages sets the "messages" field.
+func (m *DNSDetectorResultMutation) SetMessages(s []string) {
+	m.messages = &s
+}
+
+// Messages returns the value of the "messages" field in the mutation.
+func (m *DNSDetectorResultMutation) Messages() (r []string, exists bool) {
+	v := m.messages
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessages returns the old "messages" field's value of the DNSDetectorResult entity.
+// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorResultMutation) OldMessages(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldMessages is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldMessages requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessages: %w", err)
+	}
+	return oldValue.Messages, nil
+}
+
+// ResetMessages resets all changes to the "messages" field.
+func (m *DNSDetectorResultMutation) ResetMessages() {
+	m.messages = nil
+}
+
+// SetHost sets the "host" field.
+func (m *DNSDetectorResultMutation) SetHost(s string) {
+	m.host = &s
+}
+
+// Host returns the value of the "host" field in the mutation.
+func (m *DNSDetectorResultMutation) Host() (r string, exists bool) {
+	v := m.host
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHost returns the old "host" field's value of the DNSDetectorResult entity.
+// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorResultMutation) OldHost(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldHost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldHost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHost: %w", err)
+	}
+	return oldValue.Host, nil
+}
+
+// ResetHost resets all changes to the "host" field.
+func (m *DNSDetectorResultMutation) ResetHost() {
+	m.host = nil
+}
+
+// SetResults sets the "results" field.
+func (m *DNSDetectorResultMutation) SetResults(sdsr schema.DNSDetectorSubResults) {
+	m.results = &sdsr
+}
+
+// Results returns the value of the "results" field in the mutation.
+func (m *DNSDetectorResultMutation) Results() (r schema.DNSDetectorSubResults, exists bool) {
+	v := m.results
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResults returns the old "results" field's value of the DNSDetectorResult entity.
+// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *DNSDetectorResultMutation) OldResults(ctx context.Context) (v schema.DNSDetectorSubResults, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldResults is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldResults requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResults: %w", err)
+	}
+	return oldValue.Results, nil
+}
+
+// ResetResults resets all changes to the "results" field.
+func (m *DNSDetectorResultMutation) ResetResults() {
+	m.results = nil
+}
+
+// Op returns the operation name.
+func (m *DNSDetectorResultMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (DNSDetectorResult).
+func (m *DNSDetectorResultMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *DNSDetectorResultMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, dnsdetectorresult.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, dnsdetectorresult.FieldUpdatedAt)
+	}
+	if m.status != nil {
+		fields = append(fields, dnsdetectorresult.FieldStatus)
+	}
+	if m.task != nil {
+		fields = append(fields, dnsdetectorresult.FieldTask)
+	}
+	if m.result != nil {
+		fields = append(fields, dnsdetectorresult.FieldResult)
+	}
+	if m.maxDuration != nil {
+		fields = append(fields, dnsdetectorresult.FieldMaxDuration)
+	}
+	if m.messages != nil {
+		fields = append(fields, dnsdetectorresult.FieldMessages)
+	}
+	if m.host != nil {
+		fields = append(fields, dnsdetectorresult.FieldHost)
+	}
+	if m.results != nil {
+		fields = append(fields, dnsdetectorresult.FieldResults)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *DNSDetectorResultMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case dnsdetectorresult.FieldCreatedAt:
+		return m.CreatedAt()
+	case dnsdetectorresult.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case dnsdetectorresult.FieldStatus:
+		return m.Status()
+	case dnsdetectorresult.FieldTask:
+		return m.Task()
+	case dnsdetectorresult.FieldResult:
+		return m.Result()
+	case dnsdetectorresult.FieldMaxDuration:
+		return m.MaxDuration()
+	case dnsdetectorresult.FieldMessages:
+		return m.Messages()
+	case dnsdetectorresult.FieldHost:
+		return m.Host()
+	case dnsdetectorresult.FieldResults:
+		return m.Results()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *DNSDetectorResultMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case dnsdetectorresult.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case dnsdetectorresult.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case dnsdetectorresult.FieldStatus:
+		return m.OldStatus(ctx)
+	case dnsdetectorresult.FieldTask:
+		return m.OldTask(ctx)
+	case dnsdetectorresult.FieldResult:
+		return m.OldResult(ctx)
+	case dnsdetectorresult.FieldMaxDuration:
+		return m.OldMaxDuration(ctx)
+	case dnsdetectorresult.FieldMessages:
+		return m.OldMessages(ctx)
+	case dnsdetectorresult.FieldHost:
+		return m.OldHost(ctx)
+	case dnsdetectorresult.FieldResults:
+		return m.OldResults(ctx)
+	}
+	return nil, fmt.Errorf("unknown DNSDetectorResult field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DNSDetectorResultMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case dnsdetectorresult.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case dnsdetectorresult.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case dnsdetectorresult.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case dnsdetectorresult.FieldTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTask(v)
+		return nil
+	case dnsdetectorresult.FieldResult:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResult(v)
+		return nil
+	case dnsdetectorresult.FieldMaxDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxDuration(v)
+		return nil
+	case dnsdetectorresult.FieldMessages:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessages(v)
+		return nil
+	case dnsdetectorresult.FieldHost:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHost(v)
+		return nil
+	case dnsdetectorresult.FieldResults:
+		v, ok := value.(schema.DNSDetectorSubResults)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResults(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DNSDetectorResult field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *DNSDetectorResultMutation) AddedFields() []string {
+	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, dnsdetectorresult.FieldStatus)
+	}
+	if m.addtask != nil {
+		fields = append(fields, dnsdetectorresult.FieldTask)
+	}
+	if m.addresult != nil {
+		fields = append(fields, dnsdetectorresult.FieldResult)
+	}
+	if m.addmaxDuration != nil {
+		fields = append(fields, dnsdetectorresult.FieldMaxDuration)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *DNSDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case dnsdetectorresult.FieldStatus:
+		return m.AddedStatus()
+	case dnsdetectorresult.FieldTask:
+		return m.AddedTask()
+	case dnsdetectorresult.FieldResult:
+		return m.AddedResult()
+	case dnsdetectorresult.FieldMaxDuration:
+		return m.AddedMaxDuration()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *DNSDetectorResultMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case dnsdetectorresult.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
+	case dnsdetectorresult.FieldTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTask(v)
+		return nil
+	case dnsdetectorresult.FieldResult:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddResult(v)
+		return nil
+	case dnsdetectorresult.FieldMaxDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxDuration(v)
+		return nil
+	}
+	return fmt.Errorf("unknown DNSDetectorResult numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *DNSDetectorResultMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *DNSDetectorResultMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *DNSDetectorResultMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown DNSDetectorResult nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *DNSDetectorResultMutation) ResetField(name string) error {
+	switch name {
+	case dnsdetectorresult.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case dnsdetectorresult.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case dnsdetectorresult.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case dnsdetectorresult.FieldTask:
+		m.ResetTask()
+		return nil
+	case dnsdetectorresult.FieldResult:
+		m.ResetResult()
+		return nil
+	case dnsdetectorresult.FieldMaxDuration:
+		m.ResetMaxDuration()
+		return nil
+	case dnsdetectorresult.FieldMessages:
+		m.ResetMessages()
+		return nil
+	case dnsdetectorresult.FieldHost:
+		m.ResetHost()
+		return nil
+	case dnsdetectorresult.FieldResults:
+		m.ResetResults()
+		return nil
+	}
+	return fmt.Errorf("unknown DNSDetectorResult field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *DNSDetectorResultMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *DNSDetectorResultMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *DNSDetectorResultMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *DNSDetectorResultMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *DNSDetectorResultMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *DNSDetectorResultMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *DNSDetectorResultMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown DNSDetectorResult unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *DNSDetectorResultMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown DNSDetectorResult edge %s", name)
+}
+
+// HTTPDetectorMutation represents an operation that mutates the HTTPDetector nodes in the graph.
+type HTTPDetectorMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	status        *schema.Status
+	addstatus     *schema.Status
+	name          *string
+	owner         *string
+	description   *string
+	receivers     *[]string
+	timeout       *string
+	ips           *[]string
+	url           *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*HTTPDetector, error)
+	predicates    []predicate.HTTPDetector
+}
+
+var _ ent.Mutation = (*HTTPDetectorMutation)(nil)
+
+// httpdetectorOption allows management of the mutation configuration using functional options.
+type httpdetectorOption func(*HTTPDetectorMutation)
+
+// newHTTPDetectorMutation creates new mutation for the HTTPDetector entity.
+func newHTTPDetectorMutation(c config, op Op, opts ...httpdetectorOption) *HTTPDetectorMutation {
+	m := &HTTPDetectorMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeHTTPDetector,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withHTTPDetectorID sets the ID field of the mutation.
+func withHTTPDetectorID(id int) httpdetectorOption {
+	return func(m *HTTPDetectorMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *HTTPDetector
+		)
+		m.oldValue = func(ctx context.Context) (*HTTPDetector, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().HTTPDetector.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withHTTPDetector sets the old HTTPDetector of the mutation.
+func withHTTPDetector(node *HTTPDetector) httpdetectorOption {
+	return func(m *HTTPDetectorMutation) {
+		m.oldValue = func(context.Context) (*HTTPDetector, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m HTTPDetectorMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m HTTPDetectorMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *HTTPDetectorMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *HTTPDetectorMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *HTTPDetectorMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *HTTPDetectorMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *HTTPDetectorMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *HTTPDetectorMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *HTTPDetectorMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *HTTPDetectorMutation) SetStatus(s schema.Status) {
+	m.status = &s
+	m.addstatus = nil
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *HTTPDetectorMutation) Status() (r schema.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// AddStatus adds s to the "status" field.
+func (m *HTTPDetectorMutation) AddStatus(s schema.Status) {
+	if m.addstatus != nil {
+		*m.addstatus += s
+	} else {
+		m.addstatus = &s
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *HTTPDetectorMutation) AddedStatus() (r schema.Status, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *HTTPDetectorMutation) ResetStatus() {
+	m.status = nil
+	m.addstatus = nil
+}
+
+// SetName sets the "name" field.
+func (m *HTTPDetectorMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *HTTPDetectorMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *HTTPDetectorMutation) ResetName() {
+	m.name = nil
+}
+
+// SetOwner sets the "owner" field.
+func (m *HTTPDetectorMutation) SetOwner(s string) {
+	m.owner = &s
+}
+
+// Owner returns the value of the "owner" field in the mutation.
+func (m *HTTPDetectorMutation) Owner() (r string, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwner returns the old "owner" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldOwner(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldOwner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldOwner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwner: %w", err)
+	}
+	return oldValue.Owner, nil
+}
+
+// ResetOwner resets all changes to the "owner" field.
+func (m *HTTPDetectorMutation) ResetOwner() {
+	m.owner = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *HTTPDetectorMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *HTTPDetectorMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *HTTPDetectorMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetReceivers sets the "receivers" field.
+func (m *HTTPDetectorMutation) SetReceivers(s []string) {
+	m.receivers = &s
+}
+
+// Receivers returns the value of the "receivers" field in the mutation.
+func (m *HTTPDetectorMutation) Receivers() (r []string, exists bool) {
+	v := m.receivers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReceivers returns the old "receivers" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldReceivers(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldReceivers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldReceivers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReceivers: %w", err)
+	}
+	return oldValue.Receivers, nil
+}
+
+// ResetReceivers resets all changes to the "receivers" field.
+func (m *HTTPDetectorMutation) ResetReceivers() {
+	m.receivers = nil
+}
+
+// SetTimeout sets the "timeout" field.
+func (m *HTTPDetectorMutation) SetTimeout(s string) {
+	m.timeout = &s
+}
+
+// Timeout returns the value of the "timeout" field in the mutation.
+func (m *HTTPDetectorMutation) Timeout() (r string, exists bool) {
+	v := m.timeout
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimeout returns the old "timeout" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldTimeout(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTimeout is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTimeout requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimeout: %w", err)
+	}
+	return oldValue.Timeout, nil
+}
+
+// ResetTimeout resets all changes to the "timeout" field.
+func (m *HTTPDetectorMutation) ResetTimeout() {
+	m.timeout = nil
+}
+
+// SetIps sets the "ips" field.
+func (m *HTTPDetectorMutation) SetIps(s []string) {
+	m.ips = &s
+}
+
+// Ips returns the value of the "ips" field in the mutation.
+func (m *HTTPDetectorMutation) Ips() (r []string, exists bool) {
+	v := m.ips
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIps returns the old "ips" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldIps(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldIps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldIps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIps: %w", err)
+	}
+	return oldValue.Ips, nil
+}
+
+// ResetIps resets all changes to the "ips" field.
+func (m *HTTPDetectorMutation) ResetIps() {
+	m.ips = nil
+}
+
+// SetURL sets the "url" field.
+func (m *HTTPDetectorMutation) SetURL(s string) {
+	m.url = &s
+}
+
+// URL returns the value of the "url" field in the mutation.
+func (m *HTTPDetectorMutation) URL() (r string, exists bool) {
+	v := m.url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURL returns the old "url" field's value of the HTTPDetector entity.
+// If the HTTPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorMutation) OldURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+	}
+	return oldValue.URL, nil
+}
+
+// ResetURL resets all changes to the "url" field.
+func (m *HTTPDetectorMutation) ResetURL() {
+	m.url = nil
+}
+
+// Op returns the operation name.
+func (m *HTTPDetectorMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (HTTPDetector).
+func (m *HTTPDetectorMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *HTTPDetectorMutation) Fields() []string {
+	fields := make([]string, 0, 10)
+	if m.created_at != nil {
+		fields = append(fields, httpdetector.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, httpdetector.FieldUpdatedAt)
+	}
+	if m.status != nil {
+		fields = append(fields, httpdetector.FieldStatus)
+	}
+	if m.name != nil {
+		fields = append(fields, httpdetector.FieldName)
+	}
+	if m.owner != nil {
+		fields = append(fields, httpdetector.FieldOwner)
+	}
+	if m.description != nil {
+		fields = append(fields, httpdetector.FieldDescription)
+	}
+	if m.receivers != nil {
+		fields = append(fields, httpdetector.FieldReceivers)
+	}
+	if m.timeout != nil {
+		fields = append(fields, httpdetector.FieldTimeout)
+	}
+	if m.ips != nil {
+		fields = append(fields, httpdetector.FieldIps)
+	}
+	if m.url != nil {
+		fields = append(fields, httpdetector.FieldURL)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *HTTPDetectorMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case httpdetector.FieldCreatedAt:
+		return m.CreatedAt()
+	case httpdetector.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case httpdetector.FieldStatus:
+		return m.Status()
+	case httpdetector.FieldName:
+		return m.Name()
+	case httpdetector.FieldOwner:
+		return m.Owner()
+	case httpdetector.FieldDescription:
+		return m.Description()
+	case httpdetector.FieldReceivers:
+		return m.Receivers()
+	case httpdetector.FieldTimeout:
+		return m.Timeout()
+	case httpdetector.FieldIps:
+		return m.Ips()
+	case httpdetector.FieldURL:
+		return m.URL()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *HTTPDetectorMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case httpdetector.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case httpdetector.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case httpdetector.FieldStatus:
+		return m.OldStatus(ctx)
+	case httpdetector.FieldName:
+		return m.OldName(ctx)
+	case httpdetector.FieldOwner:
+		return m.OldOwner(ctx)
+	case httpdetector.FieldDescription:
+		return m.OldDescription(ctx)
+	case httpdetector.FieldReceivers:
+		return m.OldReceivers(ctx)
+	case httpdetector.FieldTimeout:
+		return m.OldTimeout(ctx)
+	case httpdetector.FieldIps:
+		return m.OldIps(ctx)
+	case httpdetector.FieldURL:
+		return m.OldURL(ctx)
+	}
+	return nil, fmt.Errorf("unknown HTTPDetector field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *HTTPDetectorMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case httpdetector.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case httpdetector.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case httpdetector.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case httpdetector.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case httpdetector.FieldOwner:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwner(v)
+		return nil
+	case httpdetector.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case httpdetector.FieldReceivers:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReceivers(v)
+		return nil
+	case httpdetector.FieldTimeout:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimeout(v)
+		return nil
+	case httpdetector.FieldIps:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIps(v)
+		return nil
+	case httpdetector.FieldURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURL(v)
+		return nil
+	}
+	return fmt.Errorf("unknown HTTPDetector field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *HTTPDetectorMutation) AddedFields() []string {
+	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, httpdetector.FieldStatus)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *HTTPDetectorMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case httpdetector.FieldStatus:
+		return m.AddedStatus()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *HTTPDetectorMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case httpdetector.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown HTTPDetector numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *HTTPDetectorMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *HTTPDetectorMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *HTTPDetectorMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown HTTPDetector nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *HTTPDetectorMutation) ResetField(name string) error {
+	switch name {
+	case httpdetector.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case httpdetector.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case httpdetector.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case httpdetector.FieldName:
+		m.ResetName()
+		return nil
+	case httpdetector.FieldOwner:
+		m.ResetOwner()
+		return nil
+	case httpdetector.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case httpdetector.FieldReceivers:
+		m.ResetReceivers()
+		return nil
+	case httpdetector.FieldTimeout:
+		m.ResetTimeout()
+		return nil
+	case httpdetector.FieldIps:
+		m.ResetIps()
+		return nil
+	case httpdetector.FieldURL:
+		m.ResetURL()
+		return nil
+	}
+	return fmt.Errorf("unknown HTTPDetector field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *HTTPDetectorMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *HTTPDetectorMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *HTTPDetectorMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *HTTPDetectorMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *HTTPDetectorMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *HTTPDetectorMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *HTTPDetectorMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown HTTPDetector unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *HTTPDetectorMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown HTTPDetector edge %s", name)
+}
+
+// HTTPDetectorResultMutation represents an operation that mutates the HTTPDetectorResult nodes in the graph.
+type HTTPDetectorResultMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	status         *schema.Status
+	addstatus      *schema.Status
+	task           *int
+	addtask        *int
+	result         *int8
+	addresult      *int8
+	maxDuration    *int
+	addmaxDuration *int
+	messages       *[]string
+	url            *string
+	results        *schema.HTTPDetectorSubResults
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*HTTPDetectorResult, error)
+	predicates     []predicate.HTTPDetectorResult
+}
+
+var _ ent.Mutation = (*HTTPDetectorResultMutation)(nil)
+
+// httpdetectorresultOption allows management of the mutation configuration using functional options.
+type httpdetectorresultOption func(*HTTPDetectorResultMutation)
+
+// newHTTPDetectorResultMutation creates new mutation for the HTTPDetectorResult entity.
+func newHTTPDetectorResultMutation(c config, op Op, opts ...httpdetectorresultOption) *HTTPDetectorResultMutation {
+	m := &HTTPDetectorResultMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeHTTPDetectorResult,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withHTTPDetectorResultID sets the ID field of the mutation.
+func withHTTPDetectorResultID(id int) httpdetectorresultOption {
+	return func(m *HTTPDetectorResultMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *HTTPDetectorResult
+		)
+		m.oldValue = func(ctx context.Context) (*HTTPDetectorResult, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().HTTPDetectorResult.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withHTTPDetectorResult sets the old HTTPDetectorResult of the mutation.
+func withHTTPDetectorResult(node *HTTPDetectorResult) httpdetectorresultOption {
+	return func(m *HTTPDetectorResultMutation) {
+		m.oldValue = func(context.Context) (*HTTPDetectorResult, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m HTTPDetectorResultMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m HTTPDetectorResultMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *HTTPDetectorResultMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *HTTPDetectorResultMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *HTTPDetectorResultMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the HTTPDetectorResult entity.
+// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorResultMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *HTTPDetectorResultMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *HTTPDetectorResultMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *HTTPDetectorResultMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the HTTPDetectorResult entity.
+// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorResultMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *HTTPDetectorResultMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *HTTPDetectorResultMutation) SetStatus(s schema.Status) {
+	m.status = &s
+	m.addstatus = nil
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *HTTPDetectorResultMutation) Status() (r schema.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the HTTPDetectorResult entity.
+// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorResultMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// AddStatus adds s to the "status" field.
+func (m *HTTPDetectorResultMutation) AddStatus(s schema.Status) {
+	if m.addstatus != nil {
+		*m.addstatus += s
+	} else {
+		m.addstatus = &s
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *HTTPDetectorResultMutation) AddedStatus() (r schema.Status, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *HTTPDetectorResultMutation) ResetStatus() {
+	m.status = nil
+	m.addstatus = nil
+}
+
+// SetTask sets the "task" field.
+func (m *HTTPDetectorResultMutation) SetTask(i int) {
+	m.task = &i
+	m.addtask = nil
+}
+
+// Task returns the value of the "task" field in the mutation.
+func (m *HTTPDetectorResultMutation) Task() (r int, exists bool) {
+	v := m.task
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTask returns the old "task" field's value of the HTTPDetectorResult entity.
+// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorResultMutation) OldTask(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTask is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTask requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTask: %w", err)
+	}
+	return oldValue.Task, nil
+}
+
+// AddTask adds i to the "task" field.
+func (m *HTTPDetectorResultMutation) AddTask(i int) {
+	if m.addtask != nil {
+		*m.addtask += i
+	} else {
+		m.addtask = &i
+	}
+}
+
+// AddedTask returns the value that was added to the "task" field in this mutation.
+func (m *HTTPDetectorResultMutation) AddedTask() (r int, exists bool) {
+	v := m.addtask
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTask resets all changes to the "task" field.
+func (m *HTTPDetectorResultMutation) ResetTask() {
+	m.task = nil
+	m.addtask = nil
+}
+
+// SetResult sets the "result" field.
+func (m *HTTPDetectorResultMutation) SetResult(i int8) {
+	m.result = &i
+	m.addresult = nil
+}
+
+// Result returns the value of the "result" field in the mutation.
+func (m *HTTPDetectorResultMutation) Result() (r int8, exists bool) {
+	v := m.result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResult returns the old "result" field's value of the HTTPDetectorResult entity.
+// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorResultMutation) OldResult(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
+	}
+	return oldValue.Result, nil
+}
+
+// AddResult adds i to the "result" field.
+func (m *HTTPDetectorResultMutation) AddResult(i int8) {
+	if m.addresult != nil {
+		*m.addresult += i
+	} else {
+		m.addresult = &i
+	}
+}
+
+// AddedResult returns the value that was added to the "result" field in this mutation.
+func (m *HTTPDetectorResultMutation) AddedResult() (r int8, exists bool) {
+	v := m.addresult
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetResult resets all changes to the "result" field.
+func (m *HTTPDetectorResultMutation) ResetResult() {
+	m.result = nil
+	m.addresult = nil
+}
+
+// SetMaxDuration sets the "maxDuration" field.
+func (m *HTTPDetectorResultMutation) SetMaxDuration(i int) {
+	m.maxDuration = &i
+	m.addmaxDuration = nil
+}
+
+// MaxDuration returns the value of the "maxDuration" field in the mutation.
+func (m *HTTPDetectorResultMutation) MaxDuration() (r int, exists bool) {
+	v := m.maxDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxDuration returns the old "maxDuration" field's value of the HTTPDetectorResult entity.
+// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorResultMutation) OldMaxDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldMaxDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldMaxDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxDuration: %w", err)
+	}
+	return oldValue.MaxDuration, nil
+}
+
+// AddMaxDuration adds i to the "maxDuration" field.
+func (m *HTTPDetectorResultMutation) AddMaxDuration(i int) {
+	if m.addmaxDuration != nil {
+		*m.addmaxDuration += i
+	} else {
+		m.addmaxDuration = &i
+	}
+}
+
+// AddedMaxDuration returns the value that was added to the "maxDuration" field in this mutation.
+func (m *HTTPDetectorResultMutation) AddedMaxDuration() (r int, exists bool) {
+	v := m.addmaxDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxDuration resets all changes to the "maxDuration" field.
+func (m *HTTPDetectorResultMutation) ResetMaxDuration() {
+	m.maxDuration = nil
+	m.addmaxDuration = nil
+}
+
+// SetMessages sets the "messages" field.
+func (m *HTTPDetectorResultMutation) SetMessages(s []string) {
+	m.messages = &s
+}
+
+// Messages returns the value of the "messages" field in the mutation.
+func (m *HTTPDetectorResultMutation) Messages() (r []string, exists bool) {
+	v := m.messages
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessages returns the old "messages" field's value of the HTTPDetectorResult entity.
+// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorResultMutation) OldMessages(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldMessages is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldMessages requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessages: %w", err)
+	}
+	return oldValue.Messages, nil
+}
+
+// ResetMessages resets all changes to the "messages" field.
+func (m *HTTPDetectorResultMutation) ResetMessages() {
+	m.messages = nil
+}
+
+// SetURL sets the "url" field.
+func (m *HTTPDetectorResultMutation) SetURL(s string) {
+	m.url = &s
+}
+
+// URL returns the value of the "url" field in the mutation.
+func (m *HTTPDetectorResultMutation) URL() (r string, exists bool) {
+	v := m.url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldURL returns the old "url" field's value of the HTTPDetectorResult entity.
+// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorResultMutation) OldURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldURL: %w", err)
+	}
+	return oldValue.URL, nil
+}
+
+// ResetURL resets all changes to the "url" field.
+func (m *HTTPDetectorResultMutation) ResetURL() {
+	m.url = nil
+}
+
+// SetResults sets the "results" field.
+func (m *HTTPDetectorResultMutation) SetResults(sdsr schema.HTTPDetectorSubResults) {
+	m.results = &sdsr
+}
+
+// Results returns the value of the "results" field in the mutation.
+func (m *HTTPDetectorResultMutation) Results() (r schema.HTTPDetectorSubResults, exists bool) {
+	v := m.results
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResults returns the old "results" field's value of the HTTPDetectorResult entity.
+// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HTTPDetectorResultMutation) OldResults(ctx context.Context) (v schema.HTTPDetectorSubResults, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldResults is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldResults requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResults: %w", err)
+	}
+	return oldValue.Results, nil
+}
+
+// ResetResults resets all changes to the "results" field.
+func (m *HTTPDetectorResultMutation) ResetResults() {
+	m.results = nil
+}
+
+// Op returns the operation name.
+func (m *HTTPDetectorResultMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (HTTPDetectorResult).
+func (m *HTTPDetectorResultMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *HTTPDetectorResultMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, httpdetectorresult.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, httpdetectorresult.FieldUpdatedAt)
+	}
+	if m.status != nil {
+		fields = append(fields, httpdetectorresult.FieldStatus)
+	}
+	if m.task != nil {
+		fields = append(fields, httpdetectorresult.FieldTask)
+	}
+	if m.result != nil {
+		fields = append(fields, httpdetectorresult.FieldResult)
+	}
+	if m.maxDuration != nil {
+		fields = append(fields, httpdetectorresult.FieldMaxDuration)
+	}
+	if m.messages != nil {
+		fields = append(fields, httpdetectorresult.FieldMessages)
+	}
+	if m.url != nil {
+		fields = append(fields, httpdetectorresult.FieldURL)
+	}
+	if m.results != nil {
+		fields = append(fields, httpdetectorresult.FieldResults)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *HTTPDetectorResultMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case httpdetectorresult.FieldCreatedAt:
+		return m.CreatedAt()
+	case httpdetectorresult.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case httpdetectorresult.FieldStatus:
+		return m.Status()
+	case httpdetectorresult.FieldTask:
+		return m.Task()
+	case httpdetectorresult.FieldResult:
+		return m.Result()
+	case httpdetectorresult.FieldMaxDuration:
+		return m.MaxDuration()
+	case httpdetectorresult.FieldMessages:
+		return m.Messages()
+	case httpdetectorresult.FieldURL:
+		return m.URL()
+	case httpdetectorresult.FieldResults:
+		return m.Results()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *HTTPDetectorResultMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case httpdetectorresult.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case httpdetectorresult.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case httpdetectorresult.FieldStatus:
+		return m.OldStatus(ctx)
+	case httpdetectorresult.FieldTask:
+		return m.OldTask(ctx)
+	case httpdetectorresult.FieldResult:
+		return m.OldResult(ctx)
+	case httpdetectorresult.FieldMaxDuration:
+		return m.OldMaxDuration(ctx)
+	case httpdetectorresult.FieldMessages:
+		return m.OldMessages(ctx)
+	case httpdetectorresult.FieldURL:
+		return m.OldURL(ctx)
+	case httpdetectorresult.FieldResults:
+		return m.OldResults(ctx)
+	}
+	return nil, fmt.Errorf("unknown HTTPDetectorResult field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *HTTPDetectorResultMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case httpdetectorresult.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case httpdetectorresult.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case httpdetectorresult.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case httpdetectorresult.FieldTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTask(v)
+		return nil
+	case httpdetectorresult.FieldResult:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResult(v)
+		return nil
+	case httpdetectorresult.FieldMaxDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxDuration(v)
+		return nil
+	case httpdetectorresult.FieldMessages:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessages(v)
+		return nil
+	case httpdetectorresult.FieldURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetURL(v)
+		return nil
+	case httpdetectorresult.FieldResults:
+		v, ok := value.(schema.HTTPDetectorSubResults)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResults(v)
+		return nil
+	}
+	return fmt.Errorf("unknown HTTPDetectorResult field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *HTTPDetectorResultMutation) AddedFields() []string {
+	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, httpdetectorresult.FieldStatus)
+	}
+	if m.addtask != nil {
+		fields = append(fields, httpdetectorresult.FieldTask)
+	}
+	if m.addresult != nil {
+		fields = append(fields, httpdetectorresult.FieldResult)
+	}
+	if m.addmaxDuration != nil {
+		fields = append(fields, httpdetectorresult.FieldMaxDuration)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *HTTPDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case httpdetectorresult.FieldStatus:
+		return m.AddedStatus()
+	case httpdetectorresult.FieldTask:
+		return m.AddedTask()
+	case httpdetectorresult.FieldResult:
+		return m.AddedResult()
+	case httpdetectorresult.FieldMaxDuration:
+		return m.AddedMaxDuration()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *HTTPDetectorResultMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case httpdetectorresult.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
+	case httpdetectorresult.FieldTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTask(v)
+		return nil
+	case httpdetectorresult.FieldResult:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddResult(v)
+		return nil
+	case httpdetectorresult.FieldMaxDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxDuration(v)
+		return nil
+	}
+	return fmt.Errorf("unknown HTTPDetectorResult numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *HTTPDetectorResultMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *HTTPDetectorResultMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *HTTPDetectorResultMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown HTTPDetectorResult nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *HTTPDetectorResultMutation) ResetField(name string) error {
+	switch name {
+	case httpdetectorresult.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case httpdetectorresult.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case httpdetectorresult.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case httpdetectorresult.FieldTask:
+		m.ResetTask()
+		return nil
+	case httpdetectorresult.FieldResult:
+		m.ResetResult()
+		return nil
+	case httpdetectorresult.FieldMaxDuration:
+		m.ResetMaxDuration()
+		return nil
+	case httpdetectorresult.FieldMessages:
+		m.ResetMessages()
+		return nil
+	case httpdetectorresult.FieldURL:
+		m.ResetURL()
+		return nil
+	case httpdetectorresult.FieldResults:
+		m.ResetResults()
+		return nil
+	}
+	return fmt.Errorf("unknown HTTPDetectorResult field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *HTTPDetectorResultMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *HTTPDetectorResultMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *HTTPDetectorResultMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *HTTPDetectorResultMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *HTTPDetectorResultMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *HTTPDetectorResultMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *HTTPDetectorResultMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown HTTPDetectorResult unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *HTTPDetectorResultMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown HTTPDetectorResult edge %s", name)
+}
+
+// PingDetectorMutation represents an operation that mutates the PingDetector nodes in the graph.
+type PingDetectorMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	status        *schema.Status
+	addstatus     *schema.Status
+	name          *string
+	owner         *string
+	description   *string
+	receivers     *[]string
+	timeout       *string
+	ips           *[]string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*PingDetector, error)
+	predicates    []predicate.PingDetector
+}
+
+var _ ent.Mutation = (*PingDetectorMutation)(nil)
+
+// pingdetectorOption allows management of the mutation configuration using functional options.
+type pingdetectorOption func(*PingDetectorMutation)
+
+// newPingDetectorMutation creates new mutation for the PingDetector entity.
+func newPingDetectorMutation(c config, op Op, opts ...pingdetectorOption) *PingDetectorMutation {
+	m := &PingDetectorMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePingDetector,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPingDetectorID sets the ID field of the mutation.
+func withPingDetectorID(id int) pingdetectorOption {
+	return func(m *PingDetectorMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PingDetector
+		)
+		m.oldValue = func(ctx context.Context) (*PingDetector, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PingDetector.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPingDetector sets the old PingDetector of the mutation.
+func withPingDetector(node *PingDetector) pingdetectorOption {
+	return func(m *PingDetectorMutation) {
+		m.oldValue = func(context.Context) (*PingDetector, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PingDetectorMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PingDetectorMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *PingDetectorMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PingDetectorMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PingDetectorMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PingDetector entity.
+// If the PingDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PingDetectorMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PingDetectorMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PingDetectorMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PingDetector entity.
+// If the PingDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PingDetectorMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *PingDetectorMutation) SetStatus(s schema.Status) {
+	m.status = &s
+	m.addstatus = nil
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *PingDetectorMutation) Status() (r schema.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the PingDetector entity.
+// If the PingDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// AddStatus adds s to the "status" field.
+func (m *PingDetectorMutation) AddStatus(s schema.Status) {
+	if m.addstatus != nil {
+		*m.addstatus += s
+	} else {
+		m.addstatus = &s
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *PingDetectorMutation) AddedStatus() (r schema.Status, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *PingDetectorMutation) ResetStatus() {
+	m.status = nil
+	m.addstatus = nil
+}
+
+// SetName sets the "name" field.
+func (m *PingDetectorMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *PingDetectorMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the PingDetector entity.
+// If the PingDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *PingDetectorMutation) ResetName() {
+	m.name = nil
+}
+
+// SetOwner sets the "owner" field.
+func (m *PingDetectorMutation) SetOwner(s string) {
+	m.owner = &s
+}
+
+// Owner returns the value of the "owner" field in the mutation.
+func (m *PingDetectorMutation) Owner() (r string, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwner returns the old "owner" field's value of the PingDetector entity.
+// If the PingDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorMutation) OldOwner(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldOwner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldOwner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwner: %w", err)
+	}
+	return oldValue.Owner, nil
+}
+
+// ResetOwner resets all changes to the "owner" field.
+func (m *PingDetectorMutation) ResetOwner() {
+	m.owner = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *PingDetectorMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *PingDetectorMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the PingDetector entity.
+// If the PingDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *PingDetectorMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetReceivers sets the "receivers" field.
+func (m *PingDetectorMutation) SetReceivers(s []string) {
+	m.receivers = &s
+}
+
+// Receivers returns the value of the "receivers" field in the mutation.
+func (m *PingDetectorMutation) Receivers() (r []string, exists bool) {
+	v := m.receivers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReceivers returns the old "receivers" field's value of the PingDetector entity.
+// If the PingDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorMutation) OldReceivers(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldReceivers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldReceivers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReceivers: %w", err)
+	}
+	return oldValue.Receivers, nil
+}
+
+// ResetReceivers resets all changes to the "receivers" field.
+func (m *PingDetectorMutation) ResetReceivers() {
+	m.receivers = nil
+}
+
+// SetTimeout sets the "timeout" field.
+func (m *PingDetectorMutation) SetTimeout(s string) {
+	m.timeout = &s
+}
+
+// Timeout returns the value of the "timeout" field in the mutation.
+func (m *PingDetectorMutation) Timeout() (r string, exists bool) {
+	v := m.timeout
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimeout returns the old "timeout" field's value of the PingDetector entity.
+// If the PingDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorMutation) OldTimeout(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTimeout is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTimeout requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimeout: %w", err)
+	}
+	return oldValue.Timeout, nil
+}
+
+// ResetTimeout resets all changes to the "timeout" field.
+func (m *PingDetectorMutation) ResetTimeout() {
+	m.timeout = nil
+}
+
+// SetIps sets the "ips" field.
+func (m *PingDetectorMutation) SetIps(s []string) {
+	m.ips = &s
+}
+
+// Ips returns the value of the "ips" field in the mutation.
+func (m *PingDetectorMutation) Ips() (r []string, exists bool) {
+	v := m.ips
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIps returns the old "ips" field's value of the PingDetector entity.
+// If the PingDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorMutation) OldIps(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldIps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldIps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIps: %w", err)
+	}
+	return oldValue.Ips, nil
+}
+
+// ResetIps resets all changes to the "ips" field.
+func (m *PingDetectorMutation) ResetIps() {
+	m.ips = nil
+}
+
+// Op returns the operation name.
+func (m *PingDetectorMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (PingDetector).
+func (m *PingDetectorMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PingDetectorMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, pingdetector.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, pingdetector.FieldUpdatedAt)
+	}
+	if m.status != nil {
+		fields = append(fields, pingdetector.FieldStatus)
+	}
+	if m.name != nil {
+		fields = append(fields, pingdetector.FieldName)
+	}
+	if m.owner != nil {
+		fields = append(fields, pingdetector.FieldOwner)
+	}
+	if m.description != nil {
+		fields = append(fields, pingdetector.FieldDescription)
+	}
+	if m.receivers != nil {
+		fields = append(fields, pingdetector.FieldReceivers)
+	}
+	if m.timeout != nil {
+		fields = append(fields, pingdetector.FieldTimeout)
+	}
+	if m.ips != nil {
+		fields = append(fields, pingdetector.FieldIps)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PingDetectorMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case pingdetector.FieldCreatedAt:
+		return m.CreatedAt()
+	case pingdetector.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case pingdetector.FieldStatus:
+		return m.Status()
+	case pingdetector.FieldName:
+		return m.Name()
+	case pingdetector.FieldOwner:
+		return m.Owner()
+	case pingdetector.FieldDescription:
+		return m.Description()
+	case pingdetector.FieldReceivers:
+		return m.Receivers()
+	case pingdetector.FieldTimeout:
+		return m.Timeout()
+	case pingdetector.FieldIps:
+		return m.Ips()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PingDetectorMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case pingdetector.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case pingdetector.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case pingdetector.FieldStatus:
+		return m.OldStatus(ctx)
+	case pingdetector.FieldName:
+		return m.OldName(ctx)
+	case pingdetector.FieldOwner:
+		return m.OldOwner(ctx)
+	case pingdetector.FieldDescription:
+		return m.OldDescription(ctx)
+	case pingdetector.FieldReceivers:
+		return m.OldReceivers(ctx)
+	case pingdetector.FieldTimeout:
+		return m.OldTimeout(ctx)
+	case pingdetector.FieldIps:
+		return m.OldIps(ctx)
+	}
+	return nil, fmt.Errorf("unknown PingDetector field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PingDetectorMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case pingdetector.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case pingdetector.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case pingdetector.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case pingdetector.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case pingdetector.FieldOwner:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwner(v)
+		return nil
+	case pingdetector.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case pingdetector.FieldReceivers:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReceivers(v)
+		return nil
+	case pingdetector.FieldTimeout:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimeout(v)
+		return nil
+	case pingdetector.FieldIps:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIps(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PingDetector field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PingDetectorMutation) AddedFields() []string {
+	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, pingdetector.FieldStatus)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PingDetectorMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case pingdetector.FieldStatus:
+		return m.AddedStatus()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PingDetectorMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case pingdetector.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PingDetector numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PingDetectorMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PingDetectorMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PingDetectorMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PingDetector nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PingDetectorMutation) ResetField(name string) error {
+	switch name {
+	case pingdetector.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case pingdetector.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case pingdetector.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case pingdetector.FieldName:
+		m.ResetName()
+		return nil
+	case pingdetector.FieldOwner:
+		m.ResetOwner()
+		return nil
+	case pingdetector.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case pingdetector.FieldReceivers:
+		m.ResetReceivers()
+		return nil
+	case pingdetector.FieldTimeout:
+		m.ResetTimeout()
+		return nil
+	case pingdetector.FieldIps:
+		m.ResetIps()
+		return nil
+	}
+	return fmt.Errorf("unknown PingDetector field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PingDetectorMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PingDetectorMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PingDetectorMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PingDetectorMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PingDetectorMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PingDetectorMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PingDetectorMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PingDetector unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PingDetectorMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PingDetector edge %s", name)
+}
+
+// PingDetectorResultMutation represents an operation that mutates the PingDetectorResult nodes in the graph.
+type PingDetectorResultMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	status         *schema.Status
+	addstatus      *schema.Status
+	task           *int
+	addtask        *int
+	result         *int8
+	addresult      *int8
+	maxDuration    *int
+	addmaxDuration *int
+	messages       *[]string
+	ips            *string
+	results        *schema.PingDetectorSubResults
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*PingDetectorResult, error)
+	predicates     []predicate.PingDetectorResult
+}
+
+var _ ent.Mutation = (*PingDetectorResultMutation)(nil)
+
+// pingdetectorresultOption allows management of the mutation configuration using functional options.
+type pingdetectorresultOption func(*PingDetectorResultMutation)
+
+// newPingDetectorResultMutation creates new mutation for the PingDetectorResult entity.
+func newPingDetectorResultMutation(c config, op Op, opts ...pingdetectorresultOption) *PingDetectorResultMutation {
+	m := &PingDetectorResultMutation{
+		config:        c,
+		op:            op,
+		typ:           TypePingDetectorResult,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withPingDetectorResultID sets the ID field of the mutation.
+func withPingDetectorResultID(id int) pingdetectorresultOption {
+	return func(m *PingDetectorResultMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *PingDetectorResult
+		)
+		m.oldValue = func(ctx context.Context) (*PingDetectorResult, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().PingDetectorResult.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withPingDetectorResult sets the old PingDetectorResult of the mutation.
+func withPingDetectorResult(node *PingDetectorResult) pingdetectorresultOption {
+	return func(m *PingDetectorResultMutation) {
+		m.oldValue = func(context.Context) (*PingDetectorResult, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m PingDetectorResultMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m PingDetectorResultMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *PingDetectorResultMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *PingDetectorResultMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *PingDetectorResultMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the PingDetectorResult entity.
+// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorResultMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *PingDetectorResultMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *PingDetectorResultMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *PingDetectorResultMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the PingDetectorResult entity.
+// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorResultMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *PingDetectorResultMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *PingDetectorResultMutation) SetStatus(s schema.Status) {
+	m.status = &s
+	m.addstatus = nil
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *PingDetectorResultMutation) Status() (r schema.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the PingDetectorResult entity.
+// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorResultMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// AddStatus adds s to the "status" field.
+func (m *PingDetectorResultMutation) AddStatus(s schema.Status) {
+	if m.addstatus != nil {
+		*m.addstatus += s
+	} else {
+		m.addstatus = &s
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *PingDetectorResultMutation) AddedStatus() (r schema.Status, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *PingDetectorResultMutation) ResetStatus() {
+	m.status = nil
+	m.addstatus = nil
+}
+
+// SetTask sets the "task" field.
+func (m *PingDetectorResultMutation) SetTask(i int) {
+	m.task = &i
+	m.addtask = nil
+}
+
+// Task returns the value of the "task" field in the mutation.
+func (m *PingDetectorResultMutation) Task() (r int, exists bool) {
+	v := m.task
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTask returns the old "task" field's value of the PingDetectorResult entity.
+// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorResultMutation) OldTask(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTask is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTask requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTask: %w", err)
+	}
+	return oldValue.Task, nil
+}
+
+// AddTask adds i to the "task" field.
+func (m *PingDetectorResultMutation) AddTask(i int) {
+	if m.addtask != nil {
+		*m.addtask += i
+	} else {
+		m.addtask = &i
+	}
+}
+
+// AddedTask returns the value that was added to the "task" field in this mutation.
+func (m *PingDetectorResultMutation) AddedTask() (r int, exists bool) {
+	v := m.addtask
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTask resets all changes to the "task" field.
+func (m *PingDetectorResultMutation) ResetTask() {
+	m.task = nil
+	m.addtask = nil
+}
+
+// SetResult sets the "result" field.
+func (m *PingDetectorResultMutation) SetResult(i int8) {
+	m.result = &i
+	m.addresult = nil
+}
+
+// Result returns the value of the "result" field in the mutation.
+func (m *PingDetectorResultMutation) Result() (r int8, exists bool) {
+	v := m.result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResult returns the old "result" field's value of the PingDetectorResult entity.
+// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorResultMutation) OldResult(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
+	}
+	return oldValue.Result, nil
+}
+
+// AddResult adds i to the "result" field.
+func (m *PingDetectorResultMutation) AddResult(i int8) {
+	if m.addresult != nil {
+		*m.addresult += i
+	} else {
+		m.addresult = &i
+	}
+}
+
+// AddedResult returns the value that was added to the "result" field in this mutation.
+func (m *PingDetectorResultMutation) AddedResult() (r int8, exists bool) {
+	v := m.addresult
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetResult resets all changes to the "result" field.
+func (m *PingDetectorResultMutation) ResetResult() {
+	m.result = nil
+	m.addresult = nil
+}
+
+// SetMaxDuration sets the "maxDuration" field.
+func (m *PingDetectorResultMutation) SetMaxDuration(i int) {
+	m.maxDuration = &i
+	m.addmaxDuration = nil
+}
+
+// MaxDuration returns the value of the "maxDuration" field in the mutation.
+func (m *PingDetectorResultMutation) MaxDuration() (r int, exists bool) {
+	v := m.maxDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxDuration returns the old "maxDuration" field's value of the PingDetectorResult entity.
+// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorResultMutation) OldMaxDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldMaxDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldMaxDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxDuration: %w", err)
+	}
+	return oldValue.MaxDuration, nil
+}
+
+// AddMaxDuration adds i to the "maxDuration" field.
+func (m *PingDetectorResultMutation) AddMaxDuration(i int) {
+	if m.addmaxDuration != nil {
+		*m.addmaxDuration += i
+	} else {
+		m.addmaxDuration = &i
+	}
+}
+
+// AddedMaxDuration returns the value that was added to the "maxDuration" field in this mutation.
+func (m *PingDetectorResultMutation) AddedMaxDuration() (r int, exists bool) {
+	v := m.addmaxDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxDuration resets all changes to the "maxDuration" field.
+func (m *PingDetectorResultMutation) ResetMaxDuration() {
+	m.maxDuration = nil
+	m.addmaxDuration = nil
+}
+
+// SetMessages sets the "messages" field.
+func (m *PingDetectorResultMutation) SetMessages(s []string) {
+	m.messages = &s
+}
+
+// Messages returns the value of the "messages" field in the mutation.
+func (m *PingDetectorResultMutation) Messages() (r []string, exists bool) {
+	v := m.messages
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessages returns the old "messages" field's value of the PingDetectorResult entity.
+// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorResultMutation) OldMessages(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldMessages is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldMessages requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessages: %w", err)
+	}
+	return oldValue.Messages, nil
+}
+
+// ResetMessages resets all changes to the "messages" field.
+func (m *PingDetectorResultMutation) ResetMessages() {
+	m.messages = nil
+}
+
+// SetIps sets the "ips" field.
+func (m *PingDetectorResultMutation) SetIps(s string) {
+	m.ips = &s
+}
+
+// Ips returns the value of the "ips" field in the mutation.
+func (m *PingDetectorResultMutation) Ips() (r string, exists bool) {
+	v := m.ips
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIps returns the old "ips" field's value of the PingDetectorResult entity.
+// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorResultMutation) OldIps(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldIps is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldIps requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIps: %w", err)
+	}
+	return oldValue.Ips, nil
+}
+
+// ResetIps resets all changes to the "ips" field.
+func (m *PingDetectorResultMutation) ResetIps() {
+	m.ips = nil
+}
+
+// SetResults sets the "results" field.
+func (m *PingDetectorResultMutation) SetResults(sdsr schema.PingDetectorSubResults) {
+	m.results = &sdsr
+}
+
+// Results returns the value of the "results" field in the mutation.
+func (m *PingDetectorResultMutation) Results() (r schema.PingDetectorSubResults, exists bool) {
+	v := m.results
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResults returns the old "results" field's value of the PingDetectorResult entity.
+// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PingDetectorResultMutation) OldResults(ctx context.Context) (v schema.PingDetectorSubResults, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldResults is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldResults requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResults: %w", err)
+	}
+	return oldValue.Results, nil
+}
+
+// ResetResults resets all changes to the "results" field.
+func (m *PingDetectorResultMutation) ResetResults() {
+	m.results = nil
+}
+
+// Op returns the operation name.
+func (m *PingDetectorResultMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (PingDetectorResult).
+func (m *PingDetectorResultMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *PingDetectorResultMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, pingdetectorresult.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, pingdetectorresult.FieldUpdatedAt)
+	}
+	if m.status != nil {
+		fields = append(fields, pingdetectorresult.FieldStatus)
+	}
+	if m.task != nil {
+		fields = append(fields, pingdetectorresult.FieldTask)
+	}
+	if m.result != nil {
+		fields = append(fields, pingdetectorresult.FieldResult)
+	}
+	if m.maxDuration != nil {
+		fields = append(fields, pingdetectorresult.FieldMaxDuration)
+	}
+	if m.messages != nil {
+		fields = append(fields, pingdetectorresult.FieldMessages)
+	}
+	if m.ips != nil {
+		fields = append(fields, pingdetectorresult.FieldIps)
+	}
+	if m.results != nil {
+		fields = append(fields, pingdetectorresult.FieldResults)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *PingDetectorResultMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case pingdetectorresult.FieldCreatedAt:
+		return m.CreatedAt()
+	case pingdetectorresult.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case pingdetectorresult.FieldStatus:
+		return m.Status()
+	case pingdetectorresult.FieldTask:
+		return m.Task()
+	case pingdetectorresult.FieldResult:
+		return m.Result()
+	case pingdetectorresult.FieldMaxDuration:
+		return m.MaxDuration()
+	case pingdetectorresult.FieldMessages:
+		return m.Messages()
+	case pingdetectorresult.FieldIps:
+		return m.Ips()
+	case pingdetectorresult.FieldResults:
+		return m.Results()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *PingDetectorResultMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case pingdetectorresult.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case pingdetectorresult.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case pingdetectorresult.FieldStatus:
+		return m.OldStatus(ctx)
+	case pingdetectorresult.FieldTask:
+		return m.OldTask(ctx)
+	case pingdetectorresult.FieldResult:
+		return m.OldResult(ctx)
+	case pingdetectorresult.FieldMaxDuration:
+		return m.OldMaxDuration(ctx)
+	case pingdetectorresult.FieldMessages:
+		return m.OldMessages(ctx)
+	case pingdetectorresult.FieldIps:
+		return m.OldIps(ctx)
+	case pingdetectorresult.FieldResults:
+		return m.OldResults(ctx)
+	}
+	return nil, fmt.Errorf("unknown PingDetectorResult field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PingDetectorResultMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case pingdetectorresult.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case pingdetectorresult.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case pingdetectorresult.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case pingdetectorresult.FieldTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTask(v)
+		return nil
+	case pingdetectorresult.FieldResult:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResult(v)
+		return nil
+	case pingdetectorresult.FieldMaxDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxDuration(v)
+		return nil
+	case pingdetectorresult.FieldMessages:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessages(v)
+		return nil
+	case pingdetectorresult.FieldIps:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIps(v)
+		return nil
+	case pingdetectorresult.FieldResults:
+		v, ok := value.(schema.PingDetectorSubResults)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResults(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PingDetectorResult field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *PingDetectorResultMutation) AddedFields() []string {
+	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, pingdetectorresult.FieldStatus)
+	}
+	if m.addtask != nil {
+		fields = append(fields, pingdetectorresult.FieldTask)
+	}
+	if m.addresult != nil {
+		fields = append(fields, pingdetectorresult.FieldResult)
+	}
+	if m.addmaxDuration != nil {
+		fields = append(fields, pingdetectorresult.FieldMaxDuration)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *PingDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case pingdetectorresult.FieldStatus:
+		return m.AddedStatus()
+	case pingdetectorresult.FieldTask:
+		return m.AddedTask()
+	case pingdetectorresult.FieldResult:
+		return m.AddedResult()
+	case pingdetectorresult.FieldMaxDuration:
+		return m.AddedMaxDuration()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *PingDetectorResultMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case pingdetectorresult.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
+	case pingdetectorresult.FieldTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTask(v)
+		return nil
+	case pingdetectorresult.FieldResult:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddResult(v)
+		return nil
+	case pingdetectorresult.FieldMaxDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxDuration(v)
+		return nil
+	}
+	return fmt.Errorf("unknown PingDetectorResult numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *PingDetectorResultMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *PingDetectorResultMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *PingDetectorResultMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown PingDetectorResult nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *PingDetectorResultMutation) ResetField(name string) error {
+	switch name {
+	case pingdetectorresult.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case pingdetectorresult.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case pingdetectorresult.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case pingdetectorresult.FieldTask:
+		m.ResetTask()
+		return nil
+	case pingdetectorresult.FieldResult:
+		m.ResetResult()
+		return nil
+	case pingdetectorresult.FieldMaxDuration:
+		m.ResetMaxDuration()
+		return nil
+	case pingdetectorresult.FieldMessages:
+		m.ResetMessages()
+		return nil
+	case pingdetectorresult.FieldIps:
+		m.ResetIps()
+		return nil
+	case pingdetectorresult.FieldResults:
+		m.ResetResults()
+		return nil
+	}
+	return fmt.Errorf("unknown PingDetectorResult field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *PingDetectorResultMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *PingDetectorResultMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *PingDetectorResultMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *PingDetectorResultMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *PingDetectorResultMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *PingDetectorResultMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *PingDetectorResultMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown PingDetectorResult unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *PingDetectorResultMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown PingDetectorResult edge %s", name)
+}
+
+// TCPDetectorMutation represents an operation that mutates the TCPDetector nodes in the graph.
+type TCPDetectorMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	status        *schema.Status
+	addstatus     *schema.Status
+	name          *string
+	owner         *string
+	description   *string
+	receivers     *[]string
+	timeout       *string
+	addrs         *[]string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*TCPDetector, error)
+	predicates    []predicate.TCPDetector
+}
+
+var _ ent.Mutation = (*TCPDetectorMutation)(nil)
+
+// tcpdetectorOption allows management of the mutation configuration using functional options.
+type tcpdetectorOption func(*TCPDetectorMutation)
+
+// newTCPDetectorMutation creates new mutation for the TCPDetector entity.
+func newTCPDetectorMutation(c config, op Op, opts ...tcpdetectorOption) *TCPDetectorMutation {
+	m := &TCPDetectorMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTCPDetector,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTCPDetectorID sets the ID field of the mutation.
+func withTCPDetectorID(id int) tcpdetectorOption {
+	return func(m *TCPDetectorMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TCPDetector
+		)
+		m.oldValue = func(ctx context.Context) (*TCPDetector, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TCPDetector.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTCPDetector sets the old TCPDetector of the mutation.
+func withTCPDetector(node *TCPDetector) tcpdetectorOption {
+	return func(m *TCPDetectorMutation) {
+		m.oldValue = func(context.Context) (*TCPDetector, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TCPDetectorMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TCPDetectorMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *TCPDetectorMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *TCPDetectorMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *TCPDetectorMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the TCPDetector entity.
+// If the TCPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *TCPDetectorMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *TCPDetectorMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *TCPDetectorMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the TCPDetector entity.
+// If the TCPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *TCPDetectorMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *TCPDetectorMutation) SetStatus(s schema.Status) {
+	m.status = &s
+	m.addstatus = nil
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *TCPDetectorMutation) Status() (r schema.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the TCPDetector entity.
+// If the TCPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// AddStatus adds s to the "status" field.
+func (m *TCPDetectorMutation) AddStatus(s schema.Status) {
+	if m.addstatus != nil {
+		*m.addstatus += s
+	} else {
+		m.addstatus = &s
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *TCPDetectorMutation) AddedStatus() (r schema.Status, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *TCPDetectorMutation) ResetStatus() {
+	m.status = nil
+	m.addstatus = nil
+}
+
+// SetName sets the "name" field.
+func (m *TCPDetectorMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *TCPDetectorMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the TCPDetector entity.
+// If the TCPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *TCPDetectorMutation) ResetName() {
+	m.name = nil
+}
+
+// SetOwner sets the "owner" field.
+func (m *TCPDetectorMutation) SetOwner(s string) {
+	m.owner = &s
+}
+
+// Owner returns the value of the "owner" field in the mutation.
+func (m *TCPDetectorMutation) Owner() (r string, exists bool) {
+	v := m.owner
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOwner returns the old "owner" field's value of the TCPDetector entity.
+// If the TCPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorMutation) OldOwner(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldOwner is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldOwner requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOwner: %w", err)
+	}
+	return oldValue.Owner, nil
+}
+
+// ResetOwner resets all changes to the "owner" field.
+func (m *TCPDetectorMutation) ResetOwner() {
+	m.owner = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *TCPDetectorMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *TCPDetectorMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the TCPDetector entity.
+// If the TCPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *TCPDetectorMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetReceivers sets the "receivers" field.
+func (m *TCPDetectorMutation) SetReceivers(s []string) {
+	m.receivers = &s
+}
+
+// Receivers returns the value of the "receivers" field in the mutation.
+func (m *TCPDetectorMutation) Receivers() (r []string, exists bool) {
+	v := m.receivers
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReceivers returns the old "receivers" field's value of the TCPDetector entity.
+// If the TCPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorMutation) OldReceivers(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldReceivers is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldReceivers requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReceivers: %w", err)
+	}
+	return oldValue.Receivers, nil
+}
+
+// ResetReceivers resets all changes to the "receivers" field.
+func (m *TCPDetectorMutation) ResetReceivers() {
+	m.receivers = nil
+}
+
+// SetTimeout sets the "timeout" field.
+func (m *TCPDetectorMutation) SetTimeout(s string) {
+	m.timeout = &s
+}
+
+// Timeout returns the value of the "timeout" field in the mutation.
+func (m *TCPDetectorMutation) Timeout() (r string, exists bool) {
+	v := m.timeout
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTimeout returns the old "timeout" field's value of the TCPDetector entity.
+// If the TCPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorMutation) OldTimeout(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTimeout is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTimeout requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTimeout: %w", err)
+	}
+	return oldValue.Timeout, nil
+}
+
+// ResetTimeout resets all changes to the "timeout" field.
+func (m *TCPDetectorMutation) ResetTimeout() {
+	m.timeout = nil
+}
+
+// SetAddrs sets the "addrs" field.
+func (m *TCPDetectorMutation) SetAddrs(s []string) {
+	m.addrs = &s
+}
+
+// Addrs returns the value of the "addrs" field in the mutation.
+func (m *TCPDetectorMutation) Addrs() (r []string, exists bool) {
+	v := m.addrs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddrs returns the old "addrs" field's value of the TCPDetector entity.
+// If the TCPDetector object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorMutation) OldAddrs(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldAddrs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldAddrs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddrs: %w", err)
+	}
+	return oldValue.Addrs, nil
+}
+
+// ResetAddrs resets all changes to the "addrs" field.
+func (m *TCPDetectorMutation) ResetAddrs() {
+	m.addrs = nil
+}
+
+// Op returns the operation name.
+func (m *TCPDetectorMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (TCPDetector).
+func (m *TCPDetectorMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TCPDetectorMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, tcpdetector.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, tcpdetector.FieldUpdatedAt)
+	}
+	if m.status != nil {
+		fields = append(fields, tcpdetector.FieldStatus)
+	}
+	if m.name != nil {
+		fields = append(fields, tcpdetector.FieldName)
+	}
+	if m.owner != nil {
+		fields = append(fields, tcpdetector.FieldOwner)
+	}
+	if m.description != nil {
+		fields = append(fields, tcpdetector.FieldDescription)
+	}
+	if m.receivers != nil {
+		fields = append(fields, tcpdetector.FieldReceivers)
+	}
+	if m.timeout != nil {
+		fields = append(fields, tcpdetector.FieldTimeout)
+	}
+	if m.addrs != nil {
+		fields = append(fields, tcpdetector.FieldAddrs)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TCPDetectorMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case tcpdetector.FieldCreatedAt:
+		return m.CreatedAt()
+	case tcpdetector.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case tcpdetector.FieldStatus:
+		return m.Status()
+	case tcpdetector.FieldName:
+		return m.Name()
+	case tcpdetector.FieldOwner:
+		return m.Owner()
+	case tcpdetector.FieldDescription:
+		return m.Description()
+	case tcpdetector.FieldReceivers:
+		return m.Receivers()
+	case tcpdetector.FieldTimeout:
+		return m.Timeout()
+	case tcpdetector.FieldAddrs:
+		return m.Addrs()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TCPDetectorMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case tcpdetector.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case tcpdetector.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case tcpdetector.FieldStatus:
+		return m.OldStatus(ctx)
+	case tcpdetector.FieldName:
+		return m.OldName(ctx)
+	case tcpdetector.FieldOwner:
+		return m.OldOwner(ctx)
+	case tcpdetector.FieldDescription:
+		return m.OldDescription(ctx)
+	case tcpdetector.FieldReceivers:
+		return m.OldReceivers(ctx)
+	case tcpdetector.FieldTimeout:
+		return m.OldTimeout(ctx)
+	case tcpdetector.FieldAddrs:
+		return m.OldAddrs(ctx)
+	}
+	return nil, fmt.Errorf("unknown TCPDetector field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TCPDetectorMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case tcpdetector.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case tcpdetector.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case tcpdetector.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case tcpdetector.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case tcpdetector.FieldOwner:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOwner(v)
+		return nil
+	case tcpdetector.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case tcpdetector.FieldReceivers:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReceivers(v)
+		return nil
+	case tcpdetector.FieldTimeout:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTimeout(v)
+		return nil
+	case tcpdetector.FieldAddrs:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddrs(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TCPDetector field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TCPDetectorMutation) AddedFields() []string {
+	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, tcpdetector.FieldStatus)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TCPDetectorMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case tcpdetector.FieldStatus:
+		return m.AddedStatus()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TCPDetectorMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case tcpdetector.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TCPDetector numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TCPDetectorMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TCPDetectorMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TCPDetectorMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown TCPDetector nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TCPDetectorMutation) ResetField(name string) error {
+	switch name {
+	case tcpdetector.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case tcpdetector.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case tcpdetector.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case tcpdetector.FieldName:
+		m.ResetName()
+		return nil
+	case tcpdetector.FieldOwner:
+		m.ResetOwner()
+		return nil
+	case tcpdetector.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case tcpdetector.FieldReceivers:
+		m.ResetReceivers()
+		return nil
+	case tcpdetector.FieldTimeout:
+		m.ResetTimeout()
+		return nil
+	case tcpdetector.FieldAddrs:
+		m.ResetAddrs()
+		return nil
+	}
+	return fmt.Errorf("unknown TCPDetector field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TCPDetectorMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TCPDetectorMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TCPDetectorMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TCPDetectorMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TCPDetectorMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TCPDetectorMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TCPDetectorMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown TCPDetector unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TCPDetectorMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown TCPDetector edge %s", name)
+}
+
+// TCPDetectorResultMutation represents an operation that mutates the TCPDetectorResult nodes in the graph.
+type TCPDetectorResultMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	status         *schema.Status
+	addstatus      *schema.Status
+	task           *int
+	addtask        *int
+	result         *int8
+	addresult      *int8
+	maxDuration    *int
+	addmaxDuration *int
+	messages       *[]string
+	addrs          *string
+	results        *schema.TCPDetectorSubResults
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*TCPDetectorResult, error)
+	predicates     []predicate.TCPDetectorResult
+}
+
+var _ ent.Mutation = (*TCPDetectorResultMutation)(nil)
+
+// tcpdetectorresultOption allows management of the mutation configuration using functional options.
+type tcpdetectorresultOption func(*TCPDetectorResultMutation)
+
+// newTCPDetectorResultMutation creates new mutation for the TCPDetectorResult entity.
+func newTCPDetectorResultMutation(c config, op Op, opts ...tcpdetectorresultOption) *TCPDetectorResultMutation {
+	m := &TCPDetectorResultMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTCPDetectorResult,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTCPDetectorResultID sets the ID field of the mutation.
+func withTCPDetectorResultID(id int) tcpdetectorresultOption {
+	return func(m *TCPDetectorResultMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *TCPDetectorResult
+		)
+		m.oldValue = func(ctx context.Context) (*TCPDetectorResult, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().TCPDetectorResult.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTCPDetectorResult sets the old TCPDetectorResult of the mutation.
+func withTCPDetectorResult(node *TCPDetectorResult) tcpdetectorresultOption {
+	return func(m *TCPDetectorResultMutation) {
+		m.oldValue = func(context.Context) (*TCPDetectorResult, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TCPDetectorResultMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TCPDetectorResultMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *TCPDetectorResultMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *TCPDetectorResultMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *TCPDetectorResultMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the TCPDetectorResult entity.
+// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorResultMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *TCPDetectorResultMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *TCPDetectorResultMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *TCPDetectorResultMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the TCPDetectorResult entity.
+// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorResultMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *TCPDetectorResultMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetStatus sets the "status" field.
+func (m *TCPDetectorResultMutation) SetStatus(s schema.Status) {
+	m.status = &s
+	m.addstatus = nil
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *TCPDetectorResultMutation) Status() (r schema.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the TCPDetectorResult entity.
+// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorResultMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// AddStatus adds s to the "status" field.
+func (m *TCPDetectorResultMutation) AddStatus(s schema.Status) {
+	if m.addstatus != nil {
+		*m.addstatus += s
+	} else {
+		m.addstatus = &s
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *TCPDetectorResultMutation) AddedStatus() (r schema.Status, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *TCPDetectorResultMutation) ResetStatus() {
+	m.status = nil
+	m.addstatus = nil
+}
+
+// SetTask sets the "task" field.
+func (m *TCPDetectorResultMutation) SetTask(i int) {
+	m.task = &i
+	m.addtask = nil
+}
+
+// Task returns the value of the "task" field in the mutation.
+func (m *TCPDetectorResultMutation) Task() (r int, exists bool) {
+	v := m.task
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTask returns the old "task" field's value of the TCPDetectorResult entity.
+// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorResultMutation) OldTask(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldTask is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldTask requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTask: %w", err)
+	}
+	return oldValue.Task, nil
+}
+
+// AddTask adds i to the "task" field.
+func (m *TCPDetectorResultMutation) AddTask(i int) {
+	if m.addtask != nil {
+		*m.addtask += i
+	} else {
+		m.addtask = &i
+	}
+}
+
+// AddedTask returns the value that was added to the "task" field in this mutation.
+func (m *TCPDetectorResultMutation) AddedTask() (r int, exists bool) {
+	v := m.addtask
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTask resets all changes to the "task" field.
+func (m *TCPDetectorResultMutation) ResetTask() {
+	m.task = nil
+	m.addtask = nil
+}
+
+// SetResult sets the "result" field.
+func (m *TCPDetectorResultMutation) SetResult(i int8) {
+	m.result = &i
+	m.addresult = nil
+}
+
+// Result returns the value of the "result" field in the mutation.
+func (m *TCPDetectorResultMutation) Result() (r int8, exists bool) {
+	v := m.result
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResult returns the old "result" field's value of the TCPDetectorResult entity.
+// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorResultMutation) OldResult(ctx context.Context) (v int8, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldResult is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldResult requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResult: %w", err)
+	}
+	return oldValue.Result, nil
+}
+
+// AddResult adds i to the "result" field.
+func (m *TCPDetectorResultMutation) AddResult(i int8) {
+	if m.addresult != nil {
+		*m.addresult += i
+	} else {
+		m.addresult = &i
+	}
+}
+
+// AddedResult returns the value that was added to the "result" field in this mutation.
+func (m *TCPDetectorResultMutation) AddedResult() (r int8, exists bool) {
+	v := m.addresult
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetResult resets all changes to the "result" field.
+func (m *TCPDetectorResultMutation) ResetResult() {
+	m.result = nil
+	m.addresult = nil
+}
+
+// SetMaxDuration sets the "maxDuration" field.
+func (m *TCPDetectorResultMutation) SetMaxDuration(i int) {
+	m.maxDuration = &i
+	m.addmaxDuration = nil
+}
+
+// MaxDuration returns the value of the "maxDuration" field in the mutation.
+func (m *TCPDetectorResultMutation) MaxDuration() (r int, exists bool) {
+	v := m.maxDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMaxDuration returns the old "maxDuration" field's value of the TCPDetectorResult entity.
+// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorResultMutation) OldMaxDuration(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldMaxDuration is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldMaxDuration requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMaxDuration: %w", err)
+	}
+	return oldValue.MaxDuration, nil
+}
+
+// AddMaxDuration adds i to the "maxDuration" field.
+func (m *TCPDetectorResultMutation) AddMaxDuration(i int) {
+	if m.addmaxDuration != nil {
+		*m.addmaxDuration += i
+	} else {
+		m.addmaxDuration = &i
+	}
+}
+
+// AddedMaxDuration returns the value that was added to the "maxDuration" field in this mutation.
+func (m *TCPDetectorResultMutation) AddedMaxDuration() (r int, exists bool) {
+	v := m.addmaxDuration
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMaxDuration resets all changes to the "maxDuration" field.
+func (m *TCPDetectorResultMutation) ResetMaxDuration() {
+	m.maxDuration = nil
+	m.addmaxDuration = nil
+}
+
+// SetMessages sets the "messages" field.
+func (m *TCPDetectorResultMutation) SetMessages(s []string) {
+	m.messages = &s
+}
+
+// Messages returns the value of the "messages" field in the mutation.
+func (m *TCPDetectorResultMutation) Messages() (r []string, exists bool) {
+	v := m.messages
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMessages returns the old "messages" field's value of the TCPDetectorResult entity.
+// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorResultMutation) OldMessages(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldMessages is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldMessages requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMessages: %w", err)
+	}
+	return oldValue.Messages, nil
+}
+
+// ResetMessages resets all changes to the "messages" field.
+func (m *TCPDetectorResultMutation) ResetMessages() {
+	m.messages = nil
+}
+
+// SetAddrs sets the "addrs" field.
+func (m *TCPDetectorResultMutation) SetAddrs(s string) {
+	m.addrs = &s
+}
+
+// Addrs returns the value of the "addrs" field in the mutation.
+func (m *TCPDetectorResultMutation) Addrs() (r string, exists bool) {
+	v := m.addrs
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAddrs returns the old "addrs" field's value of the TCPDetectorResult entity.
+// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorResultMutation) OldAddrs(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldAddrs is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldAddrs requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAddrs: %w", err)
+	}
+	return oldValue.Addrs, nil
+}
+
+// ResetAddrs resets all changes to the "addrs" field.
+func (m *TCPDetectorResultMutation) ResetAddrs() {
+	m.addrs = nil
+}
+
+// SetResults sets the "results" field.
+func (m *TCPDetectorResultMutation) SetResults(sdsr schema.TCPDetectorSubResults) {
+	m.results = &sdsr
+}
+
+// Results returns the value of the "results" field in the mutation.
+func (m *TCPDetectorResultMutation) Results() (r schema.TCPDetectorSubResults, exists bool) {
+	v := m.results
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldResults returns the old "results" field's value of the TCPDetectorResult entity.
+// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TCPDetectorResultMutation) OldResults(ctx context.Context) (v schema.TCPDetectorSubResults, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldResults is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldResults requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldResults: %w", err)
+	}
+	return oldValue.Results, nil
+}
+
+// ResetResults resets all changes to the "results" field.
+func (m *TCPDetectorResultMutation) ResetResults() {
+	m.results = nil
+}
+
+// Op returns the operation name.
+func (m *TCPDetectorResultMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (TCPDetectorResult).
+func (m *TCPDetectorResultMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TCPDetectorResultMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.created_at != nil {
+		fields = append(fields, tcpdetectorresult.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, tcpdetectorresult.FieldUpdatedAt)
+	}
+	if m.status != nil {
+		fields = append(fields, tcpdetectorresult.FieldStatus)
+	}
+	if m.task != nil {
+		fields = append(fields, tcpdetectorresult.FieldTask)
+	}
+	if m.result != nil {
+		fields = append(fields, tcpdetectorresult.FieldResult)
+	}
+	if m.maxDuration != nil {
+		fields = append(fields, tcpdetectorresult.FieldMaxDuration)
+	}
+	if m.messages != nil {
+		fields = append(fields, tcpdetectorresult.FieldMessages)
+	}
+	if m.addrs != nil {
+		fields = append(fields, tcpdetectorresult.FieldAddrs)
+	}
+	if m.results != nil {
+		fields = append(fields, tcpdetectorresult.FieldResults)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TCPDetectorResultMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case tcpdetectorresult.FieldCreatedAt:
+		return m.CreatedAt()
+	case tcpdetectorresult.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case tcpdetectorresult.FieldStatus:
+		return m.Status()
+	case tcpdetectorresult.FieldTask:
+		return m.Task()
+	case tcpdetectorresult.FieldResult:
+		return m.Result()
+	case tcpdetectorresult.FieldMaxDuration:
+		return m.MaxDuration()
+	case tcpdetectorresult.FieldMessages:
+		return m.Messages()
+	case tcpdetectorresult.FieldAddrs:
+		return m.Addrs()
+	case tcpdetectorresult.FieldResults:
+		return m.Results()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TCPDetectorResultMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case tcpdetectorresult.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case tcpdetectorresult.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case tcpdetectorresult.FieldStatus:
+		return m.OldStatus(ctx)
+	case tcpdetectorresult.FieldTask:
+		return m.OldTask(ctx)
+	case tcpdetectorresult.FieldResult:
+		return m.OldResult(ctx)
+	case tcpdetectorresult.FieldMaxDuration:
+		return m.OldMaxDuration(ctx)
+	case tcpdetectorresult.FieldMessages:
+		return m.OldMessages(ctx)
+	case tcpdetectorresult.FieldAddrs:
+		return m.OldAddrs(ctx)
+	case tcpdetectorresult.FieldResults:
+		return m.OldResults(ctx)
+	}
+	return nil, fmt.Errorf("unknown TCPDetectorResult field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TCPDetectorResultMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case tcpdetectorresult.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case tcpdetectorresult.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case tcpdetectorresult.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case tcpdetectorresult.FieldTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTask(v)
+		return nil
+	case tcpdetectorresult.FieldResult:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResult(v)
+		return nil
+	case tcpdetectorresult.FieldMaxDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMaxDuration(v)
+		return nil
+	case tcpdetectorresult.FieldMessages:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMessages(v)
+		return nil
+	case tcpdetectorresult.FieldAddrs:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAddrs(v)
+		return nil
+	case tcpdetectorresult.FieldResults:
+		v, ok := value.(schema.TCPDetectorSubResults)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetResults(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TCPDetectorResult field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TCPDetectorResultMutation) AddedFields() []string {
+	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, tcpdetectorresult.FieldStatus)
+	}
+	if m.addtask != nil {
+		fields = append(fields, tcpdetectorresult.FieldTask)
+	}
+	if m.addresult != nil {
+		fields = append(fields, tcpdetectorresult.FieldResult)
+	}
+	if m.addmaxDuration != nil {
+		fields = append(fields, tcpdetectorresult.FieldMaxDuration)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TCPDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case tcpdetectorresult.FieldStatus:
+		return m.AddedStatus()
+	case tcpdetectorresult.FieldTask:
+		return m.AddedTask()
+	case tcpdetectorresult.FieldResult:
+		return m.AddedResult()
+	case tcpdetectorresult.FieldMaxDuration:
+		return m.AddedMaxDuration()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TCPDetectorResultMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case tcpdetectorresult.FieldStatus:
+		v, ok := value.(schema.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
+	case tcpdetectorresult.FieldTask:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTask(v)
+		return nil
+	case tcpdetectorresult.FieldResult:
+		v, ok := value.(int8)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddResult(v)
+		return nil
+	case tcpdetectorresult.FieldMaxDuration:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMaxDuration(v)
+		return nil
+	}
+	return fmt.Errorf("unknown TCPDetectorResult numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TCPDetectorResultMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TCPDetectorResultMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TCPDetectorResultMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown TCPDetectorResult nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TCPDetectorResultMutation) ResetField(name string) error {
+	switch name {
+	case tcpdetectorresult.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case tcpdetectorresult.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case tcpdetectorresult.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case tcpdetectorresult.FieldTask:
+		m.ResetTask()
+		return nil
+	case tcpdetectorresult.FieldResult:
+		m.ResetResult()
+		return nil
+	case tcpdetectorresult.FieldMaxDuration:
+		m.ResetMaxDuration()
+		return nil
+	case tcpdetectorresult.FieldMessages:
+		m.ResetMessages()
+		return nil
+	case tcpdetectorresult.FieldAddrs:
+		m.ResetAddrs()
+		return nil
+	case tcpdetectorresult.FieldResults:
+		m.ResetResults()
+		return nil
+	}
+	return fmt.Errorf("unknown TCPDetectorResult field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TCPDetectorResultMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TCPDetectorResultMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TCPDetectorResultMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TCPDetectorResultMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TCPDetectorResultMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TCPDetectorResultMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TCPDetectorResultMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown TCPDetectorResult unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TCPDetectorResultMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown TCPDetectorResult edge %s", name)
 }
 
 // UserMutation represents an operation that mutates the User nodes in the graph.

@@ -15,15 +15,11 @@
 package controller
 
 import (
-	"context"
+	"strconv"
 
-	"github.com/vicanso/cybertect/cs"
-	"github.com/vicanso/cybertect/ent"
-	"github.com/vicanso/cybertect/ent/http"
 	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/router"
-	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )
@@ -31,44 +27,39 @@ import (
 type (
 	detectorCtrl struct{}
 
-	// detectorAddHTTPParams params of add http
-	detectorAddHTTPParams struct {
+	// detectorAddParams detector add params
+	detectorAddParams struct {
 		Name        string   `json:"name,omitempty" validate:"required,xDetectorName"`
 		Status      int      `json:"status,omitempty" validate:"required,xStatus"`
 		Description string   `json:"description,omitempty" validate:"required,xDetectorDesc"`
-		IPS         []string `json:"ips,omitempty" validate:"omitempty,dive,ip"`
 		Receivers   []string `json:"receivers,omitempty" validate:"required,dive,xUserAccount"`
-		URL         string   `json:"url,omitempty" validate:"required,xHTTP"`
 		Timeout     string   `json:"timeout,omitempty" validate:"required,xDuration"`
 	}
-	// detectorUpdateHTTPParams params of update http
-	detectorUpdateHTTPParams struct {
+	// detectorUpdateParams detector update params
+	detectorUpdateParams struct {
 		CurrentUser string
 
 		Name        string   `json:"name,omitempty" validate:"omitempty,xDetectorName"`
 		Status      int      `json:"status,omitempty" validate:"omitempty,xStatus"`
 		Description string   `json:"description,omitempty" validate:"omitempty,xDetectorDesc"`
-		IPS         []string `json:"ips,omitempty" validate:"omitempty,dive,ip"`
 		Receivers   []string `json:"receivers,omitempty" validate:"omitempty,dive,xUserAccount"`
-		URL         string   `json:"url,omitempty" validate:"omitempty,xHTTP"`
 		Timeout     string   `json:"timeout,omitempty" validate:"omitempty,xDuration"`
 	}
-	// detectorHTTPListParams params of list http
-	detectorHTTPListParams struct {
+
+	// detectorListHTTPResultParams params of list http result
+	detectorListResultParams struct {
 		listParams
 
-		Owner string
-	}
-	// detectorHTTPListResp response of list http
-	detectorHTTPListResp struct {
-		HTTPS []*ent.HTTP `json:"https,omitempty"`
-		Count int         `json:"count,omitempty"`
+		Task   string `json:"task,omitempty" validate:"omitempty,xDetectorTaskID"`
+		Result string `json:"result,omitempty" validate:"omitempty,xDetectorResult"`
 	}
 )
 
 const (
 	errDetectorCategory = "detector"
 )
+
+var errInvalidUser = hes.New("仅能创建者允许修改配置", errDetectorCategory)
 
 func init() {
 	g := router.NewGroup("/detectors", loadUserSession, shouldBeLogin)
@@ -80,165 +71,20 @@ func init() {
 		"/v1/receivers",
 		ctrl.listReceiver,
 	)
-
-	// 查询http配置
-	g.GET(
-		"/v1/https",
-		ctrl.listHTTP,
-	)
-	// 添加http配置
-	g.POST(
-		"/v1/https",
-		newTrackerMiddleware(cs.ActionDetectorHTTPAdd),
-		ctrl.addHTTP,
-	)
-	// 更新http配置
-	g.PATCH(
-		"/v1/https/{id}",
-		newTrackerMiddleware(cs.ActionDetectorHTTPUpdate),
-		ctrl.updateHTTPByID,
-	)
 }
 
-// save http save
-func (params *detectorAddHTTPParams) save(ctx context.Context, owner string) (result *ent.HTTP, err error) {
-	return getEntClient().HTTP.Create().
-		SetName(params.Name).
-		SetStatus(schema.Status(params.Status)).
-		SetDescription(params.Description).
-		SetIps(params.IPS).
-		SetURL(params.URL).
-		SetReceivers(params.Receivers).
-		SetTimeout(params.Timeout).
-		SetOwner(owner).
-		Save(ctx)
+// GetTaskID get task id
+func (params *detectorListResultParams) GetTaskID() int {
+	// 参数已校验是数字，因此转换时不判断
+	id, _ := strconv.Atoi(params.Task)
+	return id
 }
 
-// where http where
-func (params *detectorHTTPListParams) where(query *ent.HTTPQuery) *ent.HTTPQuery {
-	if params.Owner != "" {
-		query = query.Where(http.OwnerEQ(params.Owner))
-	}
-	return query
-}
-
-// queryAll query all http detector
-func (params *detectorHTTPListParams) queryAll(ctx context.Context) (https []*ent.HTTP, err error) {
-	query := getEntClient().HTTP.Query()
-	query = query.Limit(params.GetLimit()).
-		Offset(params.GetOffset()).
-		Order(params.GetOrders()...)
-	query = params.where(query)
-
-	return query.All(ctx)
-}
-
-// count count http detector
-func (params *detectorHTTPListParams) count(ctx context.Context) (count int, err error) {
-	query := getEntClient().HTTP.Query()
-	query = params.where(query)
-	return query.Count(ctx)
-}
-
-// updateByID update http detector by id
-func (params *detectorUpdateHTTPParams) updateByID(ctx context.Context, id int) (result *ent.HTTP, err error) {
-	currentHTTP, err := getEntClient().HTTP.Get(ctx, id)
-	if err != nil {
-		return
-	}
-	if currentHTTP.Owner != params.CurrentUser {
-		err = hes.New("仅能创建者允许修改配置", errDetectorCategory)
-		return
-	}
-
-	updateOne := getEntClient().HTTP.UpdateOneID(id)
-
-	if params.Name != "" {
-		updateOne = updateOne.SetName(params.Name)
-	}
-	if params.Status != 0 {
-		updateOne = updateOne.SetStatus(schema.Status(params.Status))
-	}
-	if params.Description != "" {
-		updateOne = updateOne.SetDescription(params.Description)
-	}
-	if len(params.IPS) != 0 {
-		updateOne = updateOne.SetIps(params.IPS)
-	}
-	if len(params.Receivers) != 0 {
-		updateOne = updateOne.SetReceivers(params.Receivers)
-	}
-	if params.URL != "" {
-		updateOne = updateOne.SetURL(params.URL)
-	}
-	if params.Timeout != "" {
-		updateOne = updateOne.SetTimeout(params.Timeout)
-	}
-	return updateOne.Save(ctx)
-}
-
-// addHTTP 添加http配置
-func (*detectorCtrl) addHTTP(c *elton.Context) (err error) {
-	params := detectorAddHTTPParams{}
-	err = validate.Do(&params, c.RequestBody)
-	if err != nil {
-		return
-	}
-	us := getUserSession(c)
-	result, err := params.save(c.Context(), us.MustGetInfo().Account)
-	if err != nil {
-		return
-	}
-	c.Body = result
-	return
-}
-
-// listHTTP 获取http配置
-func (*detectorCtrl) listHTTP(c *elton.Context) (err error) {
-	params := detectorHTTPListParams{}
-	err = validate.Do(&params, c.Query())
-	if err != nil {
-		return
-	}
-	us := getUserSession(c)
-	params.Owner = us.MustGetInfo().Account
-	count := -1
-	if params.ShouldCount() {
-		count, err = params.count(c.Context())
-		if err != nil {
-			return
-		}
-	}
-	https, err := params.queryAll(c.Context())
-	if err != nil {
-		return
-	}
-	c.Body = &detectorHTTPListResp{
-		Count: count,
-		HTTPS: https,
-	}
-	return
-}
-
-// updateHTTPByID 更新http配置
-func (*detectorCtrl) updateHTTPByID(c *elton.Context) (err error) {
-	id, err := getIDFromParams(c)
-	if err != nil {
-		return
-	}
-	params := detectorUpdateHTTPParams{}
-	err = validate.Do(&params, c.RequestBody)
-	if err != nil {
-		return
-	}
-	us := getUserSession(c)
-	params.CurrentUser = us.MustGetInfo().Account
-	result, err := params.updateByID(c.Context(), id)
-	if err != nil {
-		return
-	}
-	c.Body = result
-	return
+// GetResult get result
+func (params *detectorListResultParams) GetResult() int8 {
+	// 参数已校验，因此转换不判断
+	result, _ := strconv.Atoi(params.Result)
+	return int8(result)
 }
 
 // listReceiver 获取接收者列表

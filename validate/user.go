@@ -28,10 +28,13 @@ func init() {
 	// 用户分组
 	AddAlias("xUserGroup", "ascii,min=1,max=10")
 	// 用户行为分类
+	// TODO 是否调整为支持配置的方式
 	Add("xUserActionCategory", newIsInString([]string{
-		"tap",
-		"confirm",
-		"cancel",
+		"click",
+		"login",
+		"register",
+		"routeChange",
+		"error",
 	}))
 	// 用户行为触发所在路由
 	AddAlias("xUserActionRoute", "max=50")

@@ -6,7 +6,6 @@
   main-header.header
   //- 主导航
   main-nav.nav(
-    v-if="inited"
     :shrinking="shrinking"
     @toggle="toggleNav"
   )

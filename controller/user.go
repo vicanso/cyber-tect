@@ -116,6 +116,8 @@ type (
 			Route string `json:"route,omitempty" validate:"required,xUserActionRoute"`
 			// Path 触发时的完整路径
 			Path string `json:"path,omitempty" validate:"required,xPath"`
+			// Result 操作结果，0:成功 1:失败
+			Result int `json:"result,omitempty"`
 			// Time 记录的时间戳，单位秒
 			Time int64 `json:"time,omitempty" validate:"required"`
 			// Extra 其它额外信息
@@ -174,6 +176,13 @@ func init() {
 	g.GET(
 		"/v1/me",
 		ctrl.me,
+	)
+
+	// 获取用户信息
+	g.GET(
+		"/v1/detail",
+		shouldBeLogin,
+		ctrl.detail,
 	)
 
 	// 用户注册
@@ -236,7 +245,6 @@ func init() {
 	// 添加用户行为
 	g.POST(
 		"/v1/actions",
-		shouldBeLogin,
 		ctrl.addUserAction,
 	)
 
@@ -547,6 +555,18 @@ func (*userCtrl) me(c *elton.Context) (err error) {
 	return
 }
 
+// detail 详细信息
+func (*userCtrl) detail(c *elton.Context) (err error) {
+	us := getUserSession(c)
+	user, err := getEntClient().User.Get(c.Context(), us.MustGetInfo().ID)
+	if err != nil {
+		return
+	}
+
+	c.Body = user
+	return
+}
+
 // register 用户注册
 func (*userCtrl) register(c *elton.Context) (err error) {
 	params := userRegisterLoginParams{}
@@ -773,6 +793,13 @@ func (ctrl userCtrl) listLoginRecord(c *elton.Context) (err error) {
 
 // addUserAction add user action
 func (ctrl userCtrl) addUserAction(c *elton.Context) (err error) {
+	tid := util.GetTrackID(c)
+	// 如果没有tid，则直接返回
+	if tid == "" {
+		c.NoContent()
+		return
+	}
+
 	params := userActionAddParams{}
 	err = validate.Do(&params, c.RequestBody)
 	if err != nil {
@@ -780,7 +807,10 @@ func (ctrl userCtrl) addUserAction(c *elton.Context) (err error) {
 	}
 	now := time.Now().Unix()
 	us := getUserSession(c)
-	account := us.MustGetInfo().Account
+	account := ""
+	if us.IsLogin() {
+		account = us.MustGetInfo().Account
+	}
 
 	count := 0
 	for _, item := range params.Actions {
@@ -794,13 +824,17 @@ func (ctrl userCtrl) addUserAction(c *elton.Context) (err error) {
 		nsec := rand.Int() % int(time.Second)
 		t := time.Unix(item.Time, int64(nsec))
 		fields := map[string]interface{}{
-			cs.FieldAccount: account,
-			cs.FieldRoute:   item.Route,
-			cs.FieldPath:    item.Path,
+			cs.FieldRoute: item.Route,
+			cs.FieldPath:  item.Path,
+			cs.FieldTID:   tid,
+		}
+		if account != "" {
+			fields[cs.FieldAccount] = account
 		}
 		fields = util.MergeMapStringInterface(fields, item.Extra)
 		getInfluxSrv().Write(cs.MeasurementUserAction, map[string]string{
 			cs.TagCategory: item.Category,
+			cs.TagResult:   strconv.Itoa(item.Result),
 		}, fields, t)
 	}
 	c.Body = map[string]int{

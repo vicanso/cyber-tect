@@ -44,6 +44,7 @@ export default defineComponent({
 .randomKeys
   padding: 10px
   line-height: 2em
+  height: 150px
 .btn
   width: 100%
 </style>

@@ -61,7 +61,7 @@
         prop="updatedAt"
         key="updatedAt"
         label="更新于"
-        width="180"
+        width="160"
         sortable
       ): template(
         #default="scope"

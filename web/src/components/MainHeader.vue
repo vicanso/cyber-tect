@@ -42,6 +42,7 @@ import { defineComponent } from "vue";
 import { useUserStore } from "../store";
 import {
   getHomeRouteName,
+  getProfileRouteName,
   getLoginRouteName,
   getRegisterRouteName,
 } from "../router";
@@ -57,7 +58,7 @@ export default defineComponent({
   },
   data() {
     return {
-      profileRoute: getHomeRouteName(),
+      profileRoute: getProfileRouteName(),
       loginRoute: getLoginRouteName(),
       registerRoute: getRegisterRouteName(),
     };

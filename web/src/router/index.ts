@@ -1,11 +1,15 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 
+import { addUserAction, ROUTE_CHANGE, SUCCESS } from "../services/action";
+
 import Home from "../views/Home.vue";
+import Profile from "../views/Profile.vue";
 import Login from "../views/Login.vue";
 import Register from "../views/Register.vue";
 import Logins from "../views/Logins.vue";
 import Users from "../views/Users.vue";
 import Trackers from "../views/Trackers.vue";
+import Actions from "../views/Actions.vue";
 
 // 各类配置
 import HTTPErrors from "../views/HTTPErrors.vue";
@@ -20,13 +24,18 @@ import Others from "../views/Others.vue";
 
 // detector检测
 import DetectorHTTP from "../views/detectors/HTTP.vue";
+import DetectorDNS from "../views/detectors/DNS.vue";
+import DetectorTCP from "../views/detectors/TCP.vue";
+import DetectorPing from "../views/detectors/Ping.vue";
 
 const home = "home";
+const profile = "profile";
 const login = "login";
 const register = "register";
 const logins = "logins";
 const users = "users";
 const trackers = "trackers";
+const actions = "actions";
 const httpErrors = "httpErrors";
 
 const mockTime = "mockTime";
@@ -39,6 +48,9 @@ const configuration = "configuration";
 const others = "others";
 
 const detectorHTTP = "detectorHTTP";
+const detectorDNS = "detectorDNS";
+const detectorTCP = "detectorTCP";
+const detectorPing = "detectorPing";
 
 interface Location {
   name: string;
@@ -61,6 +73,11 @@ const router = createRouter({
       path: "/",
       name: home,
       component: Home,
+    },
+    {
+      path: "/profile",
+      name: profile,
+      component: Profile,
     },
     {
       path: "/login",
@@ -86,6 +103,11 @@ const router = createRouter({
       path: "/trackers",
       name: trackers,
       component: Trackers,
+    },
+    {
+      path: "/actions",
+      name: actions,
+      component: Actions,
     },
     {
       path: "/http-errors",
@@ -137,11 +159,29 @@ const router = createRouter({
       name: detectorHTTP,
       component: DetectorHTTP,
     },
+    {
+      path: "/detector-dns",
+      name: detectorDNS,
+      component: DetectorDNS,
+    },
+    {
+      path: "/detector-tcp",
+      name: detectorTCP,
+      component: DetectorTCP,
+    },
+    {
+      path: "/detector-ping",
+      name: detectorPing,
+      component: DetectorPing,
+    },
   ],
 });
 
 export function getHomeRouteName(): string {
   return home;
+}
+export function getProfileRouteName(): string {
+  return profile;
 }
 export function getLoginRouteName(): string {
   return login;
@@ -157,6 +197,9 @@ export function getUsersRouteName(): string {
 }
 export function getTrackersRouteName(): string {
   return trackers;
+}
+export function getActionsRouteName(): string {
+  return actions;
 }
 export function getHTTPErrorsRouteName(): string {
   return httpErrors;
@@ -190,6 +233,15 @@ export function getOthersRouteName(): string {
 export function getDetectorHTTPRouteName(): string {
   return detectorHTTP;
 }
+export function getDetectorDNSRouteName(): string {
+  return detectorDNS;
+}
+export function getDetectorTCPRouteName(): string {
+  return detectorTCP;
+}
+export function getDetectorPingRouteName(): string {
+  return detectorPing;
+}
 
 export function getCurrentLocation(): Location {
   return currentLocation;
@@ -204,6 +256,12 @@ router.beforeEach((to, from) => {
     currentLocation.name = to.name.toString();
     currentLocation.path = to.fullPath;
   }
+  addUserAction({
+    category: ROUTE_CHANGE,
+    route: currentLocation.name,
+    path: currentLocation.path,
+    result: SUCCESS,
+  });
 });
 
 export default router;

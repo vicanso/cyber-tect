@@ -42,6 +42,16 @@ func (status Status) Int8() int8 {
 	return int8(status)
 }
 
+// 检测结果
+type DetectorResult int8
+
+const (
+	// DetectorResultSuccess 成功
+	DetectorResultSuccess DetectorResult = iota + 1
+	// DetectorResultFail 失败
+	DetectorResultFail
+)
+
 // String 转换为string
 func (status Status) String() string {
 	switch status {

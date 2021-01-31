@@ -53,19 +53,21 @@ func newMailDialer() *gomail.Dialer {
 
 }
 
-// AlarmError 发送出错警告
-func AlarmError(message string) {
-	log.Default().Error(message,
-		zap.String("app", basicInfo.Name),
-		zap.String("category", "alarm-error"),
-	)
+// SendEmail 发短信
+func SendEmail(title, message string, receivers ...string) {
+	if len(receivers) == 0 {
+		log.Default().Error("no email receiver",
+			zap.String("title", title),
+			zap.String("message", message),
+		)
+		return
+	}
 	d := newMailDialer()
 	if d != nil {
 		m := gomail.NewMessage()
-		receivers := alarmConfig.Receivers
 		m.SetHeader("From", mailConfig.User)
 		m.SetHeader("To", receivers...)
-		m.SetHeader("Subject", "Alarm-"+basicInfo.Name)
+		m.SetHeader("Subject", title)
 		m.SetBody("text/plain", message)
 		// 避免发送邮件时太慢影响现有流程
 		go func() {
@@ -80,4 +82,14 @@ func AlarmError(message string) {
 			}
 		}()
 	}
+}
+
+// AlarmError 发送出错警告
+func AlarmError(message string) {
+	log.Default().Error(message,
+		zap.String("app", basicInfo.Name),
+		zap.String("category", "alarm-error"),
+	)
+	receivers := alarmConfig.Receivers
+	SendEmail("Alarm-"+basicInfo.Name, message, receivers...)
 }

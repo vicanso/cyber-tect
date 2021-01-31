@@ -222,7 +222,7 @@
 import { defineComponent } from "vue";
 
 import { useDetectorStore, useUserStore } from "../../store";
-import FilterTable from "../../mixins/FilterTable";
+import DetectorBase from "./Detector";
 import TimeFormater from "../../components/TimeFormater.vue";
 import DetectorStatusDesc from "../../components/detectors/StatusDesc.vue";
 import DetectorStatusSelector from "../../components/detectors/StatusSelector.vue";
@@ -230,37 +230,6 @@ import DetectorReceiverSelector from "../../components/detectors/ReceiverSelecto
 import ExButton from "../../components/ExButton.vue";
 import { PAGE_SIZES } from "../../constants/common";
 import { diff } from "../../helpers/util";
-
-function convertToModified(item) {
-  let timeout = null;
-  if (item.timeout) {
-    const arr = /\d+/.exec(item.timeout);
-    timeout = Number(arr[0]);
-  }
-  return {
-    id: item.id,
-    name: item.name,
-    status: item.status,
-    ips: (item.ips || []).join(","),
-    url: item.url,
-    timeout,
-    receivers: item.receivers,
-    description: item.description,
-  };
-}
-
-function convertToHTTP(item) {
-  return {
-    id: item.id,
-    name: item.name,
-    status: item.status,
-    ips: item.ips.split(","),
-    url: item.url,
-    timeout: `${item.timeout}s`,
-    receivers: item.receivers,
-    description: item.description,
-  };
-}
 
 export default defineComponent({
   name: "DetectorHTTP",
@@ -271,7 +240,7 @@ export default defineComponent({
     DetectorStatusSelector,
     DetectorReceiverSelector,
   },
-  mixins: [FilterTable],
+  mixins: [DetectorBase],
   setup() {
     const detectorStore = useDetectorStore();
     const userStore = useUserStore();
@@ -292,11 +261,11 @@ export default defineComponent({
         id: null,
         name: "",
         status: null,
-        ips: "",
-        url: "",
         timeout: null,
         receivers: [],
         description: "",
+        url: "",
+        ips: "",
       },
       pageSizes: PAGE_SIZES,
       query: {
@@ -319,18 +288,6 @@ export default defineComponent({
         this.$error(err);
       }
     },
-    // 状态变化
-    changeStatus(value) {
-      this.modifiedItem.status = value;
-    },
-    // 接收人变化
-    changeReceivers(values) {
-      this.modifiedItem.receivers = values;
-    },
-    // generateModifyHandler 生成修改的处理函数
-    generateModifyHandler(item) {
-      return () => this.modify(item);
-    },
     // submit 提交
     async submit(): Promise<boolean> {
       let isSuccess = false;
@@ -338,7 +295,7 @@ export default defineComponent({
       if (https.processing) {
         return isSuccess;
       }
-      const item = convertToHTTP(modifiedItem);
+      const item = this.convertToHTTP(modifiedItem);
       try {
         // 添加
         if (!item.id) {
@@ -360,20 +317,35 @@ export default defineComponent({
       }
       return isSuccess;
     },
-    // modify 修改
-    modify(item) {
-      this.editing = true;
-      this.originalItem = item;
-      Object.assign(this.modifiedItem, convertToModified(item));
+    convertToModified(item) {
+      let timeout = null;
+      if (item.timeout) {
+        const arr = /\d+/.exec(item.timeout);
+        timeout = Number(arr[0]);
+      }
+      return {
+        id: item.id,
+        name: item.name,
+        status: item.status,
+        ips: (item.ips || []).join(","),
+        url: item.url,
+        timeout,
+        receivers: item.receivers,
+        description: item.description,
+      };
     },
-    // add 添加
-    add() {
-      this.editing = true;
-      this.originalItem = null;
-      Object.assign(this.modifiedItem, convertToModified({}));
-    },
-    back() {
-      this.editing = false;
+
+    convertToHTTP(item) {
+      return {
+        id: item.id,
+        name: item.name,
+        status: item.status,
+        ips: item.ips.split(",").map((item) => item.trim()),
+        url: item.url,
+        timeout: `${item.timeout}s`,
+        receivers: item.receivers,
+        description: item.description,
+      };
     },
   },
 });

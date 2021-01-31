@@ -181,10 +181,12 @@ const (
 	FieldNumGC = "numGC"
 	// FieldPauseNS gc pause ns
 	FieldPauseNS = "pauseNS"
-)
-
-// uint64 类型
-const (
+	// FieldConnProcessing conn processing
+	FieldConnProcessing = "connProcessing"
+	// FieldConnAlive conn alive
+	FieldConnAlive = "connAlive"
+	// FieldConnCreatedCount conn created count
+	FieldConnCreatedCount = "connCreatedCount"
 	// FieldTotal 总数
 	FieldTotal = "total"
 )

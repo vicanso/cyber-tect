@@ -19,6 +19,7 @@ import (
 
 	"github.com/robfig/cron/v3"
 	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/detector"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/service"
@@ -45,6 +46,12 @@ func init() {
 	_, _ = c.AddFunc("@every 1m", performanceStats)
 	_, _ = c.AddFunc("@every 1m", httpInstanceStats)
 	_, _ = c.AddFunc("@every 1m", routerConcurrencyStats)
+
+	// 检测任务
+	_, _ = c.AddFunc("@every 1m", doHTTPDetect)
+	_, _ = c.AddFunc("@every 1m", doDNSDetect)
+	_, _ = c.AddFunc("@every 1m", doTCPDetect)
+	_, _ = c.AddFunc("@every 1m", doPingDetect)
 	c.Start()
 }
 
@@ -127,17 +134,20 @@ func performanceStats() {
 	doStatsTask("performance stats", func() map[string]interface{} {
 		data := service.GetPerformance()
 		fields := map[string]interface{}{
-			cs.FieldGoMaxProcs:   data.GoMaxProcs,
-			cs.FieldProcessing:   int(data.Concurrency),
-			cs.FieldThreadCount:  int(data.ThreadCount),
-			cs.FieldMemSys:       data.MemSys,
-			cs.FieldMemHeapSys:   data.MemHeapSys,
-			cs.FieldMemHeapInuse: data.MemHeapInuse,
-			cs.FieldMemFrees:     int(data.MemFrees - prevMemFrees),
-			cs.FieldRoutineCount: data.RoutineCount,
-			cs.FieldCpuUsage:     int(data.CPUUsage),
-			cs.FieldNumGC:        int(data.NumGC - prevNumGC),
-			cs.FieldPauseNS:      int((data.PauseTotalNs - prevPauseTotal).Milliseconds()),
+			cs.FieldGoMaxProcs:       data.GoMaxProcs,
+			cs.FieldProcessing:       int(data.Concurrency),
+			cs.FieldThreadCount:      int(data.ThreadCount),
+			cs.FieldMemSys:           data.MemSys,
+			cs.FieldMemHeapSys:       data.MemHeapSys,
+			cs.FieldMemHeapInuse:     data.MemHeapInuse,
+			cs.FieldMemFrees:         int(data.MemFrees - prevMemFrees),
+			cs.FieldRoutineCount:     data.RoutineCount,
+			cs.FieldCpuUsage:         int(data.CPUUsage),
+			cs.FieldNumGC:            int(data.NumGC - prevNumGC),
+			cs.FieldPauseNS:          int((data.PauseTotalNs - prevPauseTotal).Milliseconds()),
+			cs.FieldConnProcessing:   int(data.ConnProcessing),
+			cs.FieldConnAlive:        int(data.ConnAlive),
+			cs.FieldConnCreatedCount: int(data.ConnCreatedCount),
 		}
 		prevMemFrees = data.MemFrees
 		prevNumGC = data.NumGC
@@ -183,4 +193,24 @@ func routerConcurrencyStats() {
 		}
 		return fields
 	})
+}
+
+func doHTTPDetect() {
+	srv := detector.HTTPSrv{}
+	doTask("http detect", srv.Detect)
+}
+
+func doDNSDetect() {
+	srv := detector.DNSSrv{}
+	doTask("dns detect", srv.Detect)
+}
+
+func doTCPDetect() {
+	srv := detector.TCPSrv{}
+	doTask("tcp detect", srv.Detect)
+}
+
+func doPingDetect() {
+	srv := detector.PingSrv{}
+	doTask("ping detect", srv.Detect)
 }

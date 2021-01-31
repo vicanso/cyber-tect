@@ -83,7 +83,7 @@ el-card.logins
         prop="createdAt"
         key="createdAt"
         label="时间"
-        width="180"
+        width="160"
       ): template(
         #default="scope"
       ): time-formater(

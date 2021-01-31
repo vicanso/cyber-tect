@@ -51,6 +51,7 @@ request.interceptors.request.use(
 
 // 设置接口最少要xms才完成，能让客户看到loading
 const minUse = 150;
+const timeoutErrorCodes = ["ECONNABORTED", "ECONNREFUSED", "ECONNRESET"];
 request.interceptors.response.use(
   async (res) => {
     const value = res.config.headers[requestedAt];
@@ -64,7 +65,9 @@ request.interceptors.response.use(
   },
   (err) => {
     const { response } = err;
-    if (err.code === "ECONNABORTED") {
+    if (timeoutErrorCodes.includes(err.code)) {
+      err.exception = true;
+      err.category = "timeout";
       err.message = "请求超时，请稍候再试";
     } else if (response) {
       if (response.data && response.data.message) {
@@ -72,7 +75,9 @@ request.interceptors.response.use(
         err.code = response.data.code;
         err.category = response.data.category;
       } else {
-        err.message = `unknown error[${response.statusCode || -1}]`;
+        err.exception = true;
+        err.category = "exception";
+        err.message = `未知错误[${response.statusCode || -1}]`;
       }
     }
     return Promise.reject(err);

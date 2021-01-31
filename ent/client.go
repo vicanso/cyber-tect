@@ -10,7 +10,14 @@ import (
 	"github.com/vicanso/cybertect/ent/migrate"
 
 	"github.com/vicanso/cybertect/ent/configuration"
-	"github.com/vicanso/cybertect/ent/http"
+	"github.com/vicanso/cybertect/ent/dnsdetector"
+	"github.com/vicanso/cybertect/ent/dnsdetectorresult"
+	"github.com/vicanso/cybertect/ent/httpdetector"
+	"github.com/vicanso/cybertect/ent/httpdetectorresult"
+	"github.com/vicanso/cybertect/ent/pingdetector"
+	"github.com/vicanso/cybertect/ent/pingdetectorresult"
+	"github.com/vicanso/cybertect/ent/tcpdetector"
+	"github.com/vicanso/cybertect/ent/tcpdetectorresult"
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/ent/userlogin"
 
@@ -25,8 +32,22 @@ type Client struct {
 	Schema *migrate.Schema
 	// Configuration is the client for interacting with the Configuration builders.
 	Configuration *ConfigurationClient
-	// HTTP is the client for interacting with the HTTP builders.
-	HTTP *HTTPClient
+	// DNSDetector is the client for interacting with the DNSDetector builders.
+	DNSDetector *DNSDetectorClient
+	// DNSDetectorResult is the client for interacting with the DNSDetectorResult builders.
+	DNSDetectorResult *DNSDetectorResultClient
+	// HTTPDetector is the client for interacting with the HTTPDetector builders.
+	HTTPDetector *HTTPDetectorClient
+	// HTTPDetectorResult is the client for interacting with the HTTPDetectorResult builders.
+	HTTPDetectorResult *HTTPDetectorResultClient
+	// PingDetector is the client for interacting with the PingDetector builders.
+	PingDetector *PingDetectorClient
+	// PingDetectorResult is the client for interacting with the PingDetectorResult builders.
+	PingDetectorResult *PingDetectorResultClient
+	// TCPDetector is the client for interacting with the TCPDetector builders.
+	TCPDetector *TCPDetectorClient
+	// TCPDetectorResult is the client for interacting with the TCPDetectorResult builders.
+	TCPDetectorResult *TCPDetectorResultClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserLogin is the client for interacting with the UserLogin builders.
@@ -45,7 +66,14 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Configuration = NewConfigurationClient(c.config)
-	c.HTTP = NewHTTPClient(c.config)
+	c.DNSDetector = NewDNSDetectorClient(c.config)
+	c.DNSDetectorResult = NewDNSDetectorResultClient(c.config)
+	c.HTTPDetector = NewHTTPDetectorClient(c.config)
+	c.HTTPDetectorResult = NewHTTPDetectorResultClient(c.config)
+	c.PingDetector = NewPingDetectorClient(c.config)
+	c.PingDetectorResult = NewPingDetectorResultClient(c.config)
+	c.TCPDetector = NewTCPDetectorClient(c.config)
+	c.TCPDetectorResult = NewTCPDetectorResultClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserLogin = NewUserLoginClient(c.config)
 }
@@ -78,12 +106,19 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	}
 	cfg := config{driver: tx, log: c.log, debug: c.debug, hooks: c.hooks}
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		Configuration: NewConfigurationClient(cfg),
-		HTTP:          NewHTTPClient(cfg),
-		User:          NewUserClient(cfg),
-		UserLogin:     NewUserLoginClient(cfg),
+		ctx:                ctx,
+		config:             cfg,
+		Configuration:      NewConfigurationClient(cfg),
+		DNSDetector:        NewDNSDetectorClient(cfg),
+		DNSDetectorResult:  NewDNSDetectorResultClient(cfg),
+		HTTPDetector:       NewHTTPDetectorClient(cfg),
+		HTTPDetectorResult: NewHTTPDetectorResultClient(cfg),
+		PingDetector:       NewPingDetectorClient(cfg),
+		PingDetectorResult: NewPingDetectorResultClient(cfg),
+		TCPDetector:        NewTCPDetectorClient(cfg),
+		TCPDetectorResult:  NewTCPDetectorResultClient(cfg),
+		User:               NewUserClient(cfg),
+		UserLogin:          NewUserLoginClient(cfg),
 	}, nil
 }
 
@@ -98,11 +133,18 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	}
 	cfg := config{driver: &txDriver{tx: tx, drv: c.driver}, log: c.log, debug: c.debug, hooks: c.hooks}
 	return &Tx{
-		config:        cfg,
-		Configuration: NewConfigurationClient(cfg),
-		HTTP:          NewHTTPClient(cfg),
-		User:          NewUserClient(cfg),
-		UserLogin:     NewUserLoginClient(cfg),
+		config:             cfg,
+		Configuration:      NewConfigurationClient(cfg),
+		DNSDetector:        NewDNSDetectorClient(cfg),
+		DNSDetectorResult:  NewDNSDetectorResultClient(cfg),
+		HTTPDetector:       NewHTTPDetectorClient(cfg),
+		HTTPDetectorResult: NewHTTPDetectorResultClient(cfg),
+		PingDetector:       NewPingDetectorClient(cfg),
+		PingDetectorResult: NewPingDetectorResultClient(cfg),
+		TCPDetector:        NewTCPDetectorClient(cfg),
+		TCPDetectorResult:  NewTCPDetectorResultClient(cfg),
+		User:               NewUserClient(cfg),
+		UserLogin:          NewUserLoginClient(cfg),
 	}, nil
 }
 
@@ -132,7 +174,14 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Configuration.Use(hooks...)
-	c.HTTP.Use(hooks...)
+	c.DNSDetector.Use(hooks...)
+	c.DNSDetectorResult.Use(hooks...)
+	c.HTTPDetector.Use(hooks...)
+	c.HTTPDetectorResult.Use(hooks...)
+	c.PingDetector.Use(hooks...)
+	c.PingDetectorResult.Use(hooks...)
+	c.TCPDetector.Use(hooks...)
+	c.TCPDetectorResult.Use(hooks...)
 	c.User.Use(hooks...)
 	c.UserLogin.Use(hooks...)
 }
@@ -225,82 +274,82 @@ func (c *ConfigurationClient) Hooks() []Hook {
 	return c.hooks.Configuration
 }
 
-// HTTPClient is a client for the HTTP schema.
-type HTTPClient struct {
+// DNSDetectorClient is a client for the DNSDetector schema.
+type DNSDetectorClient struct {
 	config
 }
 
-// NewHTTPClient returns a client for the HTTP from the given config.
-func NewHTTPClient(c config) *HTTPClient {
-	return &HTTPClient{config: c}
+// NewDNSDetectorClient returns a client for the DNSDetector from the given config.
+func NewDNSDetectorClient(c config) *DNSDetectorClient {
+	return &DNSDetectorClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `http.Hooks(f(g(h())))`.
-func (c *HTTPClient) Use(hooks ...Hook) {
-	c.hooks.HTTP = append(c.hooks.HTTP, hooks...)
+// A call to `Use(f, g, h)` equals to `dnsdetector.Hooks(f(g(h())))`.
+func (c *DNSDetectorClient) Use(hooks ...Hook) {
+	c.hooks.DNSDetector = append(c.hooks.DNSDetector, hooks...)
 }
 
-// Create returns a create builder for HTTP.
-func (c *HTTPClient) Create() *HTTPCreate {
-	mutation := newHTTPMutation(c.config, OpCreate)
-	return &HTTPCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a create builder for DNSDetector.
+func (c *DNSDetectorClient) Create() *DNSDetectorCreate {
+	mutation := newDNSDetectorMutation(c.config, OpCreate)
+	return &DNSDetectorCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of HTTP entities.
-func (c *HTTPClient) CreateBulk(builders ...*HTTPCreate) *HTTPCreateBulk {
-	return &HTTPCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of DNSDetector entities.
+func (c *DNSDetectorClient) CreateBulk(builders ...*DNSDetectorCreate) *DNSDetectorCreateBulk {
+	return &DNSDetectorCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for HTTP.
-func (c *HTTPClient) Update() *HTTPUpdate {
-	mutation := newHTTPMutation(c.config, OpUpdate)
-	return &HTTPUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for DNSDetector.
+func (c *DNSDetectorClient) Update() *DNSDetectorUpdate {
+	mutation := newDNSDetectorMutation(c.config, OpUpdate)
+	return &DNSDetectorUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *HTTPClient) UpdateOne(h *HTTP) *HTTPUpdateOne {
-	mutation := newHTTPMutation(c.config, OpUpdateOne, withHTTP(h))
-	return &HTTPUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *DNSDetectorClient) UpdateOne(dd *DNSDetector) *DNSDetectorUpdateOne {
+	mutation := newDNSDetectorMutation(c.config, OpUpdateOne, withDNSDetector(dd))
+	return &DNSDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *HTTPClient) UpdateOneID(id int) *HTTPUpdateOne {
-	mutation := newHTTPMutation(c.config, OpUpdateOne, withHTTPID(id))
-	return &HTTPUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *DNSDetectorClient) UpdateOneID(id int) *DNSDetectorUpdateOne {
+	mutation := newDNSDetectorMutation(c.config, OpUpdateOne, withDNSDetectorID(id))
+	return &DNSDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for HTTP.
-func (c *HTTPClient) Delete() *HTTPDelete {
-	mutation := newHTTPMutation(c.config, OpDelete)
-	return &HTTPDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for DNSDetector.
+func (c *DNSDetectorClient) Delete() *DNSDetectorDelete {
+	mutation := newDNSDetectorMutation(c.config, OpDelete)
+	return &DNSDetectorDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a delete builder for the given entity.
-func (c *HTTPClient) DeleteOne(h *HTTP) *HTTPDeleteOne {
-	return c.DeleteOneID(h.ID)
+func (c *DNSDetectorClient) DeleteOne(dd *DNSDetector) *DNSDetectorDeleteOne {
+	return c.DeleteOneID(dd.ID)
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *HTTPClient) DeleteOneID(id int) *HTTPDeleteOne {
-	builder := c.Delete().Where(http.ID(id))
+func (c *DNSDetectorClient) DeleteOneID(id int) *DNSDetectorDeleteOne {
+	builder := c.Delete().Where(dnsdetector.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &HTTPDeleteOne{builder}
+	return &DNSDetectorDeleteOne{builder}
 }
 
-// Query returns a query builder for HTTP.
-func (c *HTTPClient) Query() *HTTPQuery {
-	return &HTTPQuery{config: c.config}
+// Query returns a query builder for DNSDetector.
+func (c *DNSDetectorClient) Query() *DNSDetectorQuery {
+	return &DNSDetectorQuery{config: c.config}
 }
 
-// Get returns a HTTP entity by its id.
-func (c *HTTPClient) Get(ctx context.Context, id int) (*HTTP, error) {
-	return c.Query().Where(http.ID(id)).Only(ctx)
+// Get returns a DNSDetector entity by its id.
+func (c *DNSDetectorClient) Get(ctx context.Context, id int) (*DNSDetector, error) {
+	return c.Query().Where(dnsdetector.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *HTTPClient) GetX(ctx context.Context, id int) *HTTP {
+func (c *DNSDetectorClient) GetX(ctx context.Context, id int) *DNSDetector {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -309,8 +358,624 @@ func (c *HTTPClient) GetX(ctx context.Context, id int) *HTTP {
 }
 
 // Hooks returns the client hooks.
-func (c *HTTPClient) Hooks() []Hook {
-	return c.hooks.HTTP
+func (c *DNSDetectorClient) Hooks() []Hook {
+	return c.hooks.DNSDetector
+}
+
+// DNSDetectorResultClient is a client for the DNSDetectorResult schema.
+type DNSDetectorResultClient struct {
+	config
+}
+
+// NewDNSDetectorResultClient returns a client for the DNSDetectorResult from the given config.
+func NewDNSDetectorResultClient(c config) *DNSDetectorResultClient {
+	return &DNSDetectorResultClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `dnsdetectorresult.Hooks(f(g(h())))`.
+func (c *DNSDetectorResultClient) Use(hooks ...Hook) {
+	c.hooks.DNSDetectorResult = append(c.hooks.DNSDetectorResult, hooks...)
+}
+
+// Create returns a create builder for DNSDetectorResult.
+func (c *DNSDetectorResultClient) Create() *DNSDetectorResultCreate {
+	mutation := newDNSDetectorResultMutation(c.config, OpCreate)
+	return &DNSDetectorResultCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of DNSDetectorResult entities.
+func (c *DNSDetectorResultClient) CreateBulk(builders ...*DNSDetectorResultCreate) *DNSDetectorResultCreateBulk {
+	return &DNSDetectorResultCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for DNSDetectorResult.
+func (c *DNSDetectorResultClient) Update() *DNSDetectorResultUpdate {
+	mutation := newDNSDetectorResultMutation(c.config, OpUpdate)
+	return &DNSDetectorResultUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *DNSDetectorResultClient) UpdateOne(ddr *DNSDetectorResult) *DNSDetectorResultUpdateOne {
+	mutation := newDNSDetectorResultMutation(c.config, OpUpdateOne, withDNSDetectorResult(ddr))
+	return &DNSDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *DNSDetectorResultClient) UpdateOneID(id int) *DNSDetectorResultUpdateOne {
+	mutation := newDNSDetectorResultMutation(c.config, OpUpdateOne, withDNSDetectorResultID(id))
+	return &DNSDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for DNSDetectorResult.
+func (c *DNSDetectorResultClient) Delete() *DNSDetectorResultDelete {
+	mutation := newDNSDetectorResultMutation(c.config, OpDelete)
+	return &DNSDetectorResultDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *DNSDetectorResultClient) DeleteOne(ddr *DNSDetectorResult) *DNSDetectorResultDeleteOne {
+	return c.DeleteOneID(ddr.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *DNSDetectorResultClient) DeleteOneID(id int) *DNSDetectorResultDeleteOne {
+	builder := c.Delete().Where(dnsdetectorresult.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &DNSDetectorResultDeleteOne{builder}
+}
+
+// Query returns a query builder for DNSDetectorResult.
+func (c *DNSDetectorResultClient) Query() *DNSDetectorResultQuery {
+	return &DNSDetectorResultQuery{config: c.config}
+}
+
+// Get returns a DNSDetectorResult entity by its id.
+func (c *DNSDetectorResultClient) Get(ctx context.Context, id int) (*DNSDetectorResult, error) {
+	return c.Query().Where(dnsdetectorresult.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *DNSDetectorResultClient) GetX(ctx context.Context, id int) *DNSDetectorResult {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *DNSDetectorResultClient) Hooks() []Hook {
+	return c.hooks.DNSDetectorResult
+}
+
+// HTTPDetectorClient is a client for the HTTPDetector schema.
+type HTTPDetectorClient struct {
+	config
+}
+
+// NewHTTPDetectorClient returns a client for the HTTPDetector from the given config.
+func NewHTTPDetectorClient(c config) *HTTPDetectorClient {
+	return &HTTPDetectorClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `httpdetector.Hooks(f(g(h())))`.
+func (c *HTTPDetectorClient) Use(hooks ...Hook) {
+	c.hooks.HTTPDetector = append(c.hooks.HTTPDetector, hooks...)
+}
+
+// Create returns a create builder for HTTPDetector.
+func (c *HTTPDetectorClient) Create() *HTTPDetectorCreate {
+	mutation := newHTTPDetectorMutation(c.config, OpCreate)
+	return &HTTPDetectorCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of HTTPDetector entities.
+func (c *HTTPDetectorClient) CreateBulk(builders ...*HTTPDetectorCreate) *HTTPDetectorCreateBulk {
+	return &HTTPDetectorCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for HTTPDetector.
+func (c *HTTPDetectorClient) Update() *HTTPDetectorUpdate {
+	mutation := newHTTPDetectorMutation(c.config, OpUpdate)
+	return &HTTPDetectorUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HTTPDetectorClient) UpdateOne(hd *HTTPDetector) *HTTPDetectorUpdateOne {
+	mutation := newHTTPDetectorMutation(c.config, OpUpdateOne, withHTTPDetector(hd))
+	return &HTTPDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HTTPDetectorClient) UpdateOneID(id int) *HTTPDetectorUpdateOne {
+	mutation := newHTTPDetectorMutation(c.config, OpUpdateOne, withHTTPDetectorID(id))
+	return &HTTPDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for HTTPDetector.
+func (c *HTTPDetectorClient) Delete() *HTTPDetectorDelete {
+	mutation := newHTTPDetectorMutation(c.config, OpDelete)
+	return &HTTPDetectorDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *HTTPDetectorClient) DeleteOne(hd *HTTPDetector) *HTTPDetectorDeleteOne {
+	return c.DeleteOneID(hd.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *HTTPDetectorClient) DeleteOneID(id int) *HTTPDetectorDeleteOne {
+	builder := c.Delete().Where(httpdetector.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &HTTPDetectorDeleteOne{builder}
+}
+
+// Query returns a query builder for HTTPDetector.
+func (c *HTTPDetectorClient) Query() *HTTPDetectorQuery {
+	return &HTTPDetectorQuery{config: c.config}
+}
+
+// Get returns a HTTPDetector entity by its id.
+func (c *HTTPDetectorClient) Get(ctx context.Context, id int) (*HTTPDetector, error) {
+	return c.Query().Where(httpdetector.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HTTPDetectorClient) GetX(ctx context.Context, id int) *HTTPDetector {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *HTTPDetectorClient) Hooks() []Hook {
+	return c.hooks.HTTPDetector
+}
+
+// HTTPDetectorResultClient is a client for the HTTPDetectorResult schema.
+type HTTPDetectorResultClient struct {
+	config
+}
+
+// NewHTTPDetectorResultClient returns a client for the HTTPDetectorResult from the given config.
+func NewHTTPDetectorResultClient(c config) *HTTPDetectorResultClient {
+	return &HTTPDetectorResultClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `httpdetectorresult.Hooks(f(g(h())))`.
+func (c *HTTPDetectorResultClient) Use(hooks ...Hook) {
+	c.hooks.HTTPDetectorResult = append(c.hooks.HTTPDetectorResult, hooks...)
+}
+
+// Create returns a create builder for HTTPDetectorResult.
+func (c *HTTPDetectorResultClient) Create() *HTTPDetectorResultCreate {
+	mutation := newHTTPDetectorResultMutation(c.config, OpCreate)
+	return &HTTPDetectorResultCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of HTTPDetectorResult entities.
+func (c *HTTPDetectorResultClient) CreateBulk(builders ...*HTTPDetectorResultCreate) *HTTPDetectorResultCreateBulk {
+	return &HTTPDetectorResultCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for HTTPDetectorResult.
+func (c *HTTPDetectorResultClient) Update() *HTTPDetectorResultUpdate {
+	mutation := newHTTPDetectorResultMutation(c.config, OpUpdate)
+	return &HTTPDetectorResultUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HTTPDetectorResultClient) UpdateOne(hdr *HTTPDetectorResult) *HTTPDetectorResultUpdateOne {
+	mutation := newHTTPDetectorResultMutation(c.config, OpUpdateOne, withHTTPDetectorResult(hdr))
+	return &HTTPDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HTTPDetectorResultClient) UpdateOneID(id int) *HTTPDetectorResultUpdateOne {
+	mutation := newHTTPDetectorResultMutation(c.config, OpUpdateOne, withHTTPDetectorResultID(id))
+	return &HTTPDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for HTTPDetectorResult.
+func (c *HTTPDetectorResultClient) Delete() *HTTPDetectorResultDelete {
+	mutation := newHTTPDetectorResultMutation(c.config, OpDelete)
+	return &HTTPDetectorResultDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *HTTPDetectorResultClient) DeleteOne(hdr *HTTPDetectorResult) *HTTPDetectorResultDeleteOne {
+	return c.DeleteOneID(hdr.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *HTTPDetectorResultClient) DeleteOneID(id int) *HTTPDetectorResultDeleteOne {
+	builder := c.Delete().Where(httpdetectorresult.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &HTTPDetectorResultDeleteOne{builder}
+}
+
+// Query returns a query builder for HTTPDetectorResult.
+func (c *HTTPDetectorResultClient) Query() *HTTPDetectorResultQuery {
+	return &HTTPDetectorResultQuery{config: c.config}
+}
+
+// Get returns a HTTPDetectorResult entity by its id.
+func (c *HTTPDetectorResultClient) Get(ctx context.Context, id int) (*HTTPDetectorResult, error) {
+	return c.Query().Where(httpdetectorresult.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HTTPDetectorResultClient) GetX(ctx context.Context, id int) *HTTPDetectorResult {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *HTTPDetectorResultClient) Hooks() []Hook {
+	return c.hooks.HTTPDetectorResult
+}
+
+// PingDetectorClient is a client for the PingDetector schema.
+type PingDetectorClient struct {
+	config
+}
+
+// NewPingDetectorClient returns a client for the PingDetector from the given config.
+func NewPingDetectorClient(c config) *PingDetectorClient {
+	return &PingDetectorClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pingdetector.Hooks(f(g(h())))`.
+func (c *PingDetectorClient) Use(hooks ...Hook) {
+	c.hooks.PingDetector = append(c.hooks.PingDetector, hooks...)
+}
+
+// Create returns a create builder for PingDetector.
+func (c *PingDetectorClient) Create() *PingDetectorCreate {
+	mutation := newPingDetectorMutation(c.config, OpCreate)
+	return &PingDetectorCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PingDetector entities.
+func (c *PingDetectorClient) CreateBulk(builders ...*PingDetectorCreate) *PingDetectorCreateBulk {
+	return &PingDetectorCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PingDetector.
+func (c *PingDetectorClient) Update() *PingDetectorUpdate {
+	mutation := newPingDetectorMutation(c.config, OpUpdate)
+	return &PingDetectorUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PingDetectorClient) UpdateOne(pd *PingDetector) *PingDetectorUpdateOne {
+	mutation := newPingDetectorMutation(c.config, OpUpdateOne, withPingDetector(pd))
+	return &PingDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PingDetectorClient) UpdateOneID(id int) *PingDetectorUpdateOne {
+	mutation := newPingDetectorMutation(c.config, OpUpdateOne, withPingDetectorID(id))
+	return &PingDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PingDetector.
+func (c *PingDetectorClient) Delete() *PingDetectorDelete {
+	mutation := newPingDetectorMutation(c.config, OpDelete)
+	return &PingDetectorDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PingDetectorClient) DeleteOne(pd *PingDetector) *PingDetectorDeleteOne {
+	return c.DeleteOneID(pd.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PingDetectorClient) DeleteOneID(id int) *PingDetectorDeleteOne {
+	builder := c.Delete().Where(pingdetector.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PingDetectorDeleteOne{builder}
+}
+
+// Query returns a query builder for PingDetector.
+func (c *PingDetectorClient) Query() *PingDetectorQuery {
+	return &PingDetectorQuery{config: c.config}
+}
+
+// Get returns a PingDetector entity by its id.
+func (c *PingDetectorClient) Get(ctx context.Context, id int) (*PingDetector, error) {
+	return c.Query().Where(pingdetector.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PingDetectorClient) GetX(ctx context.Context, id int) *PingDetector {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PingDetectorClient) Hooks() []Hook {
+	return c.hooks.PingDetector
+}
+
+// PingDetectorResultClient is a client for the PingDetectorResult schema.
+type PingDetectorResultClient struct {
+	config
+}
+
+// NewPingDetectorResultClient returns a client for the PingDetectorResult from the given config.
+func NewPingDetectorResultClient(c config) *PingDetectorResultClient {
+	return &PingDetectorResultClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `pingdetectorresult.Hooks(f(g(h())))`.
+func (c *PingDetectorResultClient) Use(hooks ...Hook) {
+	c.hooks.PingDetectorResult = append(c.hooks.PingDetectorResult, hooks...)
+}
+
+// Create returns a create builder for PingDetectorResult.
+func (c *PingDetectorResultClient) Create() *PingDetectorResultCreate {
+	mutation := newPingDetectorResultMutation(c.config, OpCreate)
+	return &PingDetectorResultCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of PingDetectorResult entities.
+func (c *PingDetectorResultClient) CreateBulk(builders ...*PingDetectorResultCreate) *PingDetectorResultCreateBulk {
+	return &PingDetectorResultCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for PingDetectorResult.
+func (c *PingDetectorResultClient) Update() *PingDetectorResultUpdate {
+	mutation := newPingDetectorResultMutation(c.config, OpUpdate)
+	return &PingDetectorResultUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PingDetectorResultClient) UpdateOne(pdr *PingDetectorResult) *PingDetectorResultUpdateOne {
+	mutation := newPingDetectorResultMutation(c.config, OpUpdateOne, withPingDetectorResult(pdr))
+	return &PingDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PingDetectorResultClient) UpdateOneID(id int) *PingDetectorResultUpdateOne {
+	mutation := newPingDetectorResultMutation(c.config, OpUpdateOne, withPingDetectorResultID(id))
+	return &PingDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for PingDetectorResult.
+func (c *PingDetectorResultClient) Delete() *PingDetectorResultDelete {
+	mutation := newPingDetectorResultMutation(c.config, OpDelete)
+	return &PingDetectorResultDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *PingDetectorResultClient) DeleteOne(pdr *PingDetectorResult) *PingDetectorResultDeleteOne {
+	return c.DeleteOneID(pdr.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *PingDetectorResultClient) DeleteOneID(id int) *PingDetectorResultDeleteOne {
+	builder := c.Delete().Where(pingdetectorresult.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PingDetectorResultDeleteOne{builder}
+}
+
+// Query returns a query builder for PingDetectorResult.
+func (c *PingDetectorResultClient) Query() *PingDetectorResultQuery {
+	return &PingDetectorResultQuery{config: c.config}
+}
+
+// Get returns a PingDetectorResult entity by its id.
+func (c *PingDetectorResultClient) Get(ctx context.Context, id int) (*PingDetectorResult, error) {
+	return c.Query().Where(pingdetectorresult.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PingDetectorResultClient) GetX(ctx context.Context, id int) *PingDetectorResult {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *PingDetectorResultClient) Hooks() []Hook {
+	return c.hooks.PingDetectorResult
+}
+
+// TCPDetectorClient is a client for the TCPDetector schema.
+type TCPDetectorClient struct {
+	config
+}
+
+// NewTCPDetectorClient returns a client for the TCPDetector from the given config.
+func NewTCPDetectorClient(c config) *TCPDetectorClient {
+	return &TCPDetectorClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tcpdetector.Hooks(f(g(h())))`.
+func (c *TCPDetectorClient) Use(hooks ...Hook) {
+	c.hooks.TCPDetector = append(c.hooks.TCPDetector, hooks...)
+}
+
+// Create returns a create builder for TCPDetector.
+func (c *TCPDetectorClient) Create() *TCPDetectorCreate {
+	mutation := newTCPDetectorMutation(c.config, OpCreate)
+	return &TCPDetectorCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TCPDetector entities.
+func (c *TCPDetectorClient) CreateBulk(builders ...*TCPDetectorCreate) *TCPDetectorCreateBulk {
+	return &TCPDetectorCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TCPDetector.
+func (c *TCPDetectorClient) Update() *TCPDetectorUpdate {
+	mutation := newTCPDetectorMutation(c.config, OpUpdate)
+	return &TCPDetectorUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TCPDetectorClient) UpdateOne(td *TCPDetector) *TCPDetectorUpdateOne {
+	mutation := newTCPDetectorMutation(c.config, OpUpdateOne, withTCPDetector(td))
+	return &TCPDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TCPDetectorClient) UpdateOneID(id int) *TCPDetectorUpdateOne {
+	mutation := newTCPDetectorMutation(c.config, OpUpdateOne, withTCPDetectorID(id))
+	return &TCPDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TCPDetector.
+func (c *TCPDetectorClient) Delete() *TCPDetectorDelete {
+	mutation := newTCPDetectorMutation(c.config, OpDelete)
+	return &TCPDetectorDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TCPDetectorClient) DeleteOne(td *TCPDetector) *TCPDetectorDeleteOne {
+	return c.DeleteOneID(td.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TCPDetectorClient) DeleteOneID(id int) *TCPDetectorDeleteOne {
+	builder := c.Delete().Where(tcpdetector.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TCPDetectorDeleteOne{builder}
+}
+
+// Query returns a query builder for TCPDetector.
+func (c *TCPDetectorClient) Query() *TCPDetectorQuery {
+	return &TCPDetectorQuery{config: c.config}
+}
+
+// Get returns a TCPDetector entity by its id.
+func (c *TCPDetectorClient) Get(ctx context.Context, id int) (*TCPDetector, error) {
+	return c.Query().Where(tcpdetector.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TCPDetectorClient) GetX(ctx context.Context, id int) *TCPDetector {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TCPDetectorClient) Hooks() []Hook {
+	return c.hooks.TCPDetector
+}
+
+// TCPDetectorResultClient is a client for the TCPDetectorResult schema.
+type TCPDetectorResultClient struct {
+	config
+}
+
+// NewTCPDetectorResultClient returns a client for the TCPDetectorResult from the given config.
+func NewTCPDetectorResultClient(c config) *TCPDetectorResultClient {
+	return &TCPDetectorResultClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `tcpdetectorresult.Hooks(f(g(h())))`.
+func (c *TCPDetectorResultClient) Use(hooks ...Hook) {
+	c.hooks.TCPDetectorResult = append(c.hooks.TCPDetectorResult, hooks...)
+}
+
+// Create returns a create builder for TCPDetectorResult.
+func (c *TCPDetectorResultClient) Create() *TCPDetectorResultCreate {
+	mutation := newTCPDetectorResultMutation(c.config, OpCreate)
+	return &TCPDetectorResultCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of TCPDetectorResult entities.
+func (c *TCPDetectorResultClient) CreateBulk(builders ...*TCPDetectorResultCreate) *TCPDetectorResultCreateBulk {
+	return &TCPDetectorResultCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for TCPDetectorResult.
+func (c *TCPDetectorResultClient) Update() *TCPDetectorResultUpdate {
+	mutation := newTCPDetectorResultMutation(c.config, OpUpdate)
+	return &TCPDetectorResultUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TCPDetectorResultClient) UpdateOne(tdr *TCPDetectorResult) *TCPDetectorResultUpdateOne {
+	mutation := newTCPDetectorResultMutation(c.config, OpUpdateOne, withTCPDetectorResult(tdr))
+	return &TCPDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TCPDetectorResultClient) UpdateOneID(id int) *TCPDetectorResultUpdateOne {
+	mutation := newTCPDetectorResultMutation(c.config, OpUpdateOne, withTCPDetectorResultID(id))
+	return &TCPDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for TCPDetectorResult.
+func (c *TCPDetectorResultClient) Delete() *TCPDetectorResultDelete {
+	mutation := newTCPDetectorResultMutation(c.config, OpDelete)
+	return &TCPDetectorResultDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TCPDetectorResultClient) DeleteOne(tdr *TCPDetectorResult) *TCPDetectorResultDeleteOne {
+	return c.DeleteOneID(tdr.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TCPDetectorResultClient) DeleteOneID(id int) *TCPDetectorResultDeleteOne {
+	builder := c.Delete().Where(tcpdetectorresult.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TCPDetectorResultDeleteOne{builder}
+}
+
+// Query returns a query builder for TCPDetectorResult.
+func (c *TCPDetectorResultClient) Query() *TCPDetectorResultQuery {
+	return &TCPDetectorResultQuery{config: c.config}
+}
+
+// Get returns a TCPDetectorResult entity by its id.
+func (c *TCPDetectorResultClient) Get(ctx context.Context, id int) (*TCPDetectorResult, error) {
+	return c.Query().Where(tcpdetectorresult.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TCPDetectorResultClient) GetX(ctx context.Context, id int) *TCPDetectorResult {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TCPDetectorResultClient) Hooks() []Hook {
+	return c.hooks.TCPDetectorResult
 }
 
 // UserClient is a client for the User schema.

@@ -18,4 +18,7 @@ func init() {
 	AddAlias("xDetectorName", "min=1,max=30")
 	AddAlias("xDetectorDesc", "min=1,max=300")
 	AddAlias("xDetectorReceiver", "email")
+	AddAlias("xDetectorTaskID", "number")
+	// 检测结果
+	AddAlias("xDetectorResult", "oneof=1 2")
 }

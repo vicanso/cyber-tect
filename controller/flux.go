@@ -69,6 +69,12 @@ func init() {
 		shouldBeAdmin,
 		ctrl.listHTTPError,
 	)
+	// 获取用户action
+	g.GET(
+		"/v1/actions",
+		shouldBeAdmin,
+		ctrl.listAction,
+	)
 	// 获取tag的值
 	g.GET(
 		"/v1/tag-values/{measurement}/{tag}",
@@ -155,33 +161,31 @@ func (ctrl fluxCtrl) listTagValue(c *elton.Context) (err error) {
 	return
 }
 
-// listHTTPError list http error
-func (ctrl fluxCtrl) listHTTPError(c *elton.Context) (err error) {
+func (ctrl fluxCtrl) list(c *elton.Context, measurement, responseKey string) (err error) {
 	params := fluxListParams{}
 	err = validate.Do(&params, c.Query())
 	if err != nil {
 		return
 	}
-	params.Measurement = cs.MeasurementHTTPError
+	params.Measurement = measurement
 	result, err := params.Do(c.Context())
 	c.Body = map[string]interface{}{
-		"httpErrors": result,
+		responseKey: result,
 	}
 	return
 }
 
+// listHTTPError list http error
+func (ctrl fluxCtrl) listHTTPError(c *elton.Context) (err error) {
+	return ctrl.list(c, cs.MeasurementHTTPError, "httpErrors")
+}
+
 // listTracker list user tracker
 func (ctrl fluxCtrl) listTracker(c *elton.Context) (err error) {
-	params := fluxListParams{}
-	err = validate.Do(&params, c.Query())
-	if err != nil {
-		return
-	}
-	params.Measurement = cs.MeasurementUserTracker
+	return ctrl.list(c, cs.MeasurementUserTracker, "trackers")
+}
 
-	result, err := params.Do(c.Context())
-	c.Body = map[string]interface{}{
-		"trackers": result,
-	}
-	return
+// listAction list user action
+func (ctrl fluxCtrl) listAction(c *elton.Context) (err error) {
+	return ctrl.list(c, cs.MeasurementUserAction, "actions")
 }

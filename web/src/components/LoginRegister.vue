@@ -106,6 +106,7 @@ export default defineComponent({
       category = REGISTER;
     }
     return {
+      submitting: false,
       title,
       submitText,
       captchaData: null,
@@ -134,7 +135,11 @@ export default defineComponent({
     },
     async onSubmit(): Promise<boolean> {
       let isSuccess = false;
-      const { account, password, captcha } = this.form;
+      const { account, password, captcha, submitting } = this.form;
+      if (submitting) {
+        return isSuccess;
+      }
+      this.submitting = true;
       if (!account || !password || !captcha) {
         this.$message.warning("账号、密码以及验证码不能为空");
         return isSuccess;
@@ -161,6 +166,8 @@ export default defineComponent({
       } catch (err) {
         this.refreshCaptcha();
         this.$error(err);
+      } finally {
+        this.submitting = false;
       }
       return isSuccess;
     },

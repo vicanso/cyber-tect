@@ -15,7 +15,7 @@
       :to='{name: homeRoute}'
     )
       i.el-icon-eleme
-      | Forest
+      | Cyber Tect 
   //- 菜单栏
   nav: el-menu.menu(
     :collapse="$props.shrinking"
@@ -63,6 +63,10 @@ import {
   getOthersRouteName,
   getHTTPErrorsRouteName,
   getDetectorHTTPRouteName,
+  getDetectorDNSRouteName,
+  getDetectorTCPRouteName,
+  getDetectorPingRouteName,
+  getActionsRouteName,
 } from "../router";
 import { USER_ADMIN, USER_SU } from "../constants/user";
 import { useUserStore } from "../store";
@@ -78,6 +82,24 @@ const navs = [
       {
         name: "HTTP检测",
         route: getDetectorHTTPRouteName(),
+        roles: [],
+        groups: [],
+      },
+      {
+        name: "DNS检测",
+        route: getDetectorDNSRouteName(),
+        roles: [],
+        groups: [],
+      },
+      {
+        name: "TCP检测",
+        route: getDetectorTCPRouteName(),
+        roles: [],
+        groups: [],
+      },
+      {
+        name: "Ping检测",
+        route: getDetectorPingRouteName(),
         roles: [],
         groups: [],
       },
@@ -111,6 +133,12 @@ const navs = [
         name: "出错记录",
         route: getHTTPErrorsRouteName(),
         roles: [],
+        groups: [],
+      },
+      {
+        name: "客户端行为记录",
+        route: getActionsRouteName(),
+        roules: [],
         groups: [],
       },
     ],

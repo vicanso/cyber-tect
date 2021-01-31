@@ -236,9 +236,9 @@ export default defineComponent({
     const fluxStore = useFluxStore();
     return {
       trackers: fluxStore.state.trackers,
-      actions: fluxStore.state.actions,
+      trackerActions: fluxStore.state.trackerActions,
       listTracker: (params) => fluxStore.dispatch("listTracker", params),
-      listActions: () => fluxStore.dispatch("listActions"),
+      listTrackerActions: () => fluxStore.dispatch("listTrackerActions"),
     };
   },
   data() {
@@ -265,14 +265,14 @@ export default defineComponent({
   },
   async beforeMount() {
     try {
-      await this.listActions();
+      await this.listTrackerActions();
 
       actionOptions.length = 0;
       actionOptions.push({
         name: "全部",
         value: "",
       });
-      this.actions.items.forEach((element) => {
+      this.trackerActions.items.forEach((element) => {
         actionOptions.push({
           name: element,
           value: element,

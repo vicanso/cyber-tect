@@ -73,7 +73,6 @@ export default defineComponent({
         {
           route: currentLocation.name,
           path: currentLocation.path,
-          time: Math.floor(Date.now() / 1000),
         },
         $props.extra
       );

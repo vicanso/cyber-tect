@@ -10,6 +10,7 @@ import {
   USERS_ROLES,
   USERS,
   USERS_ID,
+  USERS_ME_DETAIL,
 } from "../../constants/url";
 import { generatePassword } from "../../helpers/util";
 
@@ -194,6 +195,30 @@ export const userStore = createStore<UserState>({
     },
   },
   actions: {
+    // fetchDetail 拉取详细信息
+    async fetchDetail(context: { commit: Commit }) {
+      context.commit(mutationProcessing, true);
+      try {
+        const { data } = await request.get(USERS_ME_DETAIL);
+        return data;
+      } finally {
+        context.commit(mutationProcessing, false);
+      }
+    },
+    // update 更新用户信息
+    async update(context: { commit: Commit }, data: any) {
+      context.commit(mutationProcessing, true);
+      try {
+        const params = Object.assign({}, data);
+        if (params.password) {
+          params.password = generatePassword(params.password);
+          params.newPassword = generatePassword(params.newPassword);
+        }
+        await request.patch(USERS_ME, params);
+      } finally {
+        context.commit(mutationProcessing, false);
+      }
+    },
     // fetch 获取用户信息
     async fetch(context: { commit: Commit }) {
       context.commit(mutationProcessing, true);

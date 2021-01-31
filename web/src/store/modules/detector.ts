@@ -181,7 +181,7 @@ export const detectorStore = createStore<DetectorState>({
     [mutationTCPAdd](state: DetectorState, data: any) {
       const items = state.tcps.items.slice(0);
       items.unshift(data);
-      state.dnses.items = items;
+      state.tcps.items = items;
     },
     // 更新tcp配置
     [mutationTCPUpdate](state: DetectorState, data: any) {
@@ -375,6 +375,7 @@ export const detectorStore = createStore<DetectorState>({
       context.commit(mutationPingListProcessing, true);
       try {
         const { data } = await request.post(DETECTORS_PINGS, params);
+        context.commit(mutationPingAdd, data);
       } finally {
         context.commit(mutationPingListProcessing, false);
       }

@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"time"
 
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
@@ -69,7 +70,9 @@ type (
 )
 
 func init() {
-	g := router.NewGroup("/detectors/v1/dnses", loadUserSession, shouldBeLogin)
+	prefix := "/detectors/v1/dnses"
+	g := router.NewGroup(prefix, loadUserSession, shouldBeLogin)
+	nsg := router.NewGroup(prefix)
 
 	ctrl := detectorDNSCtrl{}
 
@@ -92,7 +95,7 @@ func init() {
 	)
 
 	// 查询dns检测结果
-	g.GET(
+	nsg.GET(
 		"/results",
 		ctrl.listResult,
 	)
@@ -292,6 +295,7 @@ func (*detectorDNSCtrl) listResult(c *elton.Context) (err error) {
 	if err != nil {
 		return
 	}
+	c.CacheMaxAge(time.Minute)
 	c.Body = &detectorListDNSResultResp{
 		DNSResults: results,
 		Count:      count,

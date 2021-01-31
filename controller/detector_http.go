@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"time"
 
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
@@ -68,7 +69,9 @@ type (
 )
 
 func init() {
-	g := router.NewGroup("/detectors/v1/https", loadUserSession, shouldBeLogin)
+	prefix := "/detectors/v1/https"
+	g := router.NewGroup(prefix, loadUserSession, shouldBeLogin)
+	nsg := router.NewGroup(prefix)
 
 	ctrl := detectorHTTPCtrl{}
 
@@ -91,7 +94,7 @@ func init() {
 	)
 
 	// 查询http检测结果
-	g.GET(
+	nsg.GET(
 		"/results",
 		ctrl.listResult,
 	)
@@ -189,6 +192,7 @@ func (params *detectorListHTTPResultParams) where(query *ent.HTTPDetectorResultQ
 // queryAll query all http result
 func (params *detectorListHTTPResultParams) queryAll(ctx context.Context) (httpResults []*ent.HTTPDetectorResult, err error) {
 	query := getEntClient().HTTPDetectorResult.Query()
+
 	query = query.Limit(params.GetLimit()).
 		Offset(params.GetOffset()).
 		Order(params.GetOrders()...)
@@ -290,6 +294,7 @@ func (*detectorHTTPCtrl) listResult(c *elton.Context) (err error) {
 	if err != nil {
 		return
 	}
+	c.CacheMaxAge(time.Minute)
 	c.Body = &detectorListHTTPResultResp{
 		HTTPResults: results,
 		Count:       count,

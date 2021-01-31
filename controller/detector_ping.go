@@ -16,10 +16,12 @@ package controller
 
 import (
 	"context"
+	"time"
 
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/pingdetector"
+	"github.com/vicanso/cybertect/ent/pingdetectorresult"
 	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/validate"
@@ -51,10 +53,22 @@ type (
 		Pings []*ent.PingDetector `json:"pings,omitempty"`
 		Count int                 `json:"count,omitempty"`
 	}
+
+	// detectorListPingResultParams params of list ping result
+	detectorListPingResultParams struct {
+		detectorListResultParams
+	}
+	// detectorListPingResultResp response of list ping result
+	detectorListPingResultResp struct {
+		PingResults []*ent.PingDetectorResult `json:"pingResults,omitempty"`
+		Count       int                       `json:"count,omitempty"`
+	}
 )
 
 func init() {
-	g := router.NewGroup("/detectors/v1/pings", loadUserSession, shouldBeLogin)
+	prefix := "/detectors/v1/pings"
+	g := router.NewGroup(prefix, loadUserSession, shouldBeLogin)
+	nsg := router.NewGroup(prefix)
 
 	ctrl := detectorPingCtrl{}
 	// 查询ping配置
@@ -73,6 +87,12 @@ func init() {
 		"/{id}",
 		newTrackerMiddleware(cs.ActionDetectorPingUpdate),
 		ctrl.updateByID,
+	)
+
+	// 查询ping检测结果
+	nsg.GET(
+		"/results",
+		ctrl.listResult,
 	)
 }
 
@@ -151,6 +171,39 @@ func (params *detectorUpdatePingParams) updateByID(ctx context.Context, id int) 
 	return updateOne.Save(ctx)
 }
 
+// where ping detector result where
+func (params *detectorListPingResultParams) where(query *ent.PingDetectorResultQuery) {
+	if params.Task != "" {
+		query.Where(pingdetectorresult.Task(params.GetTaskID()))
+	}
+	if params.Result != "" {
+		query.Where(pingdetectorresult.Result(params.GetResult()))
+	}
+}
+
+// queryAll query all ping result
+func (params *detectorListPingResultParams) queryAll(ctx context.Context) (pingResults []*ent.PingDetectorResult, err error) {
+	query := getEntClient().PingDetectorResult.Query()
+
+	query = query.Limit(params.GetLimit()).
+		Offset(params.GetOffset()).
+		Order(params.GetOrders()...)
+	params.where(query)
+	fields := params.GetFields()
+	if len(fields) == 0 {
+		return query.All(ctx)
+	}
+	scan := query.Select(fields[0], fields[1:]...)
+	return scan.All(ctx)
+}
+
+// count count ping detector result
+func (params *detectorListPingResultParams) count(ctx context.Context) (count int, err error) {
+	query := getEntClient().PingDetectorResult.Query()
+	params.where(query)
+	return query.Count(ctx)
+}
+
 // add 添加Ping记录
 func (*detectorPingCtrl) add(c *elton.Context) (err error) {
 	params := detectorAddPingParams{}
@@ -212,5 +265,31 @@ func (*detectorPingCtrl) updateByID(c *elton.Context) (err error) {
 		return
 	}
 	c.Body = result
+	return
+}
+
+// listResult list ping result
+func (*detectorPingCtrl) listResult(c *elton.Context) (err error) {
+	params := detectorListPingResultParams{}
+	err = validate.Do(&params, c.Query())
+	if err != nil {
+		return
+	}
+	count := -1
+	if params.ShouldCount() {
+		count, err = params.count(c.Context())
+		if err != nil {
+			return
+		}
+	}
+	results, err := params.queryAll(c.Context())
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = &detectorListPingResultResp{
+		PingResults: results,
+		Count:       count,
+	}
 	return
 }

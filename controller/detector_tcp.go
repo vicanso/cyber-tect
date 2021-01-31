@@ -16,11 +16,13 @@ package controller
 
 import (
 	"context"
+	"time"
 
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/ent/tcpdetector"
+	"github.com/vicanso/cybertect/ent/tcpdetectorresult"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/elton"
@@ -51,10 +53,22 @@ type (
 		Tcps  []*ent.TCPDetector `json:"tcps,omitempty"`
 		Count int                `json:"count,omitempty"`
 	}
+
+	// detectorListTCPResultParams params of list tcp result
+	detectorListTCPResultParams struct {
+		detectorListResultParams
+	}
+	// detectorListTCPResultResp response of list tcp result
+	detectorListTCPResultResp struct {
+		TCPResults []*ent.TCPDetectorResult `json:"tcpResults,omitempty"`
+		Count      int                      `json:"count,omitempty"`
+	}
 )
 
 func init() {
-	g := router.NewGroup("/detectors/v1/tcps", loadUserSession, shouldBeLogin)
+	prefix := "/detectors/v1/tcps"
+	g := router.NewGroup(prefix, loadUserSession, shouldBeLogin)
+	nsg := router.NewGroup(prefix)
 
 	ctrl := detectorTCPCtrl{}
 	// 查询tcp配置
@@ -73,6 +87,12 @@ func init() {
 		"/{id}",
 		newTrackerMiddleware(cs.ActionDetectorTCPUpdate),
 		ctrl.updateByID,
+	)
+
+	// 查询tcp检测结果
+	nsg.GET(
+		"/results",
+		ctrl.listResult,
 	)
 }
 
@@ -150,6 +170,38 @@ func (params *detectorUpdateTCPParams) updateByID(ctx context.Context, id int) (
 	return updateOne.Save(ctx)
 }
 
+// where tcp detector result where
+func (params *detectorListTCPResultParams) where(query *ent.TCPDetectorResultQuery) {
+	if params.Task != "" {
+		query.Where(tcpdetectorresult.Task(params.GetTaskID()))
+	}
+	if params.Result != "" {
+		query.Where(tcpdetectorresult.Result(params.GetResult()))
+	}
+}
+
+// query query all tcp result
+func (params *detectorListTCPResultParams) queryAll(ctx context.Context) (tcpResults []*ent.TCPDetectorResult, err error) {
+	query := getEntClient().TCPDetectorResult.Query()
+	query = query.Limit(params.GetLimit()).
+		Offset(params.GetOffset()).
+		Order(params.GetOrders()...)
+	params.where(query)
+	fields := params.GetFields()
+	if len(fields) == 0 {
+		return query.All(ctx)
+	}
+	scan := query.Select(fields[0], fields[1:]...)
+	return scan.All(ctx)
+}
+
+// count count tcp detector result
+func (params *detectorListTCPResultParams) count(ctx context.Context) (count int, err error) {
+	query := getEntClient().TCPDetectorResult.Query()
+	params.where(query)
+	return query.Count(ctx)
+}
+
 // add 添加TCP记录
 func (*detectorTCPCtrl) add(c *elton.Context) (err error) {
 	params := detectorAddTCPParams{}
@@ -211,5 +263,31 @@ func (*detectorTCPCtrl) updateByID(c *elton.Context) (err error) {
 		return
 	}
 	c.Body = result
+	return
+}
+
+// listResult list tcp result
+func (*detectorTCPCtrl) listResult(c *elton.Context) (err error) {
+	params := detectorListTCPResultParams{}
+	err = validate.Do(&params, c.Query())
+	if err != nil {
+		return
+	}
+	count := -1
+	if params.ShouldCount() {
+		count, err = params.count(c.Context())
+		if err != nil {
+			return
+		}
+	}
+	results, err := params.queryAll(c.Context())
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = &detectorListTCPResultResp{
+		TCPResults: results,
+		Count:      count,
+	}
 	return
 }

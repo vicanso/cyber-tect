@@ -66,6 +66,7 @@ import {
   getDetectorDNSRouteName,
   getDetectorTCPRouteName,
   getDetectorPingRouteName,
+  getDetectorResultHTTPRouteName,
   getActionsRouteName,
 } from "../router";
 import { USER_ADMIN, USER_SU } from "../constants/user";
@@ -80,26 +81,40 @@ const navs = [
     groups: [],
     children: [
       {
-        name: "HTTP检测",
+        name: "HTTP",
         route: getDetectorHTTPRouteName(),
         roles: [],
         groups: [],
       },
       {
-        name: "DNS检测",
+        name: "DNS",
         route: getDetectorDNSRouteName(),
         roles: [],
         groups: [],
       },
       {
-        name: "TCP检测",
+        name: "TCP",
         route: getDetectorTCPRouteName(),
         roles: [],
         groups: [],
       },
       {
-        name: "Ping检测",
+        name: "Ping",
         route: getDetectorPingRouteName(),
+        roles: [],
+        groups: [],
+      },
+    ],
+  },
+  {
+    name: "检测结果",
+    icon: "el-icon-s-operation",
+    roles: [],
+    groups: [],
+    children: [
+      {
+        name: "HTTP",
+        route: getDetectorResultHTTPRouteName(),
         roles: [],
         groups: [],
       },

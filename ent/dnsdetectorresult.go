@@ -22,8 +22,6 @@ type DNSDetectorResult struct {
 	CreatedAt time.Time `json:"createdAt,omitempty" sql:"created_at"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updatedAt,omitempty" sql:"updated_at"`
-	// Status holds the value of the "status" field.
-	Status schema.Status `json:"status,omitempty"`
 	// Task holds the value of the "task" field.
 	Task int `json:"task,omitempty"`
 	// Result holds the value of the "result" field.
@@ -45,7 +43,7 @@ func (*DNSDetectorResult) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case dnsdetectorresult.FieldMessages, dnsdetectorresult.FieldResults:
 			values[i] = &[]byte{}
-		case dnsdetectorresult.FieldID, dnsdetectorresult.FieldStatus, dnsdetectorresult.FieldTask, dnsdetectorresult.FieldResult, dnsdetectorresult.FieldMaxDuration:
+		case dnsdetectorresult.FieldID, dnsdetectorresult.FieldTask, dnsdetectorresult.FieldResult, dnsdetectorresult.FieldMaxDuration:
 			values[i] = &sql.NullInt64{}
 		case dnsdetectorresult.FieldHost:
 			values[i] = &sql.NullString{}
@@ -83,12 +81,6 @@ func (ddr *DNSDetectorResult) assignValues(columns []string, values []interface{
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				ddr.UpdatedAt = value.Time
-			}
-		case dnsdetectorresult.FieldStatus:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				ddr.Status = schema.Status(value.Int64)
 			}
 		case dnsdetectorresult.FieldTask:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -164,8 +156,6 @@ func (ddr *DNSDetectorResult) String() string {
 	builder.WriteString(ddr.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")
 	builder.WriteString(ddr.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", status=")
-	builder.WriteString(fmt.Sprintf("%v", ddr.Status))
 	builder.WriteString(", task=")
 	builder.WriteString(fmt.Sprintf("%v", ddr.Task))
 	builder.WriteString(", result=")

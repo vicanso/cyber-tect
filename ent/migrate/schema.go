@@ -74,7 +74,6 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "status", Type: field.TypeInt8, Default: 1},
 		{Name: "task", Type: field.TypeInt},
 		{Name: "result", Type: field.TypeInt8},
 		{Name: "max_duration", Type: field.TypeInt},
@@ -92,12 +91,12 @@ var (
 			{
 				Name:    "dnsdetectorresult_task",
 				Unique:  false,
-				Columns: []*schema.Column{DNSDetectorResultsColumns[4]},
+				Columns: []*schema.Column{DNSDetectorResultsColumns[3]},
 			},
 			{
 				Name:    "dnsdetectorresult_result",
 				Unique:  false,
-				Columns: []*schema.Column{DNSDetectorResultsColumns[5]},
+				Columns: []*schema.Column{DNSDetectorResultsColumns[4]},
 			},
 		},
 	}
@@ -134,7 +133,6 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "status", Type: field.TypeInt8, Default: 1},
 		{Name: "task", Type: field.TypeInt},
 		{Name: "result", Type: field.TypeInt8},
 		{Name: "max_duration", Type: field.TypeInt},
@@ -152,12 +150,12 @@ var (
 			{
 				Name:    "httpdetectorresult_task",
 				Unique:  false,
-				Columns: []*schema.Column{HTTPDetectorResultsColumns[4]},
+				Columns: []*schema.Column{HTTPDetectorResultsColumns[3]},
 			},
 			{
 				Name:    "httpdetectorresult_result",
 				Unique:  false,
-				Columns: []*schema.Column{HTTPDetectorResultsColumns[5]},
+				Columns: []*schema.Column{HTTPDetectorResultsColumns[4]},
 			},
 		},
 	}
@@ -193,7 +191,6 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "status", Type: field.TypeInt8, Default: 1},
 		{Name: "task", Type: field.TypeInt},
 		{Name: "result", Type: field.TypeInt8},
 		{Name: "max_duration", Type: field.TypeInt},
@@ -211,12 +208,12 @@ var (
 			{
 				Name:    "pingdetectorresult_task",
 				Unique:  false,
-				Columns: []*schema.Column{PingDetectorResultsColumns[4]},
+				Columns: []*schema.Column{PingDetectorResultsColumns[3]},
 			},
 			{
 				Name:    "pingdetectorresult_result",
 				Unique:  false,
-				Columns: []*schema.Column{PingDetectorResultsColumns[5]},
+				Columns: []*schema.Column{PingDetectorResultsColumns[4]},
 			},
 		},
 	}
@@ -252,7 +249,6 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "status", Type: field.TypeInt8, Default: 1},
 		{Name: "task", Type: field.TypeInt},
 		{Name: "result", Type: field.TypeInt8},
 		{Name: "max_duration", Type: field.TypeInt},
@@ -270,12 +266,12 @@ var (
 			{
 				Name:    "tcpdetectorresult_task",
 				Unique:  false,
-				Columns: []*schema.Column{TCPDetectorResultsColumns[4]},
+				Columns: []*schema.Column{TCPDetectorResultsColumns[3]},
 			},
 			{
 				Name:    "tcpdetectorresult_result",
 				Unique:  false,
-				Columns: []*schema.Column{TCPDetectorResultsColumns[5]},
+				Columns: []*schema.Column{TCPDetectorResultsColumns[4]},
 			},
 		},
 	}

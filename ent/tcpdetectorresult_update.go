@@ -27,27 +27,6 @@ func (tdru *TCPDetectorResultUpdate) Where(ps ...predicate.TCPDetectorResult) *T
 	return tdru
 }
 
-// SetStatus sets the "status" field.
-func (tdru *TCPDetectorResultUpdate) SetStatus(s schema.Status) *TCPDetectorResultUpdate {
-	tdru.mutation.ResetStatus()
-	tdru.mutation.SetStatus(s)
-	return tdru
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (tdru *TCPDetectorResultUpdate) SetNillableStatus(s *schema.Status) *TCPDetectorResultUpdate {
-	if s != nil {
-		tdru.SetStatus(*s)
-	}
-	return tdru
-}
-
-// AddStatus adds s to the "status" field.
-func (tdru *TCPDetectorResultUpdate) AddStatus(s schema.Status) *TCPDetectorResultUpdate {
-	tdru.mutation.AddStatus(s)
-	return tdru
-}
-
 // SetTask sets the "task" field.
 func (tdru *TCPDetectorResultUpdate) SetTask(i int) *TCPDetectorResultUpdate {
 	tdru.mutation.ResetTask()
@@ -178,11 +157,6 @@ func (tdru *TCPDetectorResultUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (tdru *TCPDetectorResultUpdate) check() error {
-	if v, ok := tdru.mutation.Status(); ok {
-		if err := tcpdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
-	}
 	if v, ok := tdru.mutation.Result(); ok {
 		if err := tcpdetectorresult.ResultValidator(v); err != nil {
 			return &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
@@ -214,20 +188,6 @@ func (tdru *TCPDetectorResultUpdate) sqlSave(ctx context.Context) (n int, err er
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: tcpdetectorresult.FieldUpdatedAt,
-		})
-	}
-	if value, ok := tdru.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: tcpdetectorresult.FieldStatus,
-		})
-	}
-	if value, ok := tdru.mutation.AddedStatus(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: tcpdetectorresult.FieldStatus,
 		})
 	}
 	if value, ok := tdru.mutation.Task(); ok {
@@ -309,27 +269,6 @@ type TCPDetectorResultUpdateOne struct {
 	config
 	hooks    []Hook
 	mutation *TCPDetectorResultMutation
-}
-
-// SetStatus sets the "status" field.
-func (tdruo *TCPDetectorResultUpdateOne) SetStatus(s schema.Status) *TCPDetectorResultUpdateOne {
-	tdruo.mutation.ResetStatus()
-	tdruo.mutation.SetStatus(s)
-	return tdruo
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (tdruo *TCPDetectorResultUpdateOne) SetNillableStatus(s *schema.Status) *TCPDetectorResultUpdateOne {
-	if s != nil {
-		tdruo.SetStatus(*s)
-	}
-	return tdruo
-}
-
-// AddStatus adds s to the "status" field.
-func (tdruo *TCPDetectorResultUpdateOne) AddStatus(s schema.Status) *TCPDetectorResultUpdateOne {
-	tdruo.mutation.AddStatus(s)
-	return tdruo
 }
 
 // SetTask sets the "task" field.
@@ -462,11 +401,6 @@ func (tdruo *TCPDetectorResultUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (tdruo *TCPDetectorResultUpdateOne) check() error {
-	if v, ok := tdruo.mutation.Status(); ok {
-		if err := tcpdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
-	}
 	if v, ok := tdruo.mutation.Result(); ok {
 		if err := tcpdetectorresult.ResultValidator(v); err != nil {
 			return &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
@@ -496,20 +430,6 @@ func (tdruo *TCPDetectorResultUpdateOne) sqlSave(ctx context.Context) (_node *TC
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: tcpdetectorresult.FieldUpdatedAt,
-		})
-	}
-	if value, ok := tdruo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: tcpdetectorresult.FieldStatus,
-		})
-	}
-	if value, ok := tdruo.mutation.AddedStatus(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: tcpdetectorresult.FieldStatus,
 		})
 	}
 	if value, ok := tdruo.mutation.Task(); ok {

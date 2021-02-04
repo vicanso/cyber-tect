@@ -60,6 +60,10 @@ el-form.baseFilter(
         :placeholder="field.placeholder"
         :default="field.defaultValue"
       )
+        template(
+          v-if="field.suffix"
+          #suffix
+        ) {{field.suffix}}
       //- 关键字搜索
       el-input(
         v-else

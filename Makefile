@@ -2,7 +2,7 @@
 
 # for dev
 dev:
-	/usr/local/bin/gowatch
+	nodemon main.go
 
 doc:
 	swagger generate spec -o ./api.yml && swagger validate ./api.yml 

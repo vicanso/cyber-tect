@@ -49,20 +49,6 @@ func (hdrc *HTTPDetectorResultCreate) SetNillableUpdatedAt(t *time.Time) *HTTPDe
 	return hdrc
 }
 
-// SetStatus sets the "status" field.
-func (hdrc *HTTPDetectorResultCreate) SetStatus(s schema.Status) *HTTPDetectorResultCreate {
-	hdrc.mutation.SetStatus(s)
-	return hdrc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (hdrc *HTTPDetectorResultCreate) SetNillableStatus(s *schema.Status) *HTTPDetectorResultCreate {
-	if s != nil {
-		hdrc.SetStatus(*s)
-	}
-	return hdrc
-}
-
 // SetTask sets the "task" field.
 func (hdrc *HTTPDetectorResultCreate) SetTask(i int) *HTTPDetectorResultCreate {
 	hdrc.mutation.SetTask(i)
@@ -159,10 +145,6 @@ func (hdrc *HTTPDetectorResultCreate) defaults() {
 		v := httpdetectorresult.DefaultUpdatedAt()
 		hdrc.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := hdrc.mutation.Status(); !ok {
-		v := httpdetectorresult.DefaultStatus
-		hdrc.mutation.SetStatus(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -172,14 +154,6 @@ func (hdrc *HTTPDetectorResultCreate) check() error {
 	}
 	if _, ok := hdrc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New("ent: missing required field \"updated_at\"")}
-	}
-	if _, ok := hdrc.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
-	}
-	if v, ok := hdrc.mutation.Status(); ok {
-		if err := httpdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
 	}
 	if _, ok := hdrc.mutation.Task(); !ok {
 		return &ValidationError{Name: "task", err: errors.New("ent: missing required field \"task\"")}
@@ -246,14 +220,6 @@ func (hdrc *HTTPDetectorResultCreate) createSpec() (*HTTPDetectorResult, *sqlgra
 			Column: httpdetectorresult.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
-	}
-	if value, ok := hdrc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: httpdetectorresult.FieldStatus,
-		})
-		_node.Status = value
 	}
 	if value, ok := hdrc.mutation.Task(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

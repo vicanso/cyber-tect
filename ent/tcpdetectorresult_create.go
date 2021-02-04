@@ -49,20 +49,6 @@ func (tdrc *TCPDetectorResultCreate) SetNillableUpdatedAt(t *time.Time) *TCPDete
 	return tdrc
 }
 
-// SetStatus sets the "status" field.
-func (tdrc *TCPDetectorResultCreate) SetStatus(s schema.Status) *TCPDetectorResultCreate {
-	tdrc.mutation.SetStatus(s)
-	return tdrc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (tdrc *TCPDetectorResultCreate) SetNillableStatus(s *schema.Status) *TCPDetectorResultCreate {
-	if s != nil {
-		tdrc.SetStatus(*s)
-	}
-	return tdrc
-}
-
 // SetTask sets the "task" field.
 func (tdrc *TCPDetectorResultCreate) SetTask(i int) *TCPDetectorResultCreate {
 	tdrc.mutation.SetTask(i)
@@ -159,10 +145,6 @@ func (tdrc *TCPDetectorResultCreate) defaults() {
 		v := tcpdetectorresult.DefaultUpdatedAt()
 		tdrc.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := tdrc.mutation.Status(); !ok {
-		v := tcpdetectorresult.DefaultStatus
-		tdrc.mutation.SetStatus(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -172,14 +154,6 @@ func (tdrc *TCPDetectorResultCreate) check() error {
 	}
 	if _, ok := tdrc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New("ent: missing required field \"updated_at\"")}
-	}
-	if _, ok := tdrc.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
-	}
-	if v, ok := tdrc.mutation.Status(); ok {
-		if err := tcpdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
 	}
 	if _, ok := tdrc.mutation.Task(); !ok {
 		return &ValidationError{Name: "task", err: errors.New("ent: missing required field \"task\"")}
@@ -246,14 +220,6 @@ func (tdrc *TCPDetectorResultCreate) createSpec() (*TCPDetectorResult, *sqlgraph
 			Column: tcpdetectorresult.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
-	}
-	if value, ok := tdrc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: tcpdetectorresult.FieldStatus,
-		})
-		_node.Status = value
 	}
 	if value, ok := tdrc.mutation.Task(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

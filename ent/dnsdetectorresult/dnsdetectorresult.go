@@ -4,8 +4,6 @@ package dnsdetectorresult
 
 import (
 	"time"
-
-	"github.com/vicanso/cybertect/ent/schema"
 )
 
 const (
@@ -17,8 +15,6 @@ const (
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// FieldStatus holds the string denoting the status field in the database.
-	FieldStatus = "status"
 	// FieldTask holds the string denoting the task field in the database.
 	FieldTask = "task"
 	// FieldResult holds the string denoting the result field in the database.
@@ -41,7 +37,6 @@ var Columns = []string{
 	FieldID,
 	FieldCreatedAt,
 	FieldUpdatedAt,
-	FieldStatus,
 	FieldTask,
 	FieldResult,
 	FieldMaxDuration,
@@ -67,10 +62,6 @@ var (
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
 	UpdateDefaultUpdatedAt func() time.Time
-	// DefaultStatus holds the default value on creation for the "status" field.
-	DefaultStatus schema.Status
-	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	StatusValidator func(int8) error
 	// ResultValidator is a validator for the "result" field. It is called by the builders before save.
 	ResultValidator func(int8) error
 )

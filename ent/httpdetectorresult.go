@@ -22,8 +22,6 @@ type HTTPDetectorResult struct {
 	CreatedAt time.Time `json:"createdAt,omitempty" sql:"created_at"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updatedAt,omitempty" sql:"updated_at"`
-	// Status holds the value of the "status" field.
-	Status schema.Status `json:"status,omitempty"`
 	// Task holds the value of the "task" field.
 	Task int `json:"task,omitempty"`
 	// Result holds the value of the "result" field.
@@ -45,7 +43,7 @@ func (*HTTPDetectorResult) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case httpdetectorresult.FieldMessages, httpdetectorresult.FieldResults:
 			values[i] = &[]byte{}
-		case httpdetectorresult.FieldID, httpdetectorresult.FieldStatus, httpdetectorresult.FieldTask, httpdetectorresult.FieldResult, httpdetectorresult.FieldMaxDuration:
+		case httpdetectorresult.FieldID, httpdetectorresult.FieldTask, httpdetectorresult.FieldResult, httpdetectorresult.FieldMaxDuration:
 			values[i] = &sql.NullInt64{}
 		case httpdetectorresult.FieldURL:
 			values[i] = &sql.NullString{}
@@ -83,12 +81,6 @@ func (hdr *HTTPDetectorResult) assignValues(columns []string, values []interface
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				hdr.UpdatedAt = value.Time
-			}
-		case httpdetectorresult.FieldStatus:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				hdr.Status = schema.Status(value.Int64)
 			}
 		case httpdetectorresult.FieldTask:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -164,8 +156,6 @@ func (hdr *HTTPDetectorResult) String() string {
 	builder.WriteString(hdr.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")
 	builder.WriteString(hdr.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", status=")
-	builder.WriteString(fmt.Sprintf("%v", hdr.Status))
 	builder.WriteString(", task=")
 	builder.WriteString(fmt.Sprintf("%v", hdr.Task))
 	builder.WriteString(", result=")

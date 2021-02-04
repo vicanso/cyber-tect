@@ -1673,8 +1673,6 @@ type DNSDetectorResultMutation struct {
 	id             *int
 	created_at     *time.Time
 	updated_at     *time.Time
-	status         *schema.Status
-	addstatus      *schema.Status
 	task           *int
 	addtask        *int
 	result         *int8
@@ -1839,62 +1837,6 @@ func (m *DNSDetectorResultMutation) OldUpdatedAt(ctx context.Context) (v time.Ti
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *DNSDetectorResultMutation) ResetUpdatedAt() {
 	m.updated_at = nil
-}
-
-// SetStatus sets the "status" field.
-func (m *DNSDetectorResultMutation) SetStatus(s schema.Status) {
-	m.status = &s
-	m.addstatus = nil
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *DNSDetectorResultMutation) Status() (r schema.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the DNSDetectorResult entity.
-// If the DNSDetectorResult object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *DNSDetectorResultMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// AddStatus adds s to the "status" field.
-func (m *DNSDetectorResultMutation) AddStatus(s schema.Status) {
-	if m.addstatus != nil {
-		*m.addstatus += s
-	} else {
-		m.addstatus = &s
-	}
-}
-
-// AddedStatus returns the value that was added to the "status" field in this mutation.
-func (m *DNSDetectorResultMutation) AddedStatus() (r schema.Status, exists bool) {
-	v := m.addstatus
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *DNSDetectorResultMutation) ResetStatus() {
-	m.status = nil
-	m.addstatus = nil
 }
 
 // SetTask sets the "task" field.
@@ -2187,15 +2129,12 @@ func (m *DNSDetectorResultMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *DNSDetectorResultMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, dnsdetectorresult.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, dnsdetectorresult.FieldUpdatedAt)
-	}
-	if m.status != nil {
-		fields = append(fields, dnsdetectorresult.FieldStatus)
 	}
 	if m.task != nil {
 		fields = append(fields, dnsdetectorresult.FieldTask)
@@ -2227,8 +2166,6 @@ func (m *DNSDetectorResultMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case dnsdetectorresult.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case dnsdetectorresult.FieldStatus:
-		return m.Status()
 	case dnsdetectorresult.FieldTask:
 		return m.Task()
 	case dnsdetectorresult.FieldResult:
@@ -2254,8 +2191,6 @@ func (m *DNSDetectorResultMutation) OldField(ctx context.Context, name string) (
 		return m.OldCreatedAt(ctx)
 	case dnsdetectorresult.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case dnsdetectorresult.FieldStatus:
-		return m.OldStatus(ctx)
 	case dnsdetectorresult.FieldTask:
 		return m.OldTask(ctx)
 	case dnsdetectorresult.FieldResult:
@@ -2290,13 +2225,6 @@ func (m *DNSDetectorResultMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
-		return nil
-	case dnsdetectorresult.FieldStatus:
-		v, ok := value.(schema.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
 		return nil
 	case dnsdetectorresult.FieldTask:
 		v, ok := value.(int)
@@ -2348,9 +2276,6 @@ func (m *DNSDetectorResultMutation) SetField(name string, value ent.Value) error
 // this mutation.
 func (m *DNSDetectorResultMutation) AddedFields() []string {
 	var fields []string
-	if m.addstatus != nil {
-		fields = append(fields, dnsdetectorresult.FieldStatus)
-	}
 	if m.addtask != nil {
 		fields = append(fields, dnsdetectorresult.FieldTask)
 	}
@@ -2368,8 +2293,6 @@ func (m *DNSDetectorResultMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *DNSDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case dnsdetectorresult.FieldStatus:
-		return m.AddedStatus()
 	case dnsdetectorresult.FieldTask:
 		return m.AddedTask()
 	case dnsdetectorresult.FieldResult:
@@ -2385,13 +2308,6 @@ func (m *DNSDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *DNSDetectorResultMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case dnsdetectorresult.FieldStatus:
-		v, ok := value.(schema.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddStatus(v)
-		return nil
 	case dnsdetectorresult.FieldTask:
 		v, ok := value.(int)
 		if !ok {
@@ -2445,9 +2361,6 @@ func (m *DNSDetectorResultMutation) ResetField(name string) error {
 		return nil
 	case dnsdetectorresult.FieldUpdatedAt:
 		m.ResetUpdatedAt()
-		return nil
-	case dnsdetectorresult.FieldStatus:
-		m.ResetStatus()
 		return nil
 	case dnsdetectorresult.FieldTask:
 		m.ResetTask()
@@ -3336,8 +3249,6 @@ type HTTPDetectorResultMutation struct {
 	id             *int
 	created_at     *time.Time
 	updated_at     *time.Time
-	status         *schema.Status
-	addstatus      *schema.Status
 	task           *int
 	addtask        *int
 	result         *int8
@@ -3502,62 +3413,6 @@ func (m *HTTPDetectorResultMutation) OldUpdatedAt(ctx context.Context) (v time.T
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *HTTPDetectorResultMutation) ResetUpdatedAt() {
 	m.updated_at = nil
-}
-
-// SetStatus sets the "status" field.
-func (m *HTTPDetectorResultMutation) SetStatus(s schema.Status) {
-	m.status = &s
-	m.addstatus = nil
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *HTTPDetectorResultMutation) Status() (r schema.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the HTTPDetectorResult entity.
-// If the HTTPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *HTTPDetectorResultMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// AddStatus adds s to the "status" field.
-func (m *HTTPDetectorResultMutation) AddStatus(s schema.Status) {
-	if m.addstatus != nil {
-		*m.addstatus += s
-	} else {
-		m.addstatus = &s
-	}
-}
-
-// AddedStatus returns the value that was added to the "status" field in this mutation.
-func (m *HTTPDetectorResultMutation) AddedStatus() (r schema.Status, exists bool) {
-	v := m.addstatus
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *HTTPDetectorResultMutation) ResetStatus() {
-	m.status = nil
-	m.addstatus = nil
 }
 
 // SetTask sets the "task" field.
@@ -3850,15 +3705,12 @@ func (m *HTTPDetectorResultMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *HTTPDetectorResultMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, httpdetectorresult.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, httpdetectorresult.FieldUpdatedAt)
-	}
-	if m.status != nil {
-		fields = append(fields, httpdetectorresult.FieldStatus)
 	}
 	if m.task != nil {
 		fields = append(fields, httpdetectorresult.FieldTask)
@@ -3890,8 +3742,6 @@ func (m *HTTPDetectorResultMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case httpdetectorresult.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case httpdetectorresult.FieldStatus:
-		return m.Status()
 	case httpdetectorresult.FieldTask:
 		return m.Task()
 	case httpdetectorresult.FieldResult:
@@ -3917,8 +3767,6 @@ func (m *HTTPDetectorResultMutation) OldField(ctx context.Context, name string) 
 		return m.OldCreatedAt(ctx)
 	case httpdetectorresult.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case httpdetectorresult.FieldStatus:
-		return m.OldStatus(ctx)
 	case httpdetectorresult.FieldTask:
 		return m.OldTask(ctx)
 	case httpdetectorresult.FieldResult:
@@ -3953,13 +3801,6 @@ func (m *HTTPDetectorResultMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
-		return nil
-	case httpdetectorresult.FieldStatus:
-		v, ok := value.(schema.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
 		return nil
 	case httpdetectorresult.FieldTask:
 		v, ok := value.(int)
@@ -4011,9 +3852,6 @@ func (m *HTTPDetectorResultMutation) SetField(name string, value ent.Value) erro
 // this mutation.
 func (m *HTTPDetectorResultMutation) AddedFields() []string {
 	var fields []string
-	if m.addstatus != nil {
-		fields = append(fields, httpdetectorresult.FieldStatus)
-	}
 	if m.addtask != nil {
 		fields = append(fields, httpdetectorresult.FieldTask)
 	}
@@ -4031,8 +3869,6 @@ func (m *HTTPDetectorResultMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *HTTPDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case httpdetectorresult.FieldStatus:
-		return m.AddedStatus()
 	case httpdetectorresult.FieldTask:
 		return m.AddedTask()
 	case httpdetectorresult.FieldResult:
@@ -4048,13 +3884,6 @@ func (m *HTTPDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *HTTPDetectorResultMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case httpdetectorresult.FieldStatus:
-		v, ok := value.(schema.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddStatus(v)
-		return nil
 	case httpdetectorresult.FieldTask:
 		v, ok := value.(int)
 		if !ok {
@@ -4108,9 +3937,6 @@ func (m *HTTPDetectorResultMutation) ResetField(name string) error {
 		return nil
 	case httpdetectorresult.FieldUpdatedAt:
 		m.ResetUpdatedAt()
-		return nil
-	case httpdetectorresult.FieldStatus:
-		m.ResetStatus()
 		return nil
 	case httpdetectorresult.FieldTask:
 		m.ResetTask()
@@ -4945,8 +4771,6 @@ type PingDetectorResultMutation struct {
 	id             *int
 	created_at     *time.Time
 	updated_at     *time.Time
-	status         *schema.Status
-	addstatus      *schema.Status
 	task           *int
 	addtask        *int
 	result         *int8
@@ -5111,62 +4935,6 @@ func (m *PingDetectorResultMutation) OldUpdatedAt(ctx context.Context) (v time.T
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *PingDetectorResultMutation) ResetUpdatedAt() {
 	m.updated_at = nil
-}
-
-// SetStatus sets the "status" field.
-func (m *PingDetectorResultMutation) SetStatus(s schema.Status) {
-	m.status = &s
-	m.addstatus = nil
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *PingDetectorResultMutation) Status() (r schema.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the PingDetectorResult entity.
-// If the PingDetectorResult object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PingDetectorResultMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// AddStatus adds s to the "status" field.
-func (m *PingDetectorResultMutation) AddStatus(s schema.Status) {
-	if m.addstatus != nil {
-		*m.addstatus += s
-	} else {
-		m.addstatus = &s
-	}
-}
-
-// AddedStatus returns the value that was added to the "status" field in this mutation.
-func (m *PingDetectorResultMutation) AddedStatus() (r schema.Status, exists bool) {
-	v := m.addstatus
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *PingDetectorResultMutation) ResetStatus() {
-	m.status = nil
-	m.addstatus = nil
 }
 
 // SetTask sets the "task" field.
@@ -5459,15 +5227,12 @@ func (m *PingDetectorResultMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PingDetectorResultMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, pingdetectorresult.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, pingdetectorresult.FieldUpdatedAt)
-	}
-	if m.status != nil {
-		fields = append(fields, pingdetectorresult.FieldStatus)
 	}
 	if m.task != nil {
 		fields = append(fields, pingdetectorresult.FieldTask)
@@ -5499,8 +5264,6 @@ func (m *PingDetectorResultMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case pingdetectorresult.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case pingdetectorresult.FieldStatus:
-		return m.Status()
 	case pingdetectorresult.FieldTask:
 		return m.Task()
 	case pingdetectorresult.FieldResult:
@@ -5526,8 +5289,6 @@ func (m *PingDetectorResultMutation) OldField(ctx context.Context, name string) 
 		return m.OldCreatedAt(ctx)
 	case pingdetectorresult.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case pingdetectorresult.FieldStatus:
-		return m.OldStatus(ctx)
 	case pingdetectorresult.FieldTask:
 		return m.OldTask(ctx)
 	case pingdetectorresult.FieldResult:
@@ -5562,13 +5323,6 @@ func (m *PingDetectorResultMutation) SetField(name string, value ent.Value) erro
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
-		return nil
-	case pingdetectorresult.FieldStatus:
-		v, ok := value.(schema.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
 		return nil
 	case pingdetectorresult.FieldTask:
 		v, ok := value.(int)
@@ -5620,9 +5374,6 @@ func (m *PingDetectorResultMutation) SetField(name string, value ent.Value) erro
 // this mutation.
 func (m *PingDetectorResultMutation) AddedFields() []string {
 	var fields []string
-	if m.addstatus != nil {
-		fields = append(fields, pingdetectorresult.FieldStatus)
-	}
 	if m.addtask != nil {
 		fields = append(fields, pingdetectorresult.FieldTask)
 	}
@@ -5640,8 +5391,6 @@ func (m *PingDetectorResultMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *PingDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case pingdetectorresult.FieldStatus:
-		return m.AddedStatus()
 	case pingdetectorresult.FieldTask:
 		return m.AddedTask()
 	case pingdetectorresult.FieldResult:
@@ -5657,13 +5406,6 @@ func (m *PingDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *PingDetectorResultMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case pingdetectorresult.FieldStatus:
-		v, ok := value.(schema.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddStatus(v)
-		return nil
 	case pingdetectorresult.FieldTask:
 		v, ok := value.(int)
 		if !ok {
@@ -5717,9 +5459,6 @@ func (m *PingDetectorResultMutation) ResetField(name string) error {
 		return nil
 	case pingdetectorresult.FieldUpdatedAt:
 		m.ResetUpdatedAt()
-		return nil
-	case pingdetectorresult.FieldStatus:
-		m.ResetStatus()
 		return nil
 	case pingdetectorresult.FieldTask:
 		m.ResetTask()
@@ -6554,8 +6293,6 @@ type TCPDetectorResultMutation struct {
 	id             *int
 	created_at     *time.Time
 	updated_at     *time.Time
-	status         *schema.Status
-	addstatus      *schema.Status
 	task           *int
 	addtask        *int
 	result         *int8
@@ -6720,62 +6457,6 @@ func (m *TCPDetectorResultMutation) OldUpdatedAt(ctx context.Context) (v time.Ti
 // ResetUpdatedAt resets all changes to the "updated_at" field.
 func (m *TCPDetectorResultMutation) ResetUpdatedAt() {
 	m.updated_at = nil
-}
-
-// SetStatus sets the "status" field.
-func (m *TCPDetectorResultMutation) SetStatus(s schema.Status) {
-	m.status = &s
-	m.addstatus = nil
-}
-
-// Status returns the value of the "status" field in the mutation.
-func (m *TCPDetectorResultMutation) Status() (r schema.Status, exists bool) {
-	v := m.status
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldStatus returns the old "status" field's value of the TCPDetectorResult entity.
-// If the TCPDetectorResult object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TCPDetectorResultMutation) OldStatus(ctx context.Context) (v schema.Status, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldStatus is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
-	}
-	return oldValue.Status, nil
-}
-
-// AddStatus adds s to the "status" field.
-func (m *TCPDetectorResultMutation) AddStatus(s schema.Status) {
-	if m.addstatus != nil {
-		*m.addstatus += s
-	} else {
-		m.addstatus = &s
-	}
-}
-
-// AddedStatus returns the value that was added to the "status" field in this mutation.
-func (m *TCPDetectorResultMutation) AddedStatus() (r schema.Status, exists bool) {
-	v := m.addstatus
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetStatus resets all changes to the "status" field.
-func (m *TCPDetectorResultMutation) ResetStatus() {
-	m.status = nil
-	m.addstatus = nil
 }
 
 // SetTask sets the "task" field.
@@ -7068,15 +6749,12 @@ func (m *TCPDetectorResultMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TCPDetectorResultMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 8)
 	if m.created_at != nil {
 		fields = append(fields, tcpdetectorresult.FieldCreatedAt)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, tcpdetectorresult.FieldUpdatedAt)
-	}
-	if m.status != nil {
-		fields = append(fields, tcpdetectorresult.FieldStatus)
 	}
 	if m.task != nil {
 		fields = append(fields, tcpdetectorresult.FieldTask)
@@ -7108,8 +6786,6 @@ func (m *TCPDetectorResultMutation) Field(name string) (ent.Value, bool) {
 		return m.CreatedAt()
 	case tcpdetectorresult.FieldUpdatedAt:
 		return m.UpdatedAt()
-	case tcpdetectorresult.FieldStatus:
-		return m.Status()
 	case tcpdetectorresult.FieldTask:
 		return m.Task()
 	case tcpdetectorresult.FieldResult:
@@ -7135,8 +6811,6 @@ func (m *TCPDetectorResultMutation) OldField(ctx context.Context, name string) (
 		return m.OldCreatedAt(ctx)
 	case tcpdetectorresult.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
-	case tcpdetectorresult.FieldStatus:
-		return m.OldStatus(ctx)
 	case tcpdetectorresult.FieldTask:
 		return m.OldTask(ctx)
 	case tcpdetectorresult.FieldResult:
@@ -7171,13 +6845,6 @@ func (m *TCPDetectorResultMutation) SetField(name string, value ent.Value) error
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdatedAt(v)
-		return nil
-	case tcpdetectorresult.FieldStatus:
-		v, ok := value.(schema.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetStatus(v)
 		return nil
 	case tcpdetectorresult.FieldTask:
 		v, ok := value.(int)
@@ -7229,9 +6896,6 @@ func (m *TCPDetectorResultMutation) SetField(name string, value ent.Value) error
 // this mutation.
 func (m *TCPDetectorResultMutation) AddedFields() []string {
 	var fields []string
-	if m.addstatus != nil {
-		fields = append(fields, tcpdetectorresult.FieldStatus)
-	}
 	if m.addtask != nil {
 		fields = append(fields, tcpdetectorresult.FieldTask)
 	}
@@ -7249,8 +6913,6 @@ func (m *TCPDetectorResultMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *TCPDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case tcpdetectorresult.FieldStatus:
-		return m.AddedStatus()
 	case tcpdetectorresult.FieldTask:
 		return m.AddedTask()
 	case tcpdetectorresult.FieldResult:
@@ -7266,13 +6928,6 @@ func (m *TCPDetectorResultMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *TCPDetectorResultMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case tcpdetectorresult.FieldStatus:
-		v, ok := value.(schema.Status)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddStatus(v)
-		return nil
 	case tcpdetectorresult.FieldTask:
 		v, ok := value.(int)
 		if !ok {
@@ -7326,9 +6981,6 @@ func (m *TCPDetectorResultMutation) ResetField(name string) error {
 		return nil
 	case tcpdetectorresult.FieldUpdatedAt:
 		m.ResetUpdatedAt()
-		return nil
-	case tcpdetectorresult.FieldStatus:
-		m.ResetStatus()
 		return nil
 	case tcpdetectorresult.FieldTask:
 		m.ResetTask()

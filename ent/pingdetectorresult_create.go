@@ -49,20 +49,6 @@ func (pdrc *PingDetectorResultCreate) SetNillableUpdatedAt(t *time.Time) *PingDe
 	return pdrc
 }
 
-// SetStatus sets the "status" field.
-func (pdrc *PingDetectorResultCreate) SetStatus(s schema.Status) *PingDetectorResultCreate {
-	pdrc.mutation.SetStatus(s)
-	return pdrc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (pdrc *PingDetectorResultCreate) SetNillableStatus(s *schema.Status) *PingDetectorResultCreate {
-	if s != nil {
-		pdrc.SetStatus(*s)
-	}
-	return pdrc
-}
-
 // SetTask sets the "task" field.
 func (pdrc *PingDetectorResultCreate) SetTask(i int) *PingDetectorResultCreate {
 	pdrc.mutation.SetTask(i)
@@ -159,10 +145,6 @@ func (pdrc *PingDetectorResultCreate) defaults() {
 		v := pingdetectorresult.DefaultUpdatedAt()
 		pdrc.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := pdrc.mutation.Status(); !ok {
-		v := pingdetectorresult.DefaultStatus
-		pdrc.mutation.SetStatus(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -172,14 +154,6 @@ func (pdrc *PingDetectorResultCreate) check() error {
 	}
 	if _, ok := pdrc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New("ent: missing required field \"updated_at\"")}
-	}
-	if _, ok := pdrc.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
-	}
-	if v, ok := pdrc.mutation.Status(); ok {
-		if err := pingdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
 	}
 	if _, ok := pdrc.mutation.Task(); !ok {
 		return &ValidationError{Name: "task", err: errors.New("ent: missing required field \"task\"")}
@@ -246,14 +220,6 @@ func (pdrc *PingDetectorResultCreate) createSpec() (*PingDetectorResult, *sqlgra
 			Column: pingdetectorresult.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
-	}
-	if value, ok := pdrc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: pingdetectorresult.FieldStatus,
-		})
-		_node.Status = value
 	}
 	if value, ok := pdrc.mutation.Task(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

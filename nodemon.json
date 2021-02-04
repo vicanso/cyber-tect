@@ -1,0 +1,15 @@
+{
+  "verbose": true,
+  "execMap": {
+    "go": "go run"
+  },
+  "ignore": [
+    ".git",
+    "web/*",
+    "docs/*"
+  ],
+  "env": {
+    "GO_ENV": "dev"
+  },
+  "ext": "go,yml"
+}

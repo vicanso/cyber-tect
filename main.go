@@ -111,6 +111,17 @@ func watchForClose(e *elton.Elton) {
 	}()
 }
 
+// exitForDev 开发环境退出
+func exitForDev() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGUSR2)
+	go func() {
+		for range c {
+			os.Exit(1)
+		}
+	}()
+}
+
 // 相关依赖服务的校验，主要是数据库等
 func dependServiceCheck() (err error) {
 	err = helper.RedisPing()
@@ -205,6 +216,8 @@ func main() {
 	// 非开发环境，监听信号退出
 	if !util.IsDevelopment() {
 		watchForClose(e)
+	} else {
+		exitForDev()
 	}
 
 	basicConfig := config.GetBasicConfig()

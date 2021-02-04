@@ -16,6 +16,7 @@ package controller
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/ent/user"
@@ -50,8 +51,9 @@ type (
 	detectorListResultParams struct {
 		listParams
 
-		Task   string `json:"task,omitempty" validate:"omitempty,xDetectorTaskID"`
-		Result string `json:"result,omitempty" validate:"omitempty,xDetectorResult"`
+		Task     string `json:"task,omitempty" validate:"omitempty,xDetectorTaskID"`
+		Result   string `json:"result,omitempty" validate:"omitempty,xDetectorResult"`
+		Duration string `json:"duration,omitempty" validate:"omitempty,xDuration"`
 	}
 )
 
@@ -75,6 +77,9 @@ func init() {
 
 // GetTaskID get task id
 func (params *detectorListResultParams) GetTaskID() int {
+	if params.Task == "" {
+		return 0
+	}
 	// 参数已校验是数字，因此转换时不判断
 	id, _ := strconv.Atoi(params.Task)
 	return id
@@ -82,9 +87,21 @@ func (params *detectorListResultParams) GetTaskID() int {
 
 // GetResult get result
 func (params *detectorListResultParams) GetResult() int8 {
+	if params.Result == "" {
+		return 0
+	}
 	// 参数已校验，因此转换不判断
 	result, _ := strconv.Atoi(params.Result)
 	return int8(result)
+}
+
+// GetDurationMs
+func (params *detectorListResultParams) GetDurationMillSecond() int {
+	if params.Duration == "" {
+		return 0
+	}
+	d, _ := time.ParseDuration(params.Duration)
+	return int(d.Milliseconds())
 }
 
 // listReceiver 获取接收者列表

@@ -27,27 +27,6 @@ func (ddru *DNSDetectorResultUpdate) Where(ps ...predicate.DNSDetectorResult) *D
 	return ddru
 }
 
-// SetStatus sets the "status" field.
-func (ddru *DNSDetectorResultUpdate) SetStatus(s schema.Status) *DNSDetectorResultUpdate {
-	ddru.mutation.ResetStatus()
-	ddru.mutation.SetStatus(s)
-	return ddru
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (ddru *DNSDetectorResultUpdate) SetNillableStatus(s *schema.Status) *DNSDetectorResultUpdate {
-	if s != nil {
-		ddru.SetStatus(*s)
-	}
-	return ddru
-}
-
-// AddStatus adds s to the "status" field.
-func (ddru *DNSDetectorResultUpdate) AddStatus(s schema.Status) *DNSDetectorResultUpdate {
-	ddru.mutation.AddStatus(s)
-	return ddru
-}
-
 // SetTask sets the "task" field.
 func (ddru *DNSDetectorResultUpdate) SetTask(i int) *DNSDetectorResultUpdate {
 	ddru.mutation.ResetTask()
@@ -178,11 +157,6 @@ func (ddru *DNSDetectorResultUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ddru *DNSDetectorResultUpdate) check() error {
-	if v, ok := ddru.mutation.Status(); ok {
-		if err := dnsdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
-	}
 	if v, ok := ddru.mutation.Result(); ok {
 		if err := dnsdetectorresult.ResultValidator(v); err != nil {
 			return &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
@@ -214,20 +188,6 @@ func (ddru *DNSDetectorResultUpdate) sqlSave(ctx context.Context) (n int, err er
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: dnsdetectorresult.FieldUpdatedAt,
-		})
-	}
-	if value, ok := ddru.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: dnsdetectorresult.FieldStatus,
-		})
-	}
-	if value, ok := ddru.mutation.AddedStatus(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: dnsdetectorresult.FieldStatus,
 		})
 	}
 	if value, ok := ddru.mutation.Task(); ok {
@@ -309,27 +269,6 @@ type DNSDetectorResultUpdateOne struct {
 	config
 	hooks    []Hook
 	mutation *DNSDetectorResultMutation
-}
-
-// SetStatus sets the "status" field.
-func (ddruo *DNSDetectorResultUpdateOne) SetStatus(s schema.Status) *DNSDetectorResultUpdateOne {
-	ddruo.mutation.ResetStatus()
-	ddruo.mutation.SetStatus(s)
-	return ddruo
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (ddruo *DNSDetectorResultUpdateOne) SetNillableStatus(s *schema.Status) *DNSDetectorResultUpdateOne {
-	if s != nil {
-		ddruo.SetStatus(*s)
-	}
-	return ddruo
-}
-
-// AddStatus adds s to the "status" field.
-func (ddruo *DNSDetectorResultUpdateOne) AddStatus(s schema.Status) *DNSDetectorResultUpdateOne {
-	ddruo.mutation.AddStatus(s)
-	return ddruo
 }
 
 // SetTask sets the "task" field.
@@ -462,11 +401,6 @@ func (ddruo *DNSDetectorResultUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (ddruo *DNSDetectorResultUpdateOne) check() error {
-	if v, ok := ddruo.mutation.Status(); ok {
-		if err := dnsdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
-	}
 	if v, ok := ddruo.mutation.Result(); ok {
 		if err := dnsdetectorresult.ResultValidator(v); err != nil {
 			return &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
@@ -496,20 +430,6 @@ func (ddruo *DNSDetectorResultUpdateOne) sqlSave(ctx context.Context) (_node *DN
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: dnsdetectorresult.FieldUpdatedAt,
-		})
-	}
-	if value, ok := ddruo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: dnsdetectorresult.FieldStatus,
-		})
-	}
-	if value, ok := ddruo.mutation.AddedStatus(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: dnsdetectorresult.FieldStatus,
 		})
 	}
 	if value, ok := ddruo.mutation.Task(); ok {

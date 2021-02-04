@@ -45,7 +45,6 @@ func (HTTPDetectorResult) Fields() []ent.Field {
 func (HTTPDetectorResult) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		TimeMixin{},
-		StatusMixin{},
 		DetectorResultMixin{},
 	}
 }

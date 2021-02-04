@@ -5,6 +5,10 @@ import { getCommonStore, commonStore } from "./modules/common";
 import { getFluxStore, fluxStore } from "./modules/flux";
 import { getConfigStore, configStore } from "./modules/config";
 import { getDetectorStore, detectorStore } from "./modules/detector";
+import {
+  getDetectorResultStore,
+  detectorResultStore,
+} from "./modules/detectorResult";
 
 const stores: Store<any>[] = [
   userStore,
@@ -12,6 +16,7 @@ const stores: Store<any>[] = [
   fluxStore,
   configStore,
   detectorStore,
+  detectorResultStore,
 ];
 
 export const useUserStore = getUserStore;
@@ -19,5 +24,6 @@ export const useCommonStore = getCommonStore;
 export const useFluxStore = getFluxStore;
 export const useConfigStore = getConfigStore;
 export const useDetectorStore = getDetectorStore;
+export const useDetectorResultStore = getDetectorResultStore;
 
 export default stores;

@@ -22,8 +22,6 @@ type PingDetectorResult struct {
 	CreatedAt time.Time `json:"createdAt,omitempty" sql:"created_at"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updatedAt,omitempty" sql:"updated_at"`
-	// Status holds the value of the "status" field.
-	Status schema.Status `json:"status,omitempty"`
 	// Task holds the value of the "task" field.
 	Task int `json:"task,omitempty"`
 	// Result holds the value of the "result" field.
@@ -45,7 +43,7 @@ func (*PingDetectorResult) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case pingdetectorresult.FieldMessages, pingdetectorresult.FieldResults:
 			values[i] = &[]byte{}
-		case pingdetectorresult.FieldID, pingdetectorresult.FieldStatus, pingdetectorresult.FieldTask, pingdetectorresult.FieldResult, pingdetectorresult.FieldMaxDuration:
+		case pingdetectorresult.FieldID, pingdetectorresult.FieldTask, pingdetectorresult.FieldResult, pingdetectorresult.FieldMaxDuration:
 			values[i] = &sql.NullInt64{}
 		case pingdetectorresult.FieldIps:
 			values[i] = &sql.NullString{}
@@ -83,12 +81,6 @@ func (pdr *PingDetectorResult) assignValues(columns []string, values []interface
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				pdr.UpdatedAt = value.Time
-			}
-		case pingdetectorresult.FieldStatus:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				pdr.Status = schema.Status(value.Int64)
 			}
 		case pingdetectorresult.FieldTask:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -164,8 +156,6 @@ func (pdr *PingDetectorResult) String() string {
 	builder.WriteString(pdr.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")
 	builder.WriteString(pdr.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", status=")
-	builder.WriteString(fmt.Sprintf("%v", pdr.Status))
 	builder.WriteString(", task=")
 	builder.WriteString(fmt.Sprintf("%v", pdr.Task))
 	builder.WriteString(", result=")

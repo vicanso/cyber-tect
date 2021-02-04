@@ -27,27 +27,6 @@ func (pdru *PingDetectorResultUpdate) Where(ps ...predicate.PingDetectorResult) 
 	return pdru
 }
 
-// SetStatus sets the "status" field.
-func (pdru *PingDetectorResultUpdate) SetStatus(s schema.Status) *PingDetectorResultUpdate {
-	pdru.mutation.ResetStatus()
-	pdru.mutation.SetStatus(s)
-	return pdru
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (pdru *PingDetectorResultUpdate) SetNillableStatus(s *schema.Status) *PingDetectorResultUpdate {
-	if s != nil {
-		pdru.SetStatus(*s)
-	}
-	return pdru
-}
-
-// AddStatus adds s to the "status" field.
-func (pdru *PingDetectorResultUpdate) AddStatus(s schema.Status) *PingDetectorResultUpdate {
-	pdru.mutation.AddStatus(s)
-	return pdru
-}
-
 // SetTask sets the "task" field.
 func (pdru *PingDetectorResultUpdate) SetTask(i int) *PingDetectorResultUpdate {
 	pdru.mutation.ResetTask()
@@ -178,11 +157,6 @@ func (pdru *PingDetectorResultUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (pdru *PingDetectorResultUpdate) check() error {
-	if v, ok := pdru.mutation.Status(); ok {
-		if err := pingdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
-	}
 	if v, ok := pdru.mutation.Result(); ok {
 		if err := pingdetectorresult.ResultValidator(v); err != nil {
 			return &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
@@ -214,20 +188,6 @@ func (pdru *PingDetectorResultUpdate) sqlSave(ctx context.Context) (n int, err e
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: pingdetectorresult.FieldUpdatedAt,
-		})
-	}
-	if value, ok := pdru.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: pingdetectorresult.FieldStatus,
-		})
-	}
-	if value, ok := pdru.mutation.AddedStatus(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: pingdetectorresult.FieldStatus,
 		})
 	}
 	if value, ok := pdru.mutation.Task(); ok {
@@ -309,27 +269,6 @@ type PingDetectorResultUpdateOne struct {
 	config
 	hooks    []Hook
 	mutation *PingDetectorResultMutation
-}
-
-// SetStatus sets the "status" field.
-func (pdruo *PingDetectorResultUpdateOne) SetStatus(s schema.Status) *PingDetectorResultUpdateOne {
-	pdruo.mutation.ResetStatus()
-	pdruo.mutation.SetStatus(s)
-	return pdruo
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (pdruo *PingDetectorResultUpdateOne) SetNillableStatus(s *schema.Status) *PingDetectorResultUpdateOne {
-	if s != nil {
-		pdruo.SetStatus(*s)
-	}
-	return pdruo
-}
-
-// AddStatus adds s to the "status" field.
-func (pdruo *PingDetectorResultUpdateOne) AddStatus(s schema.Status) *PingDetectorResultUpdateOne {
-	pdruo.mutation.AddStatus(s)
-	return pdruo
 }
 
 // SetTask sets the "task" field.
@@ -462,11 +401,6 @@ func (pdruo *PingDetectorResultUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (pdruo *PingDetectorResultUpdateOne) check() error {
-	if v, ok := pdruo.mutation.Status(); ok {
-		if err := pingdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
-	}
 	if v, ok := pdruo.mutation.Result(); ok {
 		if err := pingdetectorresult.ResultValidator(v); err != nil {
 			return &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
@@ -496,20 +430,6 @@ func (pdruo *PingDetectorResultUpdateOne) sqlSave(ctx context.Context) (_node *P
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: pingdetectorresult.FieldUpdatedAt,
-		})
-	}
-	if value, ok := pdruo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: pingdetectorresult.FieldStatus,
-		})
-	}
-	if value, ok := pdruo.mutation.AddedStatus(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: pingdetectorresult.FieldStatus,
 		})
 	}
 	if value, ok := pdruo.mutation.Task(); ok {

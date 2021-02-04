@@ -22,8 +22,6 @@ type TCPDetectorResult struct {
 	CreatedAt time.Time `json:"createdAt,omitempty" sql:"created_at"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updatedAt,omitempty" sql:"updated_at"`
-	// Status holds the value of the "status" field.
-	Status schema.Status `json:"status,omitempty"`
 	// Task holds the value of the "task" field.
 	Task int `json:"task,omitempty"`
 	// Result holds the value of the "result" field.
@@ -45,7 +43,7 @@ func (*TCPDetectorResult) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case tcpdetectorresult.FieldMessages, tcpdetectorresult.FieldResults:
 			values[i] = &[]byte{}
-		case tcpdetectorresult.FieldID, tcpdetectorresult.FieldStatus, tcpdetectorresult.FieldTask, tcpdetectorresult.FieldResult, tcpdetectorresult.FieldMaxDuration:
+		case tcpdetectorresult.FieldID, tcpdetectorresult.FieldTask, tcpdetectorresult.FieldResult, tcpdetectorresult.FieldMaxDuration:
 			values[i] = &sql.NullInt64{}
 		case tcpdetectorresult.FieldAddrs:
 			values[i] = &sql.NullString{}
@@ -83,12 +81,6 @@ func (tdr *TCPDetectorResult) assignValues(columns []string, values []interface{
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				tdr.UpdatedAt = value.Time
-			}
-		case tcpdetectorresult.FieldStatus:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field status", values[i])
-			} else if value.Valid {
-				tdr.Status = schema.Status(value.Int64)
 			}
 		case tcpdetectorresult.FieldTask:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -164,8 +156,6 @@ func (tdr *TCPDetectorResult) String() string {
 	builder.WriteString(tdr.CreatedAt.Format(time.ANSIC))
 	builder.WriteString(", updated_at=")
 	builder.WriteString(tdr.UpdatedAt.Format(time.ANSIC))
-	builder.WriteString(", status=")
-	builder.WriteString(fmt.Sprintf("%v", tdr.Status))
 	builder.WriteString(", task=")
 	builder.WriteString(fmt.Sprintf("%v", tdr.Task))
 	builder.WriteString(", result=")

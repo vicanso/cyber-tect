@@ -27,27 +27,6 @@ func (hdru *HTTPDetectorResultUpdate) Where(ps ...predicate.HTTPDetectorResult) 
 	return hdru
 }
 
-// SetStatus sets the "status" field.
-func (hdru *HTTPDetectorResultUpdate) SetStatus(s schema.Status) *HTTPDetectorResultUpdate {
-	hdru.mutation.ResetStatus()
-	hdru.mutation.SetStatus(s)
-	return hdru
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (hdru *HTTPDetectorResultUpdate) SetNillableStatus(s *schema.Status) *HTTPDetectorResultUpdate {
-	if s != nil {
-		hdru.SetStatus(*s)
-	}
-	return hdru
-}
-
-// AddStatus adds s to the "status" field.
-func (hdru *HTTPDetectorResultUpdate) AddStatus(s schema.Status) *HTTPDetectorResultUpdate {
-	hdru.mutation.AddStatus(s)
-	return hdru
-}
-
 // SetTask sets the "task" field.
 func (hdru *HTTPDetectorResultUpdate) SetTask(i int) *HTTPDetectorResultUpdate {
 	hdru.mutation.ResetTask()
@@ -178,11 +157,6 @@ func (hdru *HTTPDetectorResultUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (hdru *HTTPDetectorResultUpdate) check() error {
-	if v, ok := hdru.mutation.Status(); ok {
-		if err := httpdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
-	}
 	if v, ok := hdru.mutation.Result(); ok {
 		if err := httpdetectorresult.ResultValidator(v); err != nil {
 			return &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
@@ -214,20 +188,6 @@ func (hdru *HTTPDetectorResultUpdate) sqlSave(ctx context.Context) (n int, err e
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: httpdetectorresult.FieldUpdatedAt,
-		})
-	}
-	if value, ok := hdru.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: httpdetectorresult.FieldStatus,
-		})
-	}
-	if value, ok := hdru.mutation.AddedStatus(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: httpdetectorresult.FieldStatus,
 		})
 	}
 	if value, ok := hdru.mutation.Task(); ok {
@@ -309,27 +269,6 @@ type HTTPDetectorResultUpdateOne struct {
 	config
 	hooks    []Hook
 	mutation *HTTPDetectorResultMutation
-}
-
-// SetStatus sets the "status" field.
-func (hdruo *HTTPDetectorResultUpdateOne) SetStatus(s schema.Status) *HTTPDetectorResultUpdateOne {
-	hdruo.mutation.ResetStatus()
-	hdruo.mutation.SetStatus(s)
-	return hdruo
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (hdruo *HTTPDetectorResultUpdateOne) SetNillableStatus(s *schema.Status) *HTTPDetectorResultUpdateOne {
-	if s != nil {
-		hdruo.SetStatus(*s)
-	}
-	return hdruo
-}
-
-// AddStatus adds s to the "status" field.
-func (hdruo *HTTPDetectorResultUpdateOne) AddStatus(s schema.Status) *HTTPDetectorResultUpdateOne {
-	hdruo.mutation.AddStatus(s)
-	return hdruo
 }
 
 // SetTask sets the "task" field.
@@ -462,11 +401,6 @@ func (hdruo *HTTPDetectorResultUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (hdruo *HTTPDetectorResultUpdateOne) check() error {
-	if v, ok := hdruo.mutation.Status(); ok {
-		if err := httpdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
-	}
 	if v, ok := hdruo.mutation.Result(); ok {
 		if err := httpdetectorresult.ResultValidator(v); err != nil {
 			return &ValidationError{Name: "result", err: fmt.Errorf("ent: validator failed for field \"result\": %w", err)}
@@ -496,20 +430,6 @@ func (hdruo *HTTPDetectorResultUpdateOne) sqlSave(ctx context.Context) (_node *H
 			Type:   field.TypeTime,
 			Value:  value,
 			Column: httpdetectorresult.FieldUpdatedAt,
-		})
-	}
-	if value, ok := hdruo.mutation.Status(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: httpdetectorresult.FieldStatus,
-		})
-	}
-	if value, ok := hdruo.mutation.AddedStatus(); ok {
-		_spec.Fields.Add = append(_spec.Fields.Add, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: httpdetectorresult.FieldStatus,
 		})
 	}
 	if value, ok := hdruo.mutation.Task(); ok {

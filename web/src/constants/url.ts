@@ -51,15 +51,34 @@ export const DETECTORS_RECEIVERS = "/detectors/v1/receivers";
 export const DETECTORS_HTTPS = "/detectors/v1/https";
 // 更新HTTP检测配置
 export const DETECTORS_HTTPS_UPDATE = "/detectors/v1/https/:id";
+// 获取HTTP检测结果
+export const DETECTORS_HTTPS_RESULTS = "/detectors/v1/https/results";
+// 获取HTTP检测结果详情
+export const DETECTORS_HTTPS_RESULTS_DETAIL = "/detectors/v1/https/results/:id";
+
 // DNS检测配置
 export const DETECTORS_DNSES = "/detectors/v1/dnses";
 // 更新DNS检测配置
 export const DETECTORS_DNSES_UPDATE = "/detectors/v1/dnses/:id";
+// 获取DNS检测结果
+export const DETECTORS_DNSES_RESULTS = "/detectors/v1/dnses/results";
+// 获取DNS检测结果详情
+export const DETECTORS_DNSES_RESULTS_DEATIL = "/detectors/v1/dnses/results/:id";
+
 // TCP检测配置
 export const DETECTORS_TCPS = "/detectors/v1/tcps";
 // 更新TCP检测配置
 export const DETECTORS_TCPS_UPDATE = "/detectors/v1/tcps/:id";
+// 获取TCP检测结果
+export const DETECTORS_TCPS_RESULTS = "/detectors/v1/tcps/results";
+// 获取TCP检测结果详情
+export const DETECTORS_TCPS_RESULTS_DETAIL = "/detectors/v1/tcps/results/:id";
+
 // Ping检测配置
 export const DETECTORS_PINGS = "/detectors/v1/pings";
 // 更新Ping检测配置
 export const DETECTORS_PINGS_UPDATE = "/detectors/v1/pings/:id";
+// 获取Ping检测结果
+export const DETECTORS_PINGS_RESULTS = "/detectors/v1/pings/results";
+// 获取Ping检测结果详情
+export const DETECTORS_PINGS_RESULTS_DETAIL = "/detectors/v1/pings/results/:id";

@@ -1,13 +1,17 @@
 <template lang="pug">
 #app(
   :class="{ shrinking: shrinking }"
+  v-loading="loadingSetting"
 )
   //- 主头部
-  main-header.header
+  main-header.header(
+    v-if="!loadingSetting"
+  )
   //- 主导航
   main-nav.nav(
     :shrinking="shrinking"
     @toggle="toggleNav"
+    v-if="!loadingSetting"
   )
   //- 内容区域
   .mainContent
@@ -40,22 +44,27 @@ export default defineComponent({
     return {
       userInfo: userStore.state.info,
       fetchUserInfo: () => userStore.dispatch("fetch"),
+      updateUserInfo: (params) => userStore.dispatch("update", params),
     };
   },
   data() {
     return {
       shrinking: false,
+      loadingSetting: false,
       // 是否初始化完成
       inited: false,
     };
   },
   async beforeMount() {
+    this.loadingSetting = true;
     try {
       await loadSetting();
       const setting = getSetting();
       this.shrinking = setting.mainNavShrinking;
     } catch (err) {
       this.$error(err);
+    } finally {
+      this.loadingSetting = false;
     }
   },
   mounted() {
@@ -77,6 +86,9 @@ export default defineComponent({
           $router.push({
             name: getLoginRouteName(),
           });
+        } else {
+          // 如果已登录，刷新cookie有效期（不关注刷新是否成功，因此不用await）
+          this.updateUserInfo({});
         }
       } catch (err) {
         this.$error(err);

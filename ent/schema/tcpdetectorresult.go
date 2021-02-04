@@ -33,7 +33,6 @@ func (TCPDetectorResult) Fields() []ent.Field {
 func (TCPDetectorResult) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		TimeMixin{},
-		StatusMixin{},
 		DetectorResultMixin{},
 	}
 }

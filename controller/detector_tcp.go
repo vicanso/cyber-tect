@@ -60,8 +60,9 @@ type (
 	}
 	// detectorListTCPResultResp response of list tcp result
 	detectorListTCPResultResp struct {
-		TCPResults []*ent.TCPDetectorResult `json:"tcpResults,omitempty"`
-		Count      int                      `json:"count,omitempty"`
+		TCPResults   []*ent.TCPDetectorResult `json:"tcpResults,omitempty"`
+		TCPDetectors []*ent.TCPDetector       `json:"tcpDetectors,omitempty"`
+		Count        int                      `json:"count,omitempty"`
 	}
 )
 
@@ -93,6 +94,11 @@ func init() {
 	nsg.GET(
 		"/results",
 		ctrl.listResult,
+	)
+	// 查询tcp检测结果详情
+	nsg.GET(
+		"/results/{id}",
+		ctrl.getResult,
 	)
 }
 
@@ -172,11 +178,19 @@ func (params *detectorUpdateTCPParams) updateByID(ctx context.Context, id int) (
 
 // where tcp detector result where
 func (params *detectorListTCPResultParams) where(query *ent.TCPDetectorResultQuery) {
-	if params.Task != "" {
-		query.Where(tcpdetectorresult.Task(params.GetTaskID()))
+	task := params.GetTaskID()
+	if task != 0 {
+		query.Where(tcpdetectorresult.Task(task))
 	}
-	if params.Result != "" {
-		query.Where(tcpdetectorresult.Result(params.GetResult()))
+
+	result := params.GetResult()
+	if result != 0 {
+		query.Where(tcpdetectorresult.Result(result))
+	}
+
+	ms := params.GetDurationMillSecond()
+	if ms > 0 {
+		query.Where(tcpdetectorresult.MaxDurationGTE(ms))
 	}
 }
 
@@ -284,10 +298,44 @@ func (*detectorTCPCtrl) listResult(c *elton.Context) (err error) {
 	if err != nil {
 		return
 	}
+
+	// 根据任务ID获取任务名称
+	taskIDList := make([]int, 0)
+	ids := map[int]bool{}
+	for _, item := range results {
+		_, exists := ids[item.Task]
+		if exists {
+			continue
+		}
+		taskIDList = append(taskIDList, item.Task)
+		ids[item.Task] = true
+	}
+	// 如果获取失败，忽略（因为仅用于获取任务名称）
+	detectors, _ := getEntClient().TCPDetector.Query().
+		Where(tcpdetector.IDIn(taskIDList...)).
+		Select("name", "id").
+		All(c.Context())
+
 	c.CacheMaxAge(time.Minute)
 	c.Body = &detectorListTCPResultResp{
-		TCPResults: results,
-		Count:      count,
+		TCPResults:   results,
+		TCPDetectors: detectors,
+		Count:        count,
 	}
+	return
+}
+
+// getResult get tcp result
+func (*detectorTCPCtrl) getResult(c *elton.Context) (err error) {
+	id, err := getIDFromParams(c)
+	if err != nil {
+		return
+	}
+	result, err := getEntClient().TCPDetectorResult.Get(c.Context(), id)
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = result
 	return
 }

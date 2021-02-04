@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/vicanso/cybertect/cs"
@@ -60,8 +61,18 @@ type (
 	}
 	// detectorListPingResultResp response of list ping result
 	detectorListPingResultResp struct {
-		PingResults []*ent.PingDetectorResult `json:"pingResults,omitempty"`
-		Count       int                       `json:"count,omitempty"`
+		PingResults   []*ent.PingDetectorResult `json:"pingResults,omitempty"`
+		PingDetectors []*ent.PingDetector       `json:"pingDetectors,omitempty"`
+		Count         int                       `json:"count,omitempty"`
+	}
+
+	// detectorFilterPingParams params of filter ping
+	detectorFilterPingParams struct {
+		Keyword string `json:"keyword,omitempty" validate:"required,xKeyword"`
+	}
+	// detectorFilterPingResp response of filter ping
+	detectorFilterPingResp struct {
+		PingDetectors []*ent.PingDetector `json:"pingDetectors,omitempty"`
 	}
 )
 
@@ -93,6 +104,11 @@ func init() {
 	nsg.GET(
 		"/results",
 		ctrl.listResult,
+	)
+	// 查询ping检测结果详情
+	nsg.GET(
+		"/results/{id}",
+		ctrl.getResult,
 	)
 }
 
@@ -173,11 +189,19 @@ func (params *detectorUpdatePingParams) updateByID(ctx context.Context, id int) 
 
 // where ping detector result where
 func (params *detectorListPingResultParams) where(query *ent.PingDetectorResultQuery) {
-	if params.Task != "" {
-		query.Where(pingdetectorresult.Task(params.GetTaskID()))
+	task := params.GetTaskID()
+	if task != 0 {
+		query.Where(pingdetectorresult.Task(task))
 	}
-	if params.Result != "" {
-		query.Where(pingdetectorresult.Result(params.GetResult()))
+
+	result := params.GetResult()
+	if result != 0 {
+		query.Where(pingdetectorresult.Result(result))
+	}
+
+	ms := params.GetDurationMillSecond()
+	if ms > 0 {
+		query.Where(pingdetectorresult.MaxDurationGTE(ms))
 	}
 }
 
@@ -202,6 +226,20 @@ func (params *detectorListPingResultParams) count(ctx context.Context) (count in
 	query := getEntClient().PingDetectorResult.Query()
 	params.where(query)
 	return query.Count(ctx)
+}
+
+// query do filter query
+func (params *detectorFilterPingParams) query(ctx context.Context) (pingResults []*ent.PingDetector, err error) {
+	query := pingdetector.NameContains(params.Keyword)
+	id, _ := strconv.Atoi(params.Keyword)
+	if id != 0 {
+		query = pingdetector.Or(query, pingdetector.ID(id))
+	}
+	return getEntClient().PingDetector.Query().
+		Where(query).
+		Limit(10).
+		Select("name", "id").
+		All(ctx)
 }
 
 // add 添加Ping记录
@@ -286,10 +324,62 @@ func (*detectorPingCtrl) listResult(c *elton.Context) (err error) {
 	if err != nil {
 		return
 	}
+
+	// 根据任务ID获取任务名称
+	taskIDList := make([]int, 0)
+	ids := map[int]bool{}
+	for _, item := range results {
+		_, exists := ids[item.Task]
+		if exists {
+			continue
+		}
+		taskIDList = append(taskIDList, item.Task)
+		ids[item.Task] = true
+	}
+	// 如果获取失败，忽略（因为仅用于获取任务名称
+	detectors, _ := getEntClient().PingDetector.Query().
+		Where(pingdetector.IDIn(taskIDList...)).
+		Select("name", "id").
+		All(c.Context())
+
 	c.CacheMaxAge(time.Minute)
 	c.Body = &detectorListPingResultResp{
-		PingResults: results,
-		Count:       count,
+		PingResults:   results,
+		PingDetectors: detectors,
+		Count:         count,
+	}
+	return
+}
+
+// getResult get ping result
+func (*detectorPingCtrl) getResult(c *elton.Context) (err error) {
+	id, err := getIDFromParams(c)
+	if err != nil {
+		return
+	}
+	result, err := getEntClient().PingDetectorResult.Get(c.Context(), id)
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = result
+	return
+}
+
+// filter filter detector
+func (*detectorPingCtrl) filter(c *elton.Context) (err error) {
+	params := detectorFilterPingParams{}
+	err = validate.Do(&params, c.Query())
+	if err != nil {
+		return
+	}
+	results, err := params.query(c.Context())
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = &detectorFilterPingResp{
+		PingDetectors: results,
 	}
 	return
 }

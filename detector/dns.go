@@ -67,19 +67,22 @@ func (srv *DNSSrv) detect(config *ent.DNSDetector) (dnsDetectorResult *ent.DNSDe
 			Server:   server,
 			Duration: int(time.Since(startedAt).Milliseconds()),
 		}
-		if len(addrs) != 0 {
-			ipList := make([]string, len(addrs))
-			for index, addr := range addrs {
-				ipList[index] = addr.String()
+		// 如果检测成功
+		if err == nil {
+			if len(addrs) != 0 {
+				ipList := make([]string, len(addrs))
+				for index, addr := range addrs {
+					ipList[index] = addr.String()
+				}
+				subResult.IPS = ipList
+			} else {
+				err = hes.New("no ip for the host")
 			}
-			subResult.IPS = ipList
-		} else {
-			err = hes.New("no ip for the host")
-		}
-		// 检测IP是否均在预期列表中
-		for _, ip := range subResult.IPS {
-			if !util.ContainsString(config.Ips, ip) {
-				err = hes.New(fmt.Sprintf("ip(%s) is not matched", ip))
+			// 检测IP是否均在预期列表中
+			for _, ip := range subResult.IPS {
+				if !util.ContainsString(config.Ips, ip) {
+					err = hes.New(fmt.Sprintf("ip(%s) is not matched", ip))
+				}
 			}
 		}
 

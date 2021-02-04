@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/vicanso/cybertect/cs"
@@ -63,8 +64,18 @@ type (
 
 	// detectorListHTTPResultResp response of list http result
 	detectorListHTTPResultResp struct {
-		HTTPResults []*ent.HTTPDetectorResult `json:"httpResults,omitempty"`
-		Count       int                       `json:"count,omitempty"`
+		HTTPResults   []*ent.HTTPDetectorResult `json:"httpResults,omitempty"`
+		HTTPDetectors []*ent.HTTPDetector       `json:"httpDetectors,omitempty"`
+		Count         int                       `json:"count,omitempty"`
+	}
+
+	// detectorFilterHTTPParams params of filter http
+	detectorFilterHTTPParams struct {
+		Keyword string `json:"keyword,omitempty" validate:"required,xKeyword"`
+	}
+	// detectorFilterHTTPResp response of filter http
+	detectorFilterHTTPResp struct {
+		HTTPDetectors []*ent.HTTPDetector `json:"httpDetectors,omitempty"`
 	}
 )
 
@@ -93,10 +104,21 @@ func init() {
 		ctrl.updateByID,
 	)
 
+	// HTTP筛选
+	nsg.GET(
+		"/filter",
+		ctrl.filter,
+	)
+
 	// 查询http检测结果
 	nsg.GET(
 		"/results",
 		ctrl.listResult,
+	)
+	// 查询http检测结果详情
+	nsg.GET(
+		"/results/{id}",
+		ctrl.getResult,
 	)
 }
 
@@ -181,11 +203,17 @@ func (params *detectorUpdateHTTPParams) updateByID(ctx context.Context, id int) 
 
 // where http detector result where
 func (params *detectorListHTTPResultParams) where(query *ent.HTTPDetectorResultQuery) {
-	if params.Task != "" {
-		query.Where(httpdetectorresult.Task(params.GetTaskID()))
+	task := params.GetTaskID()
+	if task != 0 {
+		query.Where(httpdetectorresult.Task(task))
 	}
-	if params.Result != "" {
-		query.Where(httpdetectorresult.Result(params.GetResult()))
+	result := params.GetResult()
+	if result != 0 {
+		query.Where(httpdetectorresult.Result(result))
+	}
+	ms := params.GetDurationMillSecond()
+	if ms > 0 {
+		query.Where(httpdetectorresult.MaxDurationGTE(ms))
 	}
 }
 
@@ -210,6 +238,21 @@ func (params *detectorListHTTPResultParams) count(ctx context.Context) (count in
 	query := getEntClient().HTTPDetectorResult.Query()
 	params.where(query)
 	return query.Count(ctx)
+}
+
+// query do filter query
+func (params *detectorFilterHTTPParams) query(ctx context.Context) (httpResults []*ent.HTTPDetector, err error) {
+	query := httpdetector.NameContains(params.Keyword)
+	id, _ := strconv.Atoi(params.Keyword)
+	if id != 0 {
+		query = httpdetector.Or(query, httpdetector.ID(id))
+	}
+
+	return getEntClient().HTTPDetector.Query().
+		Where(query).
+		Limit(10).
+		Select("name", "id").
+		All(ctx)
 }
 
 // add 添加http配置
@@ -294,10 +337,62 @@ func (*detectorHTTPCtrl) listResult(c *elton.Context) (err error) {
 	if err != nil {
 		return
 	}
+
+	// 根据任务ID获取任务名称
+	taskIDList := make([]int, 0)
+	ids := map[int]bool{}
+	for _, item := range results {
+		_, exists := ids[item.Task]
+		if exists {
+			continue
+		}
+		taskIDList = append(taskIDList, item.Task)
+		ids[item.Task] = true
+	}
+	// 如果获取失败，忽略（因为仅用于获取任务名称）
+	detectors, _ := getEntClient().HTTPDetector.Query().
+		Where(httpdetector.IDIn(taskIDList...)).
+		Select("name", "id").
+		All(c.Context())
+
 	c.CacheMaxAge(time.Minute)
 	c.Body = &detectorListHTTPResultResp{
-		HTTPResults: results,
-		Count:       count,
+		HTTPResults:   results,
+		HTTPDetectors: detectors,
+		Count:         count,
+	}
+	return
+}
+
+// getResult get
+func (*detectorHTTPCtrl) getResult(c *elton.Context) (err error) {
+	id, err := getIDFromParams(c)
+	if err != nil {
+		return
+	}
+	result, err := getEntClient().HTTPDetectorResult.Get(c.Context(), id)
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = result
+	return
+}
+
+// filter filter detector
+func (*detectorHTTPCtrl) filter(c *elton.Context) (err error) {
+	params := detectorFilterHTTPParams{}
+	err = validate.Do(&params, c.Query())
+	if err != nil {
+		return
+	}
+	results, err := params.query(c.Context())
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = &detectorFilterHTTPResp{
+		HTTPDetectors: results,
 	}
 	return
 }

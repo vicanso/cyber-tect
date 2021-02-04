@@ -33,7 +33,6 @@ func (DNSDetectorResult) Fields() []ent.Field {
 func (DNSDetectorResult) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		TimeMixin{},
-		StatusMixin{},
 		DetectorResultMixin{},
 	}
 }

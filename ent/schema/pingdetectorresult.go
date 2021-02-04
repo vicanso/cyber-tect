@@ -32,7 +32,6 @@ func (PingDetectorResult) Fields() []ent.Field {
 func (PingDetectorResult) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		TimeMixin{},
-		StatusMixin{},
 		DetectorResultMixin{},
 	}
 }

@@ -49,20 +49,6 @@ func (ddrc *DNSDetectorResultCreate) SetNillableUpdatedAt(t *time.Time) *DNSDete
 	return ddrc
 }
 
-// SetStatus sets the "status" field.
-func (ddrc *DNSDetectorResultCreate) SetStatus(s schema.Status) *DNSDetectorResultCreate {
-	ddrc.mutation.SetStatus(s)
-	return ddrc
-}
-
-// SetNillableStatus sets the "status" field if the given value is not nil.
-func (ddrc *DNSDetectorResultCreate) SetNillableStatus(s *schema.Status) *DNSDetectorResultCreate {
-	if s != nil {
-		ddrc.SetStatus(*s)
-	}
-	return ddrc
-}
-
 // SetTask sets the "task" field.
 func (ddrc *DNSDetectorResultCreate) SetTask(i int) *DNSDetectorResultCreate {
 	ddrc.mutation.SetTask(i)
@@ -159,10 +145,6 @@ func (ddrc *DNSDetectorResultCreate) defaults() {
 		v := dnsdetectorresult.DefaultUpdatedAt()
 		ddrc.mutation.SetUpdatedAt(v)
 	}
-	if _, ok := ddrc.mutation.Status(); !ok {
-		v := dnsdetectorresult.DefaultStatus
-		ddrc.mutation.SetStatus(v)
-	}
 }
 
 // check runs all checks and user-defined validators on the builder.
@@ -172,14 +154,6 @@ func (ddrc *DNSDetectorResultCreate) check() error {
 	}
 	if _, ok := ddrc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New("ent: missing required field \"updated_at\"")}
-	}
-	if _, ok := ddrc.mutation.Status(); !ok {
-		return &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
-	}
-	if v, ok := ddrc.mutation.Status(); ok {
-		if err := dnsdetectorresult.StatusValidator(int8(v)); err != nil {
-			return &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
-		}
 	}
 	if _, ok := ddrc.mutation.Task(); !ok {
 		return &ValidationError{Name: "task", err: errors.New("ent: missing required field \"task\"")}
@@ -246,14 +220,6 @@ func (ddrc *DNSDetectorResultCreate) createSpec() (*DNSDetectorResult, *sqlgraph
 			Column: dnsdetectorresult.FieldUpdatedAt,
 		})
 		_node.UpdatedAt = value
-	}
-	if value, ok := ddrc.mutation.Status(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeInt8,
-			Value:  value,
-			Column: dnsdetectorresult.FieldStatus,
-		})
-		_node.Status = value
 	}
 	if value, ok := ddrc.mutation.Task(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

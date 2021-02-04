@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/vicanso/cybertect/cs"
@@ -64,8 +65,18 @@ type (
 	}
 	// detectorListDNSResultResp response of list dns result
 	detectorListDNSResultResp struct {
-		DNSResults []*ent.DNSDetectorResult `json:"dnsResults,omitempty"`
-		Count      int                      `json:"count,omitempty"`
+		DNSResults   []*ent.DNSDetectorResult `json:"dnsResults,omitempty"`
+		DNSDetectors []*ent.DNSDetector       `json:"dnsDetectors,omitempty"`
+		Count        int                      `json:"count,omitempty"`
+	}
+
+	// detectorFilterDNSParams params of filter dns
+	detectorFilterDNSParams struct {
+		Keyword string `json:"keyword,omitempty" validate:"required,xKeyword"`
+	}
+	// detectorFilterDNSResp response of filter dns
+	detectorFilterDNSResp struct {
+		DNSDetectors []*ent.DNSDetector `json:"dnsDetectors,omitempty"`
 	}
 )
 
@@ -94,10 +105,21 @@ func init() {
 		ctrl.updateByID,
 	)
 
+	// dns检测配置筛选
+	nsg.GET(
+		"/filter",
+		ctrl.filter,
+	)
+
 	// 查询dns检测结果
 	nsg.GET(
 		"/results",
 		ctrl.listResult,
+	)
+	// 查询dns检测结果详情
+	nsg.GET(
+		"/results/{id}",
+		ctrl.getResult,
 	)
 }
 
@@ -183,11 +205,19 @@ func (params *detectorUpdateDNSParams) updateByID(ctx context.Context, id int) (
 
 // where dns detector result where
 func (params *detectorListDNSResultParams) where(query *ent.DNSDetectorResultQuery) {
-	if params.Task != "" {
-		query.Where(dnsdetectorresult.Task(params.GetTaskID()))
+	task := params.GetTaskID()
+	if task != 0 {
+		query.Where(dnsdetectorresult.Task(task))
 	}
-	if params.Result != "" {
-		query.Where(dnsdetectorresult.Result(params.GetResult()))
+
+	result := params.GetResult()
+	if result != 0 {
+		query.Where(dnsdetectorresult.Result(result))
+	}
+
+	ms := params.GetDurationMillSecond()
+	if ms > 0 {
+		query.Where(dnsdetectorresult.MaxDurationGTE(ms))
 	}
 }
 
@@ -211,6 +241,22 @@ func (params *detectorListDNSResultParams) count(ctx context.Context) (count int
 	query := getEntClient().DNSDetectorResult.Query()
 	params.where(query)
 	return query.Count(ctx)
+}
+
+// query do filter query
+func (params *detectorFilterDNSParams) query(ctx context.Context) (dnsResults []*ent.DNSDetector, err error) {
+
+	query := dnsdetector.NameContains(params.Keyword)
+	id, _ := strconv.Atoi(params.Keyword)
+	if id != 0 {
+		query = dnsdetector.Or(query, dnsdetector.ID(id))
+	}
+
+	return getEntClient().DNSDetector.Query().
+		Where(query).
+		Limit(10).
+		Select("name", "id").
+		All(ctx)
 }
 
 // add 添加DNS配置
@@ -295,10 +341,62 @@ func (*detectorDNSCtrl) listResult(c *elton.Context) (err error) {
 	if err != nil {
 		return
 	}
+
+	// 根据任务ID获取任务名称
+	taskIDList := make([]int, 0)
+	ids := map[int]bool{}
+	for _, item := range results {
+		_, exists := ids[item.Task]
+		if exists {
+			continue
+		}
+		taskIDList = append(taskIDList, item.Task)
+		ids[item.Task] = true
+	}
+	// 如果获取失败，忽略（因为仅用于获取任务名称）
+	detectors, _ := getEntClient().DNSDetector.Query().
+		Where(dnsdetector.IDIn(taskIDList...)).
+		Select("name", "id").
+		All(c.Context())
+
 	c.CacheMaxAge(time.Minute)
 	c.Body = &detectorListDNSResultResp{
-		DNSResults: results,
-		Count:      count,
+		DNSResults:   results,
+		DNSDetectors: detectors,
+		Count:        count,
+	}
+	return
+}
+
+// getResult get detail of result
+func (*detectorDNSCtrl) getResult(c *elton.Context) (err error) {
+	id, err := getIDFromParams(c)
+	if err != nil {
+		return
+	}
+	result, err := getEntClient().DNSDetectorResult.Get(c.Context(), id)
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = result
+	return
+}
+
+// filter filter detector
+func (*detectorDNSCtrl) filter(c *elton.Context) (err error) {
+	params := detectorFilterDNSParams{}
+	err = validate.Do(&params, c.Query())
+	if err != nil {
+		return
+	}
+	results, err := params.query(c.Context())
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = &detectorFilterDNSResp{
+		DNSDetectors: results,
 	}
 	return
 }

@@ -184,14 +184,9 @@ export const detectorResultStore = createStore<DetectorResultState>({
     },
     // getHTTP 查询http检测详情
     async getHTTP(context: { commit: Commit }, id) {
-      context.commit(mutationHTTPListProcessing, true);
-      try {
-        const url = DETECTORS_HTTPS_RESULTS_DETAIL.replace(":id", id);
-        const { data } = await request.get(url);
-        return data;
-      } finally {
-        context.commit(mutationHTTPListProcessing, false);
-      }
+      const url = DETECTORS_HTTPS_RESULTS_DETAIL.replace(":id", id);
+      const { data } = await request.get(url);
+      return data;
     },
     // listDNS 查询dns检测结果
     async listDNS(context: { commit: Commit }, params: any) {
@@ -207,14 +202,9 @@ export const detectorResultStore = createStore<DetectorResultState>({
     },
     // getDNS 查询dns检测结果详情
     async getDNS(context: { commit: Commit }, id) {
-      context.commit(mutationDNSListProcessing, true);
-      try {
-        const url = DETECTORS_DNSES_RESULTS_DEATIL.replace(":id", id);
-        const { data } = await request.get(url);
-        return data;
-      } finally {
-        context.commit(mutationDNSListProcessing, false);
-      }
+      const url = DETECTORS_DNSES_RESULTS_DEATIL.replace(":id", id);
+      const { data } = await request.get(url);
+      return data;
     },
     // listTCP 查询tcp检测结果
     async listTCP(context: { commit: Commit }, params: any) {
@@ -230,14 +220,9 @@ export const detectorResultStore = createStore<DetectorResultState>({
     },
     // getTCP 查询tcp检测结果详情
     async getTCP(context: { commit: Commit }, id) {
-      context.commit(mutationTCPListProcessing, true);
-      try {
-        const url = DETECTORS_TCPS_RESULTS_DETAIL.replace(":id", id);
-        const { data } = await request.get(url);
-        return data;
-      } finally {
-        context.commit(mutationTCPListProcessing, true);
-      }
+      const url = DETECTORS_TCPS_RESULTS_DETAIL.replace(":id", id);
+      const { data } = await request.get(url);
+      return data;
     },
     // listPing 查询ping检测结果
     async listPing(context: { commit: Commit }, params: any) {
@@ -253,14 +238,9 @@ export const detectorResultStore = createStore<DetectorResultState>({
     },
     // getPing 获取ping检测结果详情
     async getPing(context: { commit: Commit }, id) {
-      context.commit(mutationPingListProcessing, true);
-      try {
-        const url = DETECTORS_PINGS_RESULTS_DETAIL.replace(":id", id);
-        const { data } = await request.get(url);
-        return data;
-      } finally {
-        context.commit(mutationPingListProcessing, false);
-      }
+      const url = DETECTORS_PINGS_RESULTS_DETAIL.replace(":id", id);
+      const { data } = await request.get(url);
+      return data;
     },
   },
 });

@@ -57,6 +57,14 @@
       li(
         v-for="item in scope.row.messages"
       ) {{item}}
+    el-table-column(
+      label="操作"
+      width="120"
+    ): template(
+      #default="scope"
+    ): HTTPDetail(
+      :id="scope.row.id"
+    )
     //- 时间
     el-table-column(
       label="时间"
@@ -89,6 +97,7 @@ import ResultStatus from "./Status.vue";
 import ResultFilter from "./Filter.vue";
 import { PAGE_SIZES } from "../../constants/common";
 import FilterTable from "../../mixins/FilterTable";
+import HTTPDetail from "./HTTPDetail.vue";
 
 export default defineComponent({
   name: "DetectorResultsHTTP",
@@ -97,6 +106,7 @@ export default defineComponent({
     TimeFormater,
     BaseTooltip,
     ResultStatus,
+    HTTPDetail,
   },
   mixins: [FilterTable],
   setup() {

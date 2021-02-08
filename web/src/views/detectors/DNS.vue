@@ -114,15 +114,16 @@
       ): template(
         #default="scope"
       )
-        div(
+        ex-button(
           v-if="scope.row.owner === userInfo.account"
-        ): ex-button(
           :onClick="generateModifyHandler(scope.row)"
           category="smallText"
         ) 编辑
-        span(
-          v-else
-        ) --
+        el-button(
+          type="text"
+          size="small"
+          @click="showResults(scope.row)"
+        ) 查看
 
 
     //- 分页
@@ -252,6 +253,7 @@ import DetectorReceiverSelector from "../../components/detectors/ReceiverSelecto
 import ExButton from "../../components/ExButton.vue";
 import { PAGE_SIZES } from "../../constants/common";
 import { diff } from "../../helpers/util";
+import { getDetectorResultDNSRouteName } from "../../router";
 
 export default defineComponent({
   name: "DetectorDNS",
@@ -299,6 +301,14 @@ export default defineComponent({
     };
   },
   methods: {
+    showResults(item) {
+      this.$router.push({
+        name: getDetectorResultDNSRouteName(),
+        query: {
+          task: item.id,
+        },
+      });
+    },
     async fetch() {
       const { query, dnses } = this;
       if (dnses.processing) {

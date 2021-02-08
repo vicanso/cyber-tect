@@ -68,6 +68,8 @@ import {
   getDetectorPingRouteName,
   getDetectorResultHTTPRouteName,
   getActionsRouteName,
+  getDetectorResultDNSRouteName,
+  getDetectorResultTCPRouteName,
 } from "../router";
 import { USER_ADMIN, USER_SU } from "../constants/user";
 import { useUserStore } from "../store";
@@ -115,6 +117,18 @@ const navs = [
       {
         name: "HTTP",
         route: getDetectorResultHTTPRouteName(),
+        roles: [],
+        groups: [],
+      },
+      {
+        name: "DNS",
+        route: getDetectorResultDNSRouteName(),
+        roles: [],
+        groups: [],
+      },
+      {
+        name: "TCP",
+        route: getDetectorResultTCPRouteName(),
         roles: [],
         groups: [],
       },

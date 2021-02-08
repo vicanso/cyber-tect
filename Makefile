@@ -2,7 +2,7 @@
 
 # for dev
 dev:
-	nodemon main.go
+	air -c .air.toml
 
 doc:
 	swagger generate spec -o ./api.yml && swagger validate ./api.yml 

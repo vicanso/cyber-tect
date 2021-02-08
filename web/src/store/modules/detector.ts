@@ -12,6 +12,7 @@ import {
   DETECTORS_TCPS_UPDATE,
   DETECTORS_PINGS,
   DETECTORS_PINGS_UPDATE,
+  DETECTORS_FILTER,
 } from "../../constants/url";
 
 const prefix = "detector";
@@ -393,6 +394,19 @@ export const detectorStore = createStore<DetectorState>({
       } finally {
         context.commit(mutationPingListProcessing, false);
       }
+    },
+    // filter filter detector
+    async filter(
+      context: { commit: Commit },
+      params: { category: string; keyword: string }
+    ) {
+      const url = DETECTORS_FILTER.replace(":category", params.category);
+      const { data } = await request.get(url, {
+        params: {
+          keyword: params.keyword,
+        },
+      });
+      return data;
     },
   },
 });

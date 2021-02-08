@@ -6,6 +6,7 @@
     span HTTP检测结果列表
   result-filter(
     @filter="filter"
+    category="https"
   )
   div(
     v-loading="https.processing"
@@ -139,6 +140,10 @@ export default defineComponent({
       const params = Object.assign({}, query);
       if (!params.result) {
         delete params.result;
+      }
+      // 如果未有指定筛选的task，则判断query中是否有指定
+      if (!params.task && this.$route.query.task) {
+        params.task = Number(this.$route.query.task);
       }
       if (params.duration) {
         params.duration = `${params.duration}s`;

@@ -96,15 +96,16 @@
       ): template(
         #default="scope"
       )
-        div(
-          v-if="scope.row.owner === userInfo.account"
-        ): ex-button(
+        ex-button(
           :onClick="generateModifyHandler(scope.row)"
+          v-if="scope.row.owner === userInfo.account"
           category="smallText"
         ) 编辑
-        span(
-          v-else
-        ) --
+        el-button(
+          type="text"
+          size="small"
+          @click="showResults(scope.row)"
+        ) 查看
     //- 分页
     el-pagination.pagination(
       layout="prev, pager, next, sizes"
@@ -213,6 +214,7 @@ import DetectorReceiverSelector from "../../components/detectors/ReceiverSelecto
 import ExButton from "../../components/ExButton.vue";
 import { PAGE_SIZES } from "../../constants/common";
 import { diff } from "../../helpers/util";
+import { getDetectorResultTCPRouteName } from "../../router";
 
 export default defineComponent({
   name: "DetectorTCP",
@@ -258,6 +260,14 @@ export default defineComponent({
     };
   },
   methods: {
+    showResults(item) {
+      this.$router.push({
+        name: getDetectorResultTCPRouteName(),
+        query: {
+          task: item.id,
+        },
+      });
+    },
     async fetch() {
       const { query, tcps } = this;
       if (tcps.processing) {

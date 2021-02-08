@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/vicanso/cybertect/cs"
@@ -64,6 +65,15 @@ type (
 		TCPDetectors []*ent.TCPDetector       `json:"tcpDetectors,omitempty"`
 		Count        int                      `json:"count,omitempty"`
 	}
+
+	// detectorFilterTCPParams params of filter tcp
+	detectorFilterTCPParams struct {
+		Keyword string `json:"keyword,omitempty" validate:"required,xKeyword"`
+	}
+	// detectorFilterTCPResp response of filter tcp
+	detectorFilterTCPResp struct {
+		TCPDetectors []*ent.TCPDetector `json:"tcpDetectors,omitempty"`
+	}
 )
 
 func init() {
@@ -88,6 +98,12 @@ func init() {
 		"/{id}",
 		newTrackerMiddleware(cs.ActionDetectorTCPUpdate),
 		ctrl.updateByID,
+	)
+
+	// TCP 筛选
+	nsg.GET(
+		"/filter",
+		ctrl.filter,
 	)
 
 	// 查询tcp检测结果
@@ -216,6 +232,20 @@ func (params *detectorListTCPResultParams) count(ctx context.Context) (count int
 	return query.Count(ctx)
 }
 
+// query do filter query
+func (params *detectorFilterTCPParams) query(ctx context.Context) (tcpResults []*ent.TCPDetector, err error) {
+	query := tcpdetector.NameContains(params.Keyword)
+	id, _ := strconv.Atoi(params.Keyword)
+	if id != 0 {
+		query = tcpdetector.Or(query, tcpdetector.ID(id))
+	}
+	return getEntClient().TCPDetector.Query().
+		Where(query).
+		Limit(10).
+		Select("name", "id").
+		All(ctx)
+}
+
 // add 添加TCP记录
 func (*detectorTCPCtrl) add(c *elton.Context) (err error) {
 	params := detectorAddTCPParams{}
@@ -337,5 +367,23 @@ func (*detectorTCPCtrl) getResult(c *elton.Context) (err error) {
 	}
 	c.CacheMaxAge(time.Minute)
 	c.Body = result
+	return
+}
+
+// filter filter detector
+func (*detectorTCPCtrl) filter(c *elton.Context) (err error) {
+	params := detectorFilterTCPParams{}
+	err = validate.Do(&params, c.Query())
+	if err != nil {
+		return
+	}
+	results, err := params.query(c.Context())
+	if err != nil {
+		return
+	}
+	c.CacheMaxAge(time.Minute)
+	c.Body = &detectorFilterTCPResp{
+		TCPDetectors: results,
+	}
 	return
 }

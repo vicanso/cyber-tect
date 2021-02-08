@@ -1,27 +1,26 @@
 <template lang="pug">
-.dnsResults: el-card
+.tcpResults: el-card
   template(
     #header
   )
-    span DNS检测结果列表
+    span TCP检测结果列表
   result-filter(
     @filter="filter"
-    category="dnses"
+    category="tcps"
   )
   div(
-    v-loading="dnses.processing"
+    v-loading="tcps.processing"
   ): el-table(
-    :data="dnses.items"
+    :data="tcps.items"
     row-key="id"
     stripe
     @sort-change="handleSortChange"
   )
-    //- host
+    //- 地址
     el-table-column(
-      label="HOST"
-      width="150"
-      prop="host"
-      key="host"
+      label="地址"
+      prop="addrs"
+      key="addrs"
     )
     //- 状态
     el-table-column(
@@ -54,7 +53,7 @@
       width="120"
     ): template(
       #default="scope"
-    ): DNSDetail(
+    ): TCPDetail(
       :id="scope.row.id"
     )
     //- 时间
@@ -72,12 +71,12 @@
     :current-page="currentPage"
     :page-size="query.limit"
     :page-sizes="pageSizes"
-    :total="dnses.count"
+    :total="tcps.count"
     @size-change="handleSizeChange"
     @current-change="handleCurrentChange"
   )
-  
 </template>
+
 <script lang="ts">
 import { defineComponent } from "vue";
 
@@ -88,23 +87,23 @@ import ResultStatus from "./Status.vue";
 import ResultFilter from "./Filter.vue";
 import { PAGE_SIZES } from "../../constants/common";
 import FilterTable from "../../mixins/FilterTable";
-import DNSDetail from "./DNSDetail.vue";
+import TCPDetail from "./TCPDetail.vue";
 
 export default defineComponent({
-  name: "DetectorResultsDNS",
+  name: "DetectorResultsTCP",
   components: {
     ResultFilter,
     TimeFormater,
     BaseTooltip,
     ResultStatus,
-    DNSDetail,
+    TCPDetail,
   },
   mixins: [FilterTable],
   setup() {
     const detectorResultStore = useDetectorResultStore();
     return {
-      dnses: detectorResultStore.state.dnses,
-      list: (params) => detectorResultStore.dispatch("listDNS", params),
+      tcps: detectorResultStore.state.tcps,
+      list: (params) => detectorResultStore.dispatch("listTCP", params),
     };
   },
   data() {
@@ -114,7 +113,7 @@ export default defineComponent({
         offset: 0,
         limit: PAGE_SIZES[0],
         order: "-updatedAt",
-        fields: "updatedAt,task,result,maxDuration,host,messages",
+        fields: "updatedAt,task,result,maxDuration,addrs,messages",
       },
     };
   },
@@ -123,8 +122,8 @@ export default defineComponent({
   },
   methods: {
     async fetch() {
-      const { dnses, query } = this;
-      if (dnses.processing) {
+      const { tcps, query } = this;
+      if (tcps.processing) {
         return;
       }
       const params = Object.assign({}, query);
@@ -152,7 +151,7 @@ export default defineComponent({
 
 <style lang="stylus" scoped>
 @import "../../common";
-.dnsResults
+.tcpResults
   margin: $mainMargin
   i
     margin-right: 5px

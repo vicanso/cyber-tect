@@ -27,6 +27,11 @@ el-form.baseFilter(
           :label="item.label || item.name"
           :value="item.value"
         )
+      base-task-select(
+        v-else-if="field.type === 'taskSelect'"
+        v-model="current[field.key]"
+        :category="field.category"
+      )
       //- 点击筛选
       ex-button(
         v-else-if="field.type === 'filter'"
@@ -79,11 +84,13 @@ el-form.baseFilter(
 import { defineComponent } from "vue";
 
 import ExButton from "../ExButton.vue";
+import BaseTaskSelect from "./TaskSelect.vue";
 
 export default defineComponent({
   name: "BaseFilter",
   components: {
     ExButton,
+    BaseTaskSelect,
   },
   props: {
     labelWidth: {

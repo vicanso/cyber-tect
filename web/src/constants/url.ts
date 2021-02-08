@@ -45,6 +45,9 @@ export const CONFIGS_ID = "/configurations/v1/:id";
 export const CONFIGS_CURRENT_VALID = "/configurations/v1/current-valid";
 
 // 检测配置url
+// 筛选HTTP检测配置
+export const DETECTORS_FILTER = "/detectors/v1/:category/filter";
+
 // 获取接收者列表
 export const DETECTORS_RECEIVERS = "/detectors/v1/receivers";
 // HTTP检测配置

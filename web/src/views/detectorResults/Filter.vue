@@ -44,7 +44,8 @@ const filterFields = [
   {
     label: "任务：",
     key: "task",
-    type: "autocomplete",
+    type: "taskSelect",
+    category: "",
     placeholder: "请输入关键字",
     clearable: true,
     span: 6,
@@ -62,8 +63,19 @@ export default defineComponent({
   components: {
     BaseFilter,
   },
+  props: {
+    category: {
+      type: String,
+      required: true,
+    },
+  },
   emits: ["filter"],
   data() {
+    filterFields.forEach((item) => {
+      if (item.type === "taskSelect") {
+        item.category = this.$props.category;
+      }
+    });
     return {
       filterFields,
     };

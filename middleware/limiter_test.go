@@ -41,7 +41,7 @@ func TestNewConcurrentLimit(t *testing.T) {
 	assert.Nil(err)
 	// 有相同的key，无法正常执行
 	err = fn(c)
-	assert.Equal("category=elton-concurrent-limiter, message=submit too frequently", err.Error())
+	assert.Equal("statusCode=400, category=elton-concurrent-limiter, message=submit too frequently", err.Error())
 
 	// 锁过期后，可以正常执行
 	time.Sleep(20 * time.Millisecond)
@@ -67,7 +67,7 @@ func TestNewConcurrentLimitWithDone(t *testing.T) {
 		time.Sleep(2 * time.Millisecond)
 		// 由于上一次的并发访问未完成，因此会出错
 		err := fn(c)
-		assert.Equal("category=elton-concurrent-limiter, message=submit too frequently", err.Error())
+		assert.Equal("statusCode=400, category=elton-concurrent-limiter, message=submit too frequently", err.Error())
 	}()
 	err := fn(c)
 	assert.Nil(err)

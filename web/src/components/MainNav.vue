@@ -14,7 +14,7 @@
       v-if="!$props.shrinking"
       :to='{name: homeRoute}'
     )
-      i.el-icon-eleme
+      i.el-icon-cpu
       | Cyber Tect 
   //- 菜单栏
   nav: el-menu.menu(
@@ -60,7 +60,6 @@ import {
   getRouterConcurrencyRouteName,
   getSessionInterceptorRouteName,
   getConfigurationRouteName,
-  getOthersRouteName,
   getHTTPErrorsRouteName,
   getDetectorHTTPRouteName,
   getDetectorDNSRouteName,
@@ -70,6 +69,7 @@ import {
   getActionsRouteName,
   getDetectorResultDNSRouteName,
   getDetectorResultTCPRouteName,
+  getDetectorResultPingRouteName,
 } from "../router";
 import { USER_ADMIN, USER_SU } from "../constants/user";
 import { useUserStore } from "../store";
@@ -129,6 +129,12 @@ const navs = [
       {
         name: "TCP",
         route: getDetectorResultTCPRouteName(),
+        roles: [],
+        groups: [],
+      },
+      {
+        name: "PING",
+        route: getDetectorResultPingRouteName(),
         roles: [],
         groups: [],
       },
@@ -217,20 +223,6 @@ const navs = [
       {
         name: "Session拦截配置",
         route: getSessionInterceptorRouteName(),
-        roles: [],
-        groups: [],
-      },
-    ],
-  },
-  {
-    name: "其它",
-    icon: "el-icon-setting",
-    roles: [USER_SU],
-    groups: [],
-    children: [
-      {
-        name: "其它",
-        route: getOthersRouteName(),
         roles: [],
         groups: [],
       },

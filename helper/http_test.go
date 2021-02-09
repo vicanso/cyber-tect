@@ -52,7 +52,7 @@ func TestConvertResponseToError(t *testing.T) {
 		Status: 400,
 		Data:   data,
 	})
-	assert.Equal("message=error message", err.Error())
+	assert.Equal("statusCode=400, message=error message", err.Error())
 
 	ins := NewHTTPInstance("test", "https://test.com", time.Second)
 	done := ins.Mock(&axios.Response{
@@ -61,7 +61,7 @@ func TestConvertResponseToError(t *testing.T) {
 	})
 	defer done()
 	resp, err := ins.Get("/")
-	assert.Equal("category=test, message=error message", err.Error())
+	assert.Equal("statusCode=400, category=test, message=error message", err.Error())
 	assert.Equal(400, resp.Status)
 	assert.Equal(data, resp.Data)
 }

@@ -1,17 +1,16 @@
 <template lang="pug">
-.tcpResults: el-card
+.pingResults: el-card
   template(
     #header
-  )
-    span TCP检测结果列表
+  ): span Ping检测结果列表
   result-filter(
     @filter="filter"
-    category="tcps"
+    category="pings"
   )
   div(
-    v-loading="tcps.processing"
+    v-loading="pings.processing"
   ): el-table(
-    :data="tcps.items"
+    :data="pings.items"
     row-key="id"
     stripe
     @sort-change="handleSortChange"
@@ -23,15 +22,12 @@
       prop="name"
       key="name"
     )
-    //- 地址
+    //- ips
     el-table-column(
-      label="地址"
-    ): template(
-      #default="scope"
-    ): ul
-      li(
-        v-for="item in scope.row.addrs.split(',')"
-      ) {{item.trim()}}
+      label="IP地址"
+      prop="ips"
+      key="ips"
+    )
     //- 状态
     el-table-column(
       label="状态"
@@ -63,7 +59,7 @@
       width="120"
     ): template(
       #default="scope"
-    ): TCPDetail(
+    ): PingDetail(
       :id="scope.row.id"
     )
     //- 时间
@@ -81,12 +77,11 @@
     :current-page="currentPage"
     :page-size="query.limit"
     :page-sizes="pageSizes"
-    :total="tcps.count"
+    :total="pings.count"
     @size-change="handleSizeChange"
     @current-change="handleCurrentChange"
   )
 </template>
-
 <script lang="ts">
 import { defineComponent } from "vue";
 
@@ -97,23 +92,23 @@ import ResultStatus from "./Status.vue";
 import ResultFilter from "./Filter.vue";
 import { PAGE_SIZES } from "../../constants/common";
 import FilterTable from "../../mixins/FilterTable";
-import TCPDetail from "./TCPDetail.vue";
+import PingDetail from "./PingDetail.vue";
 
 export default defineComponent({
-  name: "DetectorResultsTCP",
+  name: "DetectorResultsPing",
   components: {
     ResultFilter,
     TimeFormater,
     BaseTooltip,
     ResultStatus,
-    TCPDetail,
+    PingDetail,
   },
   mixins: [FilterTable],
   setup() {
     const detectorResultStore = useDetectorResultStore();
     return {
-      tcps: detectorResultStore.state.tcps,
-      list: (params) => detectorResultStore.dispatch("listTCP", params),
+      pings: detectorResultStore.state.pings,
+      list: (params) => detectorResultStore.dispatch("listPing", params),
     };
   },
   data() {
@@ -123,7 +118,7 @@ export default defineComponent({
         offset: 0,
         limit: PAGE_SIZES[0],
         order: "-updatedAt",
-        fields: "updatedAt,task,result,maxDuration,addrs,messages",
+        fields: "updatedAt,task,result,maxDuration,ips,messages",
       },
     };
   },
@@ -132,8 +127,8 @@ export default defineComponent({
   },
   methods: {
     async fetch() {
-      const { tcps, query } = this;
-      if (tcps.processing) {
+      const { pings, query } = this;
+      if (pings.processing) {
         return;
       }
       const params = Object.assign({}, query);
@@ -161,7 +156,7 @@ export default defineComponent({
 
 <style lang="stylus" scoped>
 @import "../../common";
-.tcpResults
+.pingResults
   margin: $mainMargin
   i
     margin-right: 5px

@@ -23,7 +23,7 @@ import (
 
 func init() {
 	// 客户端使用的limit，最多只允许一次拉取100条
-	Add("xLimit", newNumberRange(1, 100))
+	Add("xLimit", newNumberRange(1, 200))
 	// 更大的数量限制，一般管理后台接口使用
 	Add("xLargerLimit", newNumberRange(1, 200))
 	// offset设置最多为1万已满足场景需要，如果有更多的处理再调整

@@ -142,7 +142,7 @@
     )
       //- 配置名称
       el-col(
-        :span="8"
+        :span="5"
       ): el-form-item(
         label="名称："
       ): el-input(
@@ -152,7 +152,7 @@
       )
       //- url配置
       el-col(
-        :span="8"
+        :span="7"
       ): el-form-item(
         label="URL："
       ): el-input(
@@ -162,7 +162,7 @@
       )
       //- IP地址
       el-col(
-        :span="8"
+        :span="12"
       ): el-form-item(
         label="IP列表："
       ): el-input(
@@ -172,14 +172,14 @@
       )
       //- 配置状态
       el-col(
-        :span="8"
+        :span="5"
       ): detector-status-selector(
         :status="modifiedItem.status"
         @change="changeStatus"
       )
       //- 超时设置
       el-col(
-        :span="8"
+        :span="7"
       ): el-form-item(
         label="超时："
       ): el-input(
@@ -192,7 +192,7 @@
       ) 秒
       //- 接收者列表
       el-col(
-        :span="8"
+        :span="12"
       ): detector-receiver-selector(
         :receivers="modifiedItem.receivers"
         @change="changeReceivers"

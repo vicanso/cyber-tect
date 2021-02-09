@@ -43,14 +43,14 @@ influxdb:
   flushInterval: 10s
   # 如果与influxdb非同一内网，建议设置为true
   gzip: false
-  disabled: false 
+  disabled: true 
 
 # mail相关配置
 mail:
-  host: smtp.office365.com
-  port: 587
-  user: tree.xie@outlook.com
-  password: EMAIL_PASS
+  host: MAIL_HOST 
+  port: MAIL_PORT
+  user: MAIL_USER
+  password: MAIL_PASS
 
 # 告警接收邮件列表
 alarm:

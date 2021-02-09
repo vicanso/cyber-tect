@@ -48,10 +48,10 @@ func init() {
 	_, _ = c.AddFunc("@every 1m", routerConcurrencyStats)
 
 	// 检测任务
-	// _, _ = c.AddFunc("@every 1m", doHTTPDetect)
-	// _, _ = c.AddFunc("@every 1m", doDNSDetect)
-	// _, _ = c.AddFunc("@every 1m", doTCPDetect)
-	// _, _ = c.AddFunc("@every 1m", doPingDetect)
+	_, _ = c.AddFunc("@every 1m", doHTTPDetect)
+	_, _ = c.AddFunc("@every 1m", doDNSDetect)
+	_, _ = c.AddFunc("@every 1m", doTCPDetect)
+	_, _ = c.AddFunc("@every 1m", doPingDetect)
 	c.Start()
 }
 

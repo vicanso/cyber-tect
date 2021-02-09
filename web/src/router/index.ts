@@ -32,6 +32,7 @@ import DetectorPing from "../views/detectors/Ping.vue";
 import DetectorHTTPResult from "../views/detectorResults/HTTP.vue";
 import DetectorDNSResult from "../views/detectorResults/DNS.vue";
 import DetectorTCPResult from "../views/detectorResults/TCP.vue";
+import DetectorPingResult from "../views/detectorResults/Ping.vue";
 
 const home = "home";
 const profile = "profile";
@@ -60,6 +61,7 @@ const detectorPing = "detectorPing";
 const detectorHTTPResult = "detectorHTTPResult";
 const detectorDNSResult = "detectorDNSResult";
 const detectorTCPResult = "detectorTCPResult";
+const detectorPingResult = "detectorPingResult";
 
 interface Location {
   name: string;
@@ -198,6 +200,11 @@ const router = createRouter({
       name: detectorTCPResult,
       component: DetectorTCPResult,
     },
+    {
+      path: "/detector-result/ping",
+      name: detectorPingResult,
+      component: DetectorPingResult,
+    },
   ],
 });
 
@@ -275,6 +282,9 @@ export function getDetectorResultDNSRouteName(): string {
 }
 export function getDetectorResultTCPRouteName(): string {
   return detectorTCPResult;
+}
+export function getDetectorResultPingRouteName(): string {
+  return detectorPingResult;
 }
 
 export function getCurrentLocation(): Location {

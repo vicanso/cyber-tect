@@ -16,7 +16,7 @@
   //- 内容区域
   .mainContent
     router-view(
-      v-if="inited"
+      v-if="inited && !loadingSetting"
     )
     p.tac(
       v-else

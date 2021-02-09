@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "format": "node node_modules/.bin/prettier --write src/*.ts src/*.vue src/**/*.ts src/**/*.vue src/**/**/*.ts src/**/**/*.vue",
-    "lint": "yarn eslint . --ext .js,.vue,.ts",
+    "lint": "yarn eslint . --ext .js,.vue,.ts --fix",
     "dev": "vite",
     "build": "vuedx-typecheck . && STATIC=/static/ vite build"
   },

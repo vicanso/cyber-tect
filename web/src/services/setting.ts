@@ -7,10 +7,13 @@ const userSettingKey = "userSettings";
 interface UserSetting {
   // 主侧边栏是否隐藏
   mainNavShrinking: boolean;
+  // mainDetectorResultCount 首页展示的检测结果数
+  mainDetectorResultCount: number;
 }
 
 let currentUserSetting: UserSetting = {
   mainNavShrinking: false,
+  mainDetectorResultCount: 100,
 };
 
 export async function loadSetting(): void {

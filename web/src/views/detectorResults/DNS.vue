@@ -16,6 +16,13 @@
     stripe
     @sort-change="handleSortChange"
   )
+    //- name
+    el-table-column(
+      label="名称"
+      width="150"
+      prop="name"
+      key="name"
+    )
     //- host
     el-table-column(
       label="HOST"

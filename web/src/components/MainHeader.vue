@@ -8,6 +8,30 @@ header.header
     .functions(
       v-else-if="user.account"
     )
+      el-popover(
+        placement="bottom-end"
+        :width="250"
+        trigger="click"
+      )
+        template(
+          #reference
+        ): el-button.setting(
+          type="text"
+          size="small"
+        ) 首页设置
+        el-form
+          el-form-item(
+            label="拉取数据："
+          ): el-input(
+            placeholder="请输入每个分类展示的检测数量"
+            v-model="querySize"
+            type="number"
+          )
+          el-button.btn(
+            type="primary"
+            @click="doSaveSetting"
+          ) 确认
+      span.divided |
       router-link(
         :to="{ name: profileRoute }"
       )
@@ -46,6 +70,7 @@ import {
   getLoginRouteName,
   getRegisterRouteName,
 } from "../router";
+import { getSetting, saveSetting } from "../services/setting";
 
 export default defineComponent({
   name: "MainHeader",
@@ -57,7 +82,9 @@ export default defineComponent({
     };
   },
   data() {
+    const setting = getSetting();
     return {
+      querySize: setting.mainDetectorResultCount || 0,
       profileRoute: getProfileRouteName(),
       loginRoute: getLoginRouteName(),
       registerRoute: getRegisterRouteName(),
@@ -70,6 +97,16 @@ export default defineComponent({
         this.$router.push({
           name: getHomeRouteName(),
         });
+      } catch (err) {
+        this.$error(err);
+      }
+    },
+    async doSaveSetting() {
+      const setting = getSetting();
+      setting.mainDetectorResultCount = Number(this.querySize);
+      try {
+        await saveSetting(setting);
+        this.$message.info("已成功更新，请刷新首页");
       } catch (err) {
         this.$error(err);
       }
@@ -96,4 +133,6 @@ export default defineComponent({
     font-weight: bold
 .divided
   margin: 0 15px
+.btn
+  width: 100%
 </style>

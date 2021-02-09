@@ -96,15 +96,16 @@
       ): template(
         #default="scope"
       )
-        div(
+        ex-button(
           v-if="scope.row.owner === userInfo.account"
-        ): ex-button(
           :onClick="generateModifyHandler(scope.row)"
           category="smallText"
         ) 编辑
-        span(
-          v-else
-        ) --
+        el-button(
+          type="text"
+          size="small"
+          @click="showResults(scope.row)"
+        ) 查看
     //- 分页
     el-pagination.pagination(
       layout="prev, pager, next, sizes"
@@ -141,22 +142,20 @@
         v-model="modifiedItem.name"
         clearable
       )
-      //- 检测IP
-      el-col(
-        :span="8"
-      ): el-form-item(
-        label="检测IP："
-      ): el-input(
-        placeholder="请输入检测地址，多个地址以,分隔"
-        v-model="modifiedItem.ips"
-        clearable
-      )
+     
       //- 配置状态
       el-col(
         :span="8"
       ): detector-status-selector(
         :status="modifiedItem.status"
         @change="changeStatus"
+      )
+      //- 接收者列表
+      el-col(
+        :span="8"
+      ): detector-receiver-selector(
+        :receivers="modifiedItem.receivers"
+        @change="changeReceivers"
       )
       //- 超时设置
       el-col(
@@ -171,12 +170,15 @@
       ): template(
         #append
       ) 秒
-      //- 接收者列表
+      //- 检测IP
       el-col(
-        :span="8"
-      ): detector-receiver-selector(
-        :receivers="modifiedItem.receivers"
-        @change="changeReceivers"
+        :span="16"
+      ): el-form-item(
+        label="检测IP："
+      ): el-input(
+        placeholder="请输入检测地址，多个地址以,分隔"
+        v-model="modifiedItem.ips"
+        clearable
       )
       //- 描述
       el-col(
@@ -212,6 +214,7 @@ import DetectorReceiverSelector from "../../components/detectors/ReceiverSelecto
 import ExButton from "../../components/ExButton.vue";
 import { PAGE_SIZES } from "../../constants/common";
 import { diff } from "../../helpers/util";
+import { getDetectorResultPingRouteName } from "../../router";
 
 export default defineComponent({
   name: "DetectorPing",
@@ -257,6 +260,14 @@ export default defineComponent({
     };
   },
   methods: {
+    showResults(item) {
+      this.$router.push({
+        name: getDetectorResultPingRouteName(),
+        query: {
+          task: item.id,
+        },
+      });
+    },
     async fetch() {
       const { query, pings } = this;
       if (pings.processing) {

@@ -153,7 +153,7 @@
       :gutter="15"
     )
       el-col(
-        :span="8"
+        :span="5"
       ): el-form-item(
         label="名称："
       ): el-input(
@@ -163,7 +163,7 @@
       )
       //- 检测域名
       el-col(
-        :span="8"
+        :span="7"
       ): el-form-item(
         label="域名地址："
       ): el-input(
@@ -171,19 +171,9 @@
         v-model="modifiedItem.host"
         clearable
       )
-      //- IP地址列表
-      el-col(
-        :span="8"
-      ): el-form-item(
-        label="IP列表："
-      ): el-input(
-        placeholder="请输入解析对应的IP列表，用,分割"
-        v-model="modifiedItem.ips"
-        clearable
-      )
       //- DNS服务器列表
       el-col(
-        :span="8"
+        :span="12"
       ): el-form-item(
         label="DNS："
       ): el-input(
@@ -193,14 +183,14 @@
       )
       //- 配置状态
       el-col(
-        :span="8"
+        :span="5"
       ): detector-status-selector(
         :status="modifiedItem.status"
         @change="changeStatus"
       )
       //- 超时设置
       el-col(
-        :span="8"
+        :span="7"
       ): el-form-item(
         label="超时："
       ): el-input(
@@ -213,11 +203,22 @@
       ) 秒
       //- 接收者列表
       el-col(
-        :span="8"
+        :span="12"
       ): detector-receiver-selector(
         :receivers="modifiedItem.receivers"
         @change="changeReceivers"
       )
+      //- IP地址列表
+      el-col(
+        :span="24"
+      ): el-form-item(
+        label="IP列表："
+      ): el-input(
+        placeholder="请输入有效的解析IP列表，用,分割"
+        v-model="modifiedItem.ips"
+        clearable
+      )
+
       //- 描述
       el-col(
         :span="24"

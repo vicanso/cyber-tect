@@ -284,9 +284,15 @@ func GetPostgresConfig() PostgresConfig {
 // GetMailConfig 获取邮件配置
 func GetMailConfig() MailConfig {
 	prefix := "mail."
+	portValue := defaultViperX.GetStringFromENVDefault(prefix+"port", "587")
+	port, err := strconv.Atoi(portValue)
+	if err != nil {
+		panic(err)
+	}
+
 	mailConfig := MailConfig{
-		Host:     defaultViperX.GetString(prefix + "host"),
-		Port:     defaultViperX.GetInt(prefix + "port"),
+		Host:     defaultViperX.GetStringFromENVDefault(prefix+"host", "smtp.office365.com"),
+		Port:     port,
 		User:     defaultViperX.GetStringFromENV(prefix + "user"),
 		Password: defaultViperX.GetStringFromENV(prefix + "password"),
 	}

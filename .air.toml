@@ -11,7 +11,7 @@ cmd = "go build -o ./tmp/main ."
 # Binary file yields from `cmd`.
 bin = "tmp/main"
 # Customize binary.
-full_bin = "GO_ENV=dev ./tmp/main"
+full_bin = "GO_ENV=dev MAIL_USER=tree.xie@outlook.com ./tmp/main"
 # Watch these filename extensions.
 include_ext = ["go", "yml"]
 # Ignore these filename extensions or directories.

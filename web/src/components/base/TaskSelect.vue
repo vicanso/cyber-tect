@@ -29,6 +29,7 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: ["input"],
   setup() {
     const detectorStore = useDetectorStore();
     return {

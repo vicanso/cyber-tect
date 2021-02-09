@@ -134,7 +134,7 @@
     )
       //- 配置名称
       el-col(
-        :span="8"
+        :span="7"
       ): el-form-item(
         label="名称："
       ): el-input(
@@ -142,9 +142,16 @@
         v-model="modifiedItem.name"
         clearable
       )
+      //- 配置状态
+      el-col(
+        :span="5"
+      ): detector-status-selector(
+        :status="modifiedItem.status"
+        @change="changeStatus"
+      )
       //- 检测地址
       el-col(
-        :span="8"
+        :span="12"
       ): el-form-item(
         label="检测地址："
       ): el-input(
@@ -152,16 +159,9 @@
         v-model="modifiedItem.addrs"
         clearable
       )
-      //- 配置状态
-      el-col(
-        :span="8"
-      ): detector-status-selector(
-        :status="modifiedItem.status"
-        @change="changeStatus"
-      )
       //- 超时设置
       el-col(
-        :span="8"
+        :span="7"
       ): el-form-item(
         label="超时："
       ): el-input(
@@ -174,7 +174,7 @@
       ) 秒
       //- 接收者列表
       el-col(
-        :span="8"
+        :span="17"
       ): detector-receiver-selector(
         :receivers="modifiedItem.receivers"
         @change="changeReceivers"

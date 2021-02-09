@@ -100,6 +100,12 @@ func init() {
 		ctrl.updateByID,
 	)
 
+	// 筛选ping配置
+	nsg.GET(
+		"/filter",
+		ctrl.filter,
+	)
+
 	// 查询ping检测结果
 	nsg.GET(
 		"/results",

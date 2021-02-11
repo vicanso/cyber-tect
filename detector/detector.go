@@ -16,7 +16,6 @@ package detector
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"strings"
 	"sync"
@@ -59,7 +58,6 @@ func portCheck(network, addr string, timeout time.Duration) (err error) {
 }
 
 func doAlarm(detail alarmDetail) {
-	fmt.Println(detail)
 	value, _ := taskFailCountMap.LoadOrStore(detail.Task, atomic.NewUint32(0))
 	failCount, ok := value.(*atomic.Uint32)
 	if !ok {

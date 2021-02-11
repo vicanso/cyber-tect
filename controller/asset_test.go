@@ -15,7 +15,6 @@
 package controller
 
 import (
-	"io/ioutil"
 	"net/http/httptest"
 	"testing"
 
@@ -31,27 +30,27 @@ const testHTMLContent = `<!DOCTYPE html>
     <body></body>
 </html>`
 
-func TestStaticFile(t *testing.T) {
-	assert := assert.New(t)
-	sf := &staticFile{
-		box: assetBox,
-	}
-	assert.True(sf.Exists("index.html"))
-	assert.False(sf.Exists("test.html"))
+// func TestStaticFile(t *testing.T) {
+// 	assert := assert.New(t)
+// 	sf := &staticFile{
+// 		box: assetBox,
+// 	}
+// 	assert.True(sf.Exists("index.html"))
+// 	assert.False(sf.Exists("test.html"))
 
-	buf, err := sf.Get("index.html")
-	assert.Nil(err)
-	assert.Equal(testHTMLContent, string(buf))
+// 	buf, err := sf.Get("index.html")
+// 	assert.Nil(err)
+// 	assert.Equal(testHTMLContent, string(buf))
 
-	assert.Nil(sf.Stat("index.html"))
+// 	assert.Nil(sf.Stat("index.html"))
 
-	r, err := sf.NewReader("index.html")
-	assert.Nil(err)
-	assert.NotNil(r)
-	buf, err = ioutil.ReadAll(r)
-	assert.Nil(err)
-	assert.Equal(testHTMLContent, string(buf))
-}
+// 	r, err := sf.NewReader("index.html")
+// 	assert.Nil(err)
+// 	assert.NotNil(r)
+// 	buf, err = ioutil.ReadAll(r)
+// 	assert.Nil(err)
+// 	assert.Equal(testHTMLContent, string(buf))
+// }
 
 func TestSendFile(t *testing.T) {
 	assert := assert.New(t)

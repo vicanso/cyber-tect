@@ -41,7 +41,7 @@ var (
 
 	getUserSession = service.NewUserSession
 	// 加载用户session
-	loadUserSession = elton.Compose(middleware.NewSession(), sessionInterceptorMiddleware)
+	loadUserSession = middleware.NewSession()
 	// 判断用户是否登录
 	shouldBeLogin = checkLoginMiddleware
 	// 判断用户是否未登录
@@ -56,12 +56,6 @@ var (
 		schema.UserRoleSu,
 	})
 
-	// 创建新的并发控制中间件
-	newConcurrentLimit = middleware.NewConcurrentLimit
-	// 创建IP限制中间件
-	newIPLimit = middleware.NewIPLimit
-	// 创建出错限制中间件
-	newErrorLimit = middleware.NewErrorLimit
 	// noCacheIfRequestNoCache 请求参数指定no cache，则设置no-cache
 	noCacheIfRequestNoCache = middleware.NewNoCacheWithCondition("cacheControl", "no-cache")
 
@@ -123,10 +117,7 @@ func newCheckRolesMiddleware(validRoles []string) elton.Handler {
 			return
 		}
 		us := service.NewUserSession(c)
-		userInfo, err := us.GetInfo()
-		if err != nil {
-			return
-		}
+		userInfo := us.GetInfo()
 		valid := util.ContainsAny(validRoles, userInfo.Roles)
 		if valid {
 			return c.Next()
@@ -149,7 +140,7 @@ func newTrackerMiddleware(action string) elton.Handler {
 			tid := util.GetTrackID(c)
 			us := service.NewUserSession(c)
 			if us != nil && us.IsLogin() {
-				account = us.MustGetInfo().Account
+				account = us.GetInfo().Account
 			}
 			ip := c.RealIP()
 			sid := util.GetSessionID(c)
@@ -216,7 +207,7 @@ func sessionInterceptorMiddleware(c *elton.Context) error {
 	us := service.NewUserSession(c)
 	account := ""
 	if us.IsLogin() {
-		account = us.MustGetInfo().Account
+		account = us.GetInfo().Account
 	}
 	// 如果配置该账号允许
 	if account != "" && util.ContainsString(interData.AllowAccounts, account) {

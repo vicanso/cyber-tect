@@ -208,7 +208,7 @@ func (*configurationCtrl) add(c *elton.Context) (err error) {
 		return
 	}
 	us := getUserSession(c)
-	configuration, err := params.save(c.Context(), us.MustGetInfo().Account)
+	configuration, err := params.save(c.Context(), us.GetInfo().Account)
 	if err != nil {
 		return
 	}

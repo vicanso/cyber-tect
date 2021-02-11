@@ -58,6 +58,14 @@ header.header
       )
         i.el-icon-circle-plus
         | 注册
+  //- 应用图标
+  h1(
+    v-if="$props.shrinking"
+  ): router-link(
+    :to='{name: homeRoute}'
+  )
+    i.el-icon-cpu
+    | Cyber Tect
 </template>
 
 <script lang="ts">
@@ -74,6 +82,12 @@ import { getSetting, saveSetting } from "../services/setting";
 
 export default defineComponent({
   name: "MainHeader",
+  props: {
+    shrinking: {
+      type: Boolean,
+      default: false,
+    },
+  },
   setup() {
     const userStore = useUserStore();
     return {
@@ -86,6 +100,7 @@ export default defineComponent({
     return {
       querySize: setting.mainDetectorResultCount || 0,
       profileRoute: getProfileRouteName(),
+      homeRoute: getHomeRouteName(),
       loginRoute: getLoginRouteName(),
       registerRoute: getRegisterRouteName(),
     };
@@ -117,6 +132,14 @@ export default defineComponent({
 
 <style lang="stylus" scoped>
 @import "../common";
+h1
+  font-size: 18px
+  margin-left: 10px
+  width: 200px
+  i
+    margin-right: 5px
+  a
+    color: $dark
 .header
   height: $mainHeaderHeight
   background-color: $white

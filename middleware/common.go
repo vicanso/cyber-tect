@@ -77,9 +77,6 @@ func ValidateCaptcha(magicalCaptcha string) elton.Handler {
 		}
 		valid, err := service.ValidateCaptcha(c.Context(), arr[0], arr[1])
 		if err != nil {
-			if helper.RedisIsNilError(err) {
-				err = hes.New("图形验证码已过期，请刷新", errCommonCategory)
-			}
 			return err
 		}
 		if !valid {

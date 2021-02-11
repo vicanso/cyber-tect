@@ -1,7 +1,5 @@
 # 仅需要添加与default不相同的配置
 # 生产环境配置
-redis:
-  uri: REDIS_URI
 
 postgres:
   uri: POSTGRES_URI

@@ -14,18 +14,8 @@ session:
   key: cybertect
   ttl: 240h
   # 用于加密session cookie 
-  # 需要配置此属性或通过管理后台配置
-  keys:
-  - cuttlefish
-  - secret
+  secret: SECRET
   trackKey: jt
-
-# redis 配置
-redis:
-  # 可以配置为下面的形式，则从env中获取REDIS_URI对应的字符串来当redis连接串
-  # uri: REDIS_URI
-  # uri: redis://:pass@127.0.0.1:6379/?db=0&slow=200ms&maxProcessing=1000
-  uri: redis://127.0.0.1:6379/?db=0&slow=200ms&maxProcessing=1000&prefix=cybertect
 
 # postgres postgres配置
 postgres:

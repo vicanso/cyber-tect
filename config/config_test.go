@@ -48,19 +48,8 @@ func TestSessionConfig(t *testing.T) {
 	assert.Equal(240*time.Hour, sessionConfig.TTL)
 	assert.Equal("cybertect", sessionConfig.Key)
 	assert.Equal("/", sessionConfig.CookiePath)
-	assert.Equal([]string{"cuttlefish", "secret"}, sessionConfig.Keys)
+	assert.NotEmpty(sessionConfig.Secret)
 	assert.Equal("jt", sessionConfig.TrackKey)
-}
-
-func TestRedisConfig(t *testing.T) {
-	assert := assert.New(t)
-
-	redisConfig := GetRedisConfig()
-	assert.Equal("127.0.0.1:6379", redisConfig.Addr)
-	assert.Equal("", redisConfig.Password)
-	assert.Equal(0, redisConfig.DB)
-	assert.Equal(200*time.Millisecond, redisConfig.Slow)
-	assert.Equal(uint32(1000), redisConfig.MaxProcessing)
 }
 
 func TestMailConfig(t *testing.T) {
@@ -69,8 +58,8 @@ func TestMailConfig(t *testing.T) {
 	mailConfig := GetMailConfig()
 	assert.Equal("smtp.office365.com", mailConfig.Host)
 	assert.Equal(587, mailConfig.Port)
-	assert.Equal("tree.xie@outlook.com", mailConfig.User)
-	assert.Equal("EMAIL_PASS", mailConfig.Password)
+	assert.Equal("test@outlook.com", mailConfig.User)
+	assert.Equal("MAIL_PASS", mailConfig.Password)
 }
 
 func TestInfluxdbConfig(t *testing.T) {
@@ -83,7 +72,7 @@ func TestInfluxdbConfig(t *testing.T) {
 	assert.Equal("YXFOYqPAxtF2wxfVMn-M168Y8rbAFhOsMDKCVWaStmEtFTqFX9KtcYDQk5ouwCNJY0iyW1KVE-VhmmAAhnfG5w==", influxdbConfig.Token)
 	assert.Equal(uint(100), influxdbConfig.BatchSize)
 	assert.Equal(10*time.Second, influxdbConfig.FlushInterval)
-	assert.False(influxdbConfig.Disabled)
+	assert.True(influxdbConfig.Disabled)
 }
 
 func TestAlarmConfig(t *testing.T) {

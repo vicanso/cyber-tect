@@ -21,7 +21,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/configuration"
 	"github.com/vicanso/cybertect/ent/schema"
@@ -66,12 +65,6 @@ var configurationRefreshedAt time.Time
 const (
 	sessionInterceptorKey = "sessionInterceptor"
 )
-
-func init() {
-	sessionConfig := config.GetSessionConfig()
-	// session中用于cookie的signed keys
-	sessionSignedKeys.SetKeys(sessionConfig.Keys)
-}
 
 // GetSignedKeys 获取用于cookie加密的key列表
 func GetSignedKeys() elton.SignedKeysGenerator {
@@ -181,14 +174,6 @@ func (srv *ConfigurationSrv) Refresh() (err error) {
 		util.SetMockTime("")
 	} else {
 		util.SetMockTime(mockTimeConfig.Data)
-	}
-
-	// 如果数据库中未配置，则使用默认配置
-	if len(signedKeys) == 0 {
-		sessionConfig := config.GetSessionConfig()
-		sessionSignedKeys.SetKeys(sessionConfig.Keys)
-	} else {
-		sessionSignedKeys.SetKeys(signedKeys)
 	}
 
 	// 更新router configs

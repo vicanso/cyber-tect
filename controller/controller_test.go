@@ -55,7 +55,7 @@ func TestIsLogin(t *testing.T) {
 	assert := assert.New(t)
 	c, us := newContextAndUserSession()
 	assert.False(isLogin(c))
-	err := us.SetInfo(service.UserSessionInfo{
+	err := us.SetInfo(service.UserSession{
 		Account: "trexie",
 	})
 	assert.Nil(err)
@@ -67,7 +67,7 @@ func TestCheckLogin(t *testing.T) {
 	c, us := newContextAndUserSession()
 	err := checkLoginMiddleware(c)
 	assert.Equal("请先登录", err.(*hes.Error).Message)
-	err = us.SetInfo(service.UserSessionInfo{
+	err = us.SetInfo(service.UserSession{
 		Account: "trexie",
 	})
 	assert.Nil(err)
@@ -92,7 +92,7 @@ func TestCheckAnonymous(t *testing.T) {
 	err := checkAnonymousMiddleware(c)
 	assert.Nil(err)
 	assert.True(done)
-	err = us.SetInfo(service.UserSessionInfo{
+	err = us.SetInfo(service.UserSession{
 		Account: "trexie",
 	})
 	assert.Nil(err)
@@ -111,7 +111,7 @@ func TestNewCheckRolesMiddleware(t *testing.T) {
 	assert.Equal("请先登录", err.(*hes.Error).Message)
 
 	// 已登录但无权限
-	err = us.SetInfo(service.UserSessionInfo{
+	err = us.SetInfo(service.UserSession{
 		Account: "trexie",
 	})
 	assert.Nil(err)
@@ -119,7 +119,7 @@ func TestNewCheckRolesMiddleware(t *testing.T) {
 	assert.Equal("禁止使用该功能", err.(*hes.Error).Message)
 
 	// 已登录且权限允许
-	err = us.SetInfo(service.UserSessionInfo{
+	err = us.SetInfo(service.UserSession{
 		Account: "trexie",
 		Roles: []string{
 			schema.UserRoleAdmin,

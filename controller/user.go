@@ -25,7 +25,6 @@ import (
 
 	"github.com/facebook/ent/dialect/sql"
 	"github.com/facebook/ent/dialect/sql/sqljson"
-	"github.com/tidwall/gjson"
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
@@ -50,7 +49,7 @@ type (
 	// userInfoResp 用户信息响应
 	userInfoResp struct {
 		Date string `json:"date,omitempty"`
-		service.UserSessionInfo
+		service.UserSession
 	}
 
 	// userListResp 用户列表响应
@@ -192,8 +191,6 @@ func init() {
 		middleware.WaitFor(time.Second),
 		newTrackerMiddleware(cs.ActionRegister),
 		captchaValidate,
-		// 限制相同IP在60秒之内只能调用5次
-		newIPLimit(5, 60*time.Second, cs.ActionRegister),
 		shouldBeAnonymous,
 		ctrl.register,
 	)
@@ -206,16 +203,6 @@ func init() {
 		newTrackerMiddleware(cs.ActionLogin),
 		captchaValidate,
 		shouldBeAnonymous,
-		// 同一个账号限制3秒只能登录一次（无论成功还是失败）
-		newConcurrentLimit([]string{
-			"account",
-		}, 3*time.Second, cs.ActionLogin),
-		// 限制相同IP在60秒之内只能调用10次
-		newIPLimit(10, 60*time.Second, cs.ActionLogin),
-		// 限制10分钟内，相同的账号只允许出错5次
-		newErrorLimit(5, 10*time.Minute, func(c *elton.Context) string {
-			return gjson.GetBytes(c.RequestBody, "account").String()
-		}),
 		ctrl.login,
 	)
 
@@ -425,14 +412,11 @@ func (params *userLoginListParams) count(ctx context.Context) (count int, err er
 // pickUserInfo 获取用户信息
 func pickUserInfo(c *elton.Context) (resp userInfoResp, err error) {
 	us := getUserSession(c)
-	userInfo, err := us.GetInfo()
-	if err != nil {
-		return
-	}
+	userInfo := us.GetInfo()
 	resp = userInfoResp{
 		Date: now(),
 	}
-	resp.UserSessionInfo = userInfo
+	resp.UserSession = userInfo
 	return
 }
 
@@ -503,7 +487,7 @@ func (*userCtrl) getLoginToken(c *elton.Context) (err error) {
 	if err != nil {
 		return
 	}
-	userInfo := service.UserSessionInfo{
+	userInfo := service.UserSession{
 		Token: util.RandomString(8),
 	}
 	err = us.SetInfo(userInfo)
@@ -558,7 +542,7 @@ func (*userCtrl) me(c *elton.Context) (err error) {
 // detail 详细信息
 func (*userCtrl) detail(c *elton.Context) (err error) {
 	us := getUserSession(c)
-	user, err := getEntClient().User.Get(c.Context(), us.MustGetInfo().ID)
+	user, err := getEntClient().User.Get(c.Context(), us.GetInfo().ID)
 	if err != nil {
 		return
 	}
@@ -601,10 +585,7 @@ func (*userCtrl) login(c *elton.Context) (err error) {
 		return
 	}
 	us := getUserSession(c)
-	userInfo, err := us.GetInfo()
-	if err != nil {
-		return
-	}
+	userInfo := us.GetInfo()
 
 	if userInfo.Token == "" {
 		err = hes.New("登录令牌不能为空", errUserCategory)
@@ -618,7 +599,7 @@ func (*userCtrl) login(c *elton.Context) (err error) {
 	account := u.Account
 
 	// 设置session
-	err = us.SetInfo(service.UserSessionInfo{
+	err = us.SetInfo(service.UserSession{
 		Account: account,
 		ID:      u.ID,
 		Roles:   u.Roles,
@@ -749,7 +730,7 @@ func (ctrl *userCtrl) updateMe(c *elton.Context) (err error) {
 	}
 
 	// 更新用户信息
-	_, err = params.updateOneAccount(c.Context(), us.MustGetInfo().Account)
+	_, err = params.updateOneAccount(c.Context(), us.GetInfo().Account)
 	if err != nil {
 		return
 	}
@@ -809,7 +790,7 @@ func (ctrl userCtrl) addUserAction(c *elton.Context) (err error) {
 	us := getUserSession(c)
 	account := ""
 	if us.IsLogin() {
-		account = us.MustGetInfo().Account
+		account = us.GetInfo().Account
 	}
 
 	count := 0

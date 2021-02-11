@@ -78,7 +78,7 @@ func (*fileCtrl) upload(c *elton.Context) (err error) {
 		Opts: minio.PutObjectOptions{
 			ContentType: contentType,
 			UserTags: map[string]string{
-				"account": us.MustGetInfo().Account,
+				"account": us.GetInfo().Account,
 			},
 		},
 	})

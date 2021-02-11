@@ -13,11 +13,3 @@
 // limitations under the License.
 
 package service
-
-import (
-	"github.com/vicanso/cybertect/cache"
-)
-
-var (
-	redisSrv = cache.GetRedisCache()
-)

@@ -36,11 +36,9 @@ const logCategory = "schedule"
 
 func init() {
 	c := cron.New()
-	_, _ = c.AddFunc("@every 1m", redisPing)
 	_, _ = c.AddFunc("@every 1m", entPing)
 	_, _ = c.AddFunc("@every 1m", influxdbPing)
 	_, _ = c.AddFunc("@every 1m", configRefresh)
-	_, _ = c.AddFunc("@every 1m", redisStats)
 	_, _ = c.AddFunc("@every 1m", entStats)
 	_, _ = c.AddFunc("@every 30s", cpuUsageStats)
 	_, _ = c.AddFunc("@every 1m", performanceStats)
@@ -84,22 +82,9 @@ func doStatsTask(desc string, fn statsTaskFn) {
 	)
 }
 
-func redisPing() {
-	doTask("redis ping", helper.RedisPing)
-}
-
 func configRefresh() {
 	configSrv := new(service.ConfigurationSrv)
 	doTask("config refresh", configSrv.Refresh)
-}
-
-func redisStats() {
-	doStatsTask("redis stats", func() map[string]interface{} {
-		// 统计中除了redis数据库的统计，还有当前实例的统计指标，因此所有实例都会写入统计
-		stats := helper.RedisStats()
-		helper.GetInfluxSrv().Write(cs.MeasurementRedisStats, nil, stats)
-		return stats
-	})
 }
 
 func entPing() {

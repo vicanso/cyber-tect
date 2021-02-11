@@ -36,9 +36,6 @@ func GetTrackID(c *elton.Context) string {
 
 // GetSessionID 获取session id
 func GetSessionID(c *elton.Context) string {
-	cookie, _ := c.Cookie(sessionConfig.Key)
-	if cookie == nil {
-		return ""
-	}
-	return cookie.Value
+	// 使用jwt，因此session不返回
+	return ""
 }

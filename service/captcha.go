@@ -28,6 +28,7 @@ import (
 
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
+	"github.com/vicanso/cybertect/cache"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/hes"
 	"golang.org/x/image/font/gofont/goregular"
@@ -38,6 +39,8 @@ const (
 
 	errCaptchaCategory = "captcha"
 )
+
+var captchaLRUCache = cache.NewLRUCache(1000, 5*time.Minute)
 
 type (
 	// CaptchaInfo 图形验证码
@@ -152,10 +155,7 @@ func GetCaptcha(ctx context.Context, fontColor, bgColor string) (info CaptchaInf
 	}
 	id := util.GenUlid()
 	ttl := 5 * time.Minute
-	err = redisSrv.Set(ctx, captchaKeyPrefix+id, value, ttl+time.Minute)
-	if err != nil {
-		return
-	}
+	captchaLRUCache.Add(captchaKeyPrefix+id, value, ttl+time.Minute)
 	info = CaptchaInfo{
 		ExpiredAt: time.Now().Add(ttl),
 		Data:      buffer.Bytes(),
@@ -168,10 +168,11 @@ func GetCaptcha(ctx context.Context, fontColor, bgColor string) (info CaptchaInf
 
 // ValidateCaptcha 校验图形验证码是否正确
 func ValidateCaptcha(ctx context.Context, id, value string) (valid bool, err error) {
-	data, err := redisSrv.GetAndDel(ctx, captchaKeyPrefix+id)
-	if err != nil {
-		return
+	data, ok := captchaLRUCache.Get(captchaKeyPrefix + id)
+	if !ok {
+		return false, hes.NewWithStatusCode("图形验证码已过期", 400)
 	}
-	valid = string(data) == value
+	str, _ := data.(string)
+	valid = str == value
 	return
 }

@@ -62,7 +62,7 @@ func NewError() elton.Handler {
 		tid := util.GetTrackID(c)
 		us := service.NewUserSession(c)
 		if us != nil && us.IsLogin() {
-			account = us.MustGetInfo().Account
+			account = us.Account
 		}
 		ip := c.RealIP()
 		sid := util.GetSessionID(c)

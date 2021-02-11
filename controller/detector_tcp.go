@@ -254,7 +254,7 @@ func (*detectorTCPCtrl) add(c *elton.Context) (err error) {
 		return
 	}
 	us := getUserSession(c)
-	result, err := params.save(c.Context(), us.MustGetInfo().Account)
+	result, err := params.save(c.Context(), us.GetInfo().Account)
 	if err != nil {
 		return
 	}
@@ -270,7 +270,7 @@ func (*detectorTCPCtrl) list(c *elton.Context) (err error) {
 		return
 	}
 	us := getUserSession(c)
-	params.Owner = us.MustGetInfo().Account
+	params.Owner = us.GetInfo().Account
 	count := -1
 	if params.ShouldCount() {
 		count, err = params.count(c.Context())
@@ -301,7 +301,7 @@ func (*detectorTCPCtrl) updateByID(c *elton.Context) (err error) {
 		return
 	}
 	us := getUserSession(c)
-	params.CurrentUser = us.MustGetInfo().Account
+	params.CurrentUser = us.GetInfo().Account
 	result, err := params.updateByID(c.Context(), id)
 	if err != nil {
 		return

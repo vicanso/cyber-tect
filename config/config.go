@@ -22,7 +22,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -71,25 +70,11 @@ type (
 		// cookie的有效期
 		TTL time.Duration `validate:"required"`
 		// 用于加密cookie的key
-		Keys []string `validate:"required"`
+		Secret string `validate:"required"`
 		// 用于跟踪用户的cookie
 		TrackKey string `validate:"required,ascii"`
 	}
-	// RedisConfig redis配置
-	RedisConfig struct {
-		// 连接地址
-		Addr string `validate:"required,hostname_port"`
-		// 密码
-		Password string
-		// db(0,1,2等)
-		DB int
-		// 慢请求时长
-		Slow time.Duration `validate:"required"`
-		// 最大的正在处理请求量
-		MaxProcessing uint32 `validate:"required"`
-		// key前缀
-		Prefix string
-	}
+
 	// PostgresConfig postgres配置
 	PostgresConfig struct {
 		URI string `validate:"required,uri"`
@@ -207,68 +192,11 @@ func GetSessionConfig() SessionConfig {
 		TTL:        defaultViperX.GetDuration(prefix + "ttl"),
 		Key:        defaultViperX.GetString(prefix + "key"),
 		CookiePath: defaultViperX.GetString(prefix + "path"),
-		Keys:       defaultViperX.GetStringSlice(prefix + "keys"),
+		Secret:     defaultViperX.GetStringFromENVDefault(prefix+"secret", time.Now().String()),
 		TrackKey:   defaultViperX.GetString(prefix + "trackKey"),
 	}
 	mustValidate(&sessConfig)
 	return sessConfig
-}
-
-// GetRedisConfig 获取redis的配置
-func GetRedisConfig() RedisConfig {
-	prefix := "redis."
-	uri := defaultViperX.GetStringFromENV(prefix + "uri")
-	uriInfo, err := url.Parse(uri)
-	if err != nil {
-		panic(err)
-	}
-	// 获取设置的db
-	db := 0
-	query := uriInfo.Query()
-	dbValue := query.Get("db")
-	if dbValue != "" {
-		db, err = strconv.Atoi(dbValue)
-		if err != nil {
-			panic(err)
-		}
-	}
-	// 获取密码
-	password, _ := uriInfo.User.Password()
-
-	// 获取slow设置的时间间隔
-	slowValue := query.Get("slow")
-	slow := 100 * time.Millisecond
-	if slowValue != "" {
-		slow, err = time.ParseDuration(slowValue)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	// 获取最大处理数的配置
-	maxProcessing := 1000
-	maxValue := query.Get("maxProcessing")
-	if maxValue != "" {
-		maxProcessing, err = strconv.Atoi(maxValue)
-		if err != nil {
-			panic(err)
-		}
-	}
-
-	redisConfig := RedisConfig{
-		Addr:          uriInfo.Host,
-		Password:      password,
-		DB:            db,
-		Slow:          slow,
-		MaxProcessing: uint32(maxProcessing),
-	}
-	keyPrefix := query.Get("prefix")
-	if keyPrefix != "" {
-		redisConfig.Prefix = keyPrefix + ":"
-	}
-
-	mustValidate(&redisConfig)
-	return redisConfig
 }
 
 // GetPostgresConfig 获取postgres配置

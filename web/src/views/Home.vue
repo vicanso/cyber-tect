@@ -158,7 +158,6 @@ export default defineComponent({
   },
   beforeMount() {
     const setting = getSetting();
-    console.dir(setting);
     if (setting.mainDetectorResultCount) {
       this.query.limit = setting.mainDetectorResultCount;
       this.querySize = setting.mainDetectorResultCount;

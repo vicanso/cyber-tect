@@ -15,27 +15,24 @@
 package middleware
 
 import (
-	"github.com/vicanso/cybertect/cache"
 	"github.com/vicanso/cybertect/config"
-	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
-	session "github.com/vicanso/elton-session"
+	jwt "github.com/vicanso/elton-jwt"
 )
 
 // NewSession new session middleware
 func NewSession() elton.Handler {
-	store := cache.GetRedisSession()
 	scf := config.GetSessionConfig()
-	return session.NewByCookie(session.CookieConfig{
-		Store:   store,
-		Signed:  true,
-		Expired: scf.TTL,
-		GenID: func() string {
-			return util.GenUlid()
-		},
-		Name:     scf.Key,
-		Path:     scf.CookiePath,
-		MaxAge:   int(scf.TTL.Seconds()),
-		HttpOnly: true,
+	ttlToken := &jwt.TTLToken{
+		TTL: scf.TTL,
+		// 密钥用于加密数据，需保密
+		Secret: []byte(scf.Secret),
+	}
+
+	// 用于初始化创建token使用（此时可能token还没有或者已过期)
+	return jwt.NewJWT(jwt.Config{
+		CookieName:  scf.Key,
+		TTLToken:    ttlToken,
+		Passthrough: true,
 	})
 }

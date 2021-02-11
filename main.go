@@ -125,10 +125,6 @@ func exitForDev(e *elton.Elton) {
 
 // 相关依赖服务的校验，主要是数据库等
 func dependServiceCheck() (err error) {
-	err = helper.RedisPing()
-	if err != nil {
-		return
-	}
 	err = helper.EntPing()
 	if err != nil {
 		return

@@ -8,8 +8,8 @@ require (
 	github.com/facebook/ent v0.5.4
 	github.com/felixge/fgprof v0.9.1
 	github.com/fogleman/gg v1.3.0
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-playground/validator/v10 v10.4.1
-	github.com/go-redis/redis/v8 v8.4.11
 	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/snappy v0.0.2
@@ -26,9 +26,9 @@ require (
 	github.com/vicanso/count-warner v1.1.0
 	github.com/vicanso/elton v1.2.4
 	github.com/vicanso/elton-compress v1.1.0
+	github.com/vicanso/elton-jwt v1.2.0
 	github.com/vicanso/elton-session v1.1.0
 	github.com/vicanso/go-axios v0.2.0
-	github.com/vicanso/go-cache v0.0.3
 	github.com/vicanso/go-performance v0.0.3
 	github.com/vicanso/hes v0.3.4
 	github.com/vicanso/http-trace v1.0.3
@@ -40,6 +40,7 @@ require (
 	go.uber.org/ratelimit v0.1.0
 	go.uber.org/zap v1.16.0
 	golang.org/x/image v0.0.0-20201208152932-35266b937fa6
+	golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )

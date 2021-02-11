@@ -72,22 +72,23 @@ func doAlarm(detail alarmDetail) {
 	if currentCount == newCount {
 		return
 	}
+
+	// 如果非首次失败，而且失败数量不是10的整数位，则忽略（不连续告警）
+	if newCount != 1 && newCount%10 != 0 {
+		return
+	}
 	// 如果状态变化，而且此次是success
 	title := ""
 	message := ""
 	if detail.IsSuccess {
 		title = detail.Name + "(success)"
-	} else if newCount == 1 || newCount%10 == 0 {
+	} else {
 		// 如果是首次失败，或者每10次失败均发送系统失败信息
 		message = strings.Join(detail.Messages, ",")
 		title = detail.Name + "(fail)"
 		if message == "" {
 			message = "检测失败，未知异常"
 		}
-	}
-	// 如果不需要发送消息
-	if title == "" {
-		return
 	}
 	users, err := helper.EntGetClient().User.Query().
 		Where(user.AccountIn(detail.Receivers...)).

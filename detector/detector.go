@@ -16,6 +16,7 @@ package detector
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"strings"
 	"sync"
@@ -58,6 +59,7 @@ func portCheck(network, addr string, timeout time.Duration) (err error) {
 }
 
 func doAlarm(detail alarmDetail) {
+	fmt.Println(detail)
 	value, _ := taskFailCountMap.LoadOrStore(detail.Task, atomic.NewUint32(0))
 	failCount, ok := value.(*atomic.Uint32)
 	if !ok {
@@ -77,13 +79,17 @@ func doAlarm(detail alarmDetail) {
 	message := ""
 	if detail.IsSuccess {
 		title = detail.Name + "(success)"
-	} else if newCount == 1 || newCount%3 == 0 {
+	} else if newCount == 1 || newCount%10 == 0 {
 		// 如果是首次失败，或者每10次失败均发送系统失败信息
 		message = strings.Join(detail.Messages, ",")
 		title = detail.Name + "(fail)"
 		if message == "" {
 			message = "检测失败，未知异常"
 		}
+	}
+	// 如果不需要发送消息
+	if title == "" {
+		return
 	}
 	users, err := helper.EntGetClient().User.Query().
 		Where(user.AccountIn(detail.Receivers...)).

@@ -98,6 +98,7 @@ docker run -d --restart=always \
   -p 7630:7001 \
   -e GO_ENV=production \
   -e POSTGRES_URI=postgresql://vicanso:A123456@127.0.0.1:5432/cybertect \
+  -e SECRET=xxxx \
   -e MAIL_HOST=smtp.office365.com \
   -e MAIL_PORT=587 \
   -e MAIL_USER=tree.xie@outlook.com \
@@ -106,8 +107,9 @@ docker run -d --restart=always \
   vicanso/cybertect
 ```
 
-- `POSTGRES_URI` 数据库连接地址
 - `GO_ENV` 设置为正式环境
+- `POSTGRES_URI` 数据库连接地址
+- `SECRET` jwt的加密串，如果不指定每次启动时动态生成（每次重启程序则登录失效）
 - `MAIL_HOST` 告警发送邮箱域名
 - `MAIL_PORT` SMTP端口
 - `MAIL_USER` 邮箱账号

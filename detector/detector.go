@@ -15,11 +15,13 @@
 package detector
 
 import (
+	"context"
 	"net"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/service"
@@ -83,11 +85,31 @@ func doAlarm(detail alarmDetail) {
 			message = "检测失败，未知异常"
 		}
 	}
+	users, err := helper.EntGetClient().User.Query().
+		Where(user.AccountIn(detail.Receivers...)).
+		Select("email").
+		All(context.Background())
+	if err != nil {
+		log.Default().Error("get receiver email fail",
+			zap.Error(err),
+		)
+		return
+	}
+
+	emails := make([]string, 0)
+	for _, item := range users {
+		if item.Email != "" {
+			emails = append(emails, item.Email)
+		}
+	}
+	if len(emails) == 0 {
+		return
+	}
 
 	log.Default().Info("detect alarm",
 		zap.String("name", title),
 		zap.String("message", message),
 	)
-	service.SendEmail(title, message, detail.Receivers...)
+	service.SendEmail(title, message, emails...)
 
 }

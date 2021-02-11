@@ -94,7 +94,7 @@ el-popover(
       //- 证书域名
       el-table-column(
         label="证书域名"
-        width="150"
+        width="200"
       ): template(
         #default="scope"
       ): ul

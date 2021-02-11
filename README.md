@@ -75,32 +75,43 @@ chore：构建过程或辅助工具的变动
 ### postgres
 
 ```
-docker pull postgres:alpine
+docker pull postgres:13-alpine
 
 docker run -d --restart=always \
-  -v $PWD/cybertect:/var/lib/postgresql/data \
+  -v $PWD/data:/var/lib/postgresql/data \
   -e POSTGRES_PASSWORD=A123456 \
   -p 5432:5432 \
-  --name=cybertect \
-  postgres:alpine
+  --name=cybertect-data \
+  postgres:13-alpine
 
-docker exec -it cybertect sh
+docker exec -it cybertect-data sh
 
 psql -c "CREATE DATABASE cybertect;" -U postgres
 psql -c "CREATE USER vicanso WITH PASSWORD 'A123456';" -U postgres
 psql -c "GRANT ALL PRIVILEGES ON DATABASE cybertect to vicanso;" -U postgres
 ```
 
-## redis
+### 启动程序
 
-```
-docker pull redis:alpine
-
+```bash
 docker run -d --restart=always \
-  -p 6379:6379 \
-  --name=redis \
-  redis:alpine
+  -p 7630:7001 \
+  -e GO_ENV=production \
+  -e POSTGRES_URI=postgresql://vicanso:A123456@127.0.0.1:5432/cybertect \
+  -e MAIL_HOST=smtp.office365.com \
+  -e MAIL_PORT=587 \
+  -e MAIL_USER=tree.xie@outlook.com \
+  -e MAIL_PASS=pass \
+  --name=cybertect \
+  vicanso/cybertect
 ```
+
+- `POSTGRES_URI` 数据库连接地址
+- `GO_ENV` 设置为正式环境
+- `MAIL_HOST` 告警发送邮箱域名
+- `MAIL_PORT` SMTP端口
+- `MAIL_USER` 邮箱账号
+- `MAIL_PASS` 邮箱密码
 
 ## 规范
 

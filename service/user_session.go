@@ -76,8 +76,7 @@ func (us *UserSession) Destroy() error {
 // Refresh 刷新用户session ttl
 func (us *UserSession) Refresh() error {
 	info := us.GetInfo()
-	us.SetInfo(info)
-	return nil
+	return us.SetInfo(info)
 }
 
 // NewUserSession 创建新的用户session对象

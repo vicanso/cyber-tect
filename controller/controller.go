@@ -196,25 +196,3 @@ func getIDFromParams(c *elton.Context) (id int, err error) {
 	}
 	return
 }
-
-// sessionInterceptorMiddleware session的拦截
-func sessionInterceptorMiddleware(c *elton.Context) error {
-	interData, _ := service.GetSessionInterceptorData()
-	// 如果无配置，则直接跳过
-	if interData == nil {
-		return c.Next()
-	}
-	us := service.NewUserSession(c)
-	account := ""
-	if us.IsLogin() {
-		account = us.GetInfo().Account
-	}
-	// 如果配置该账号允许
-	if account != "" && util.ContainsString(interData.AllowAccounts, account) {
-		return c.Next()
-	}
-	// 如果有配置拦截信息，则以出错返回
-	he := hes.New(interData.Message)
-	he.Category = "sessionInterceptorMiddleware"
-	return he
-}

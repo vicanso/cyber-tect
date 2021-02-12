@@ -103,6 +103,7 @@ docker run -d --restart=always \
   -e MAIL_PORT=587 \
   -e MAIL_USER=tree.xie@outlook.com \
   -e MAIL_PASS=pass \
+  -e DETECTOR_INTERVAL=1m \
   --name=cybertect \
   vicanso/cybertect
 ```
@@ -114,6 +115,7 @@ docker run -d --restart=always \
 - `MAIL_PORT` SMTP端口
 - `MAIL_USER` 邮箱账号
 - `MAIL_PASS` 邮箱密码
+- `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
 
 ## 规范
 

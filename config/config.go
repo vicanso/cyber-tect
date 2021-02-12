@@ -124,6 +124,11 @@ type (
 		SecretAccessKey string `validate:"required,min=6"`
 		SSL             bool
 	}
+
+	// DetectorConfig 检测配置
+	DetectorConfig struct {
+		Interval string `validate:"required,xDuration"`
+	}
 )
 
 // mustLoadConfig 加载配置，出错是则抛出panic
@@ -278,4 +283,14 @@ func GetMinioConfig() MinioConfig {
 	}
 	mustValidate(&minioConfig)
 	return minioConfig
+}
+
+// GetDetectorConfig 获取检测配置
+func GetDetectorConfig() DetectorConfig {
+	prefix := "detector."
+	detectorConfig := DetectorConfig{
+		Interval: defaultViperX.GetStringFromENVDefault(prefix+"interval", "1m"),
+	}
+	mustValidate(detectorConfig)
+	return detectorConfig
 }

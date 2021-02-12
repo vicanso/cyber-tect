@@ -15,9 +15,11 @@
 package schedule
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/robfig/cron/v3"
+	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/detector"
 	"github.com/vicanso/cybertect/helper"
@@ -35,6 +37,7 @@ type (
 const logCategory = "schedule"
 
 func init() {
+	detectorConfig := config.GetDetectorConfig()
 	c := cron.New()
 	_, _ = c.AddFunc("@every 1m", entPing)
 	_, _ = c.AddFunc("@every 1m", influxdbPing)
@@ -46,10 +49,11 @@ func init() {
 	_, _ = c.AddFunc("@every 1m", routerConcurrencyStats)
 
 	// 检测任务
-	_, _ = c.AddFunc("@every 1m", doHTTPDetect)
-	_, _ = c.AddFunc("@every 1m", doDNSDetect)
-	_, _ = c.AddFunc("@every 1m", doTCPDetect)
-	_, _ = c.AddFunc("@every 1m", doPingDetect)
+	spec := fmt.Sprintf("@every %s", detectorConfig.Interval)
+	_, _ = c.AddFunc(spec, doHTTPDetect)
+	_, _ = c.AddFunc(spec, doDNSDetect)
+	_, _ = c.AddFunc(spec, doTCPDetect)
+	_, _ = c.AddFunc(spec, doPingDetect)
 	c.Start()
 }
 

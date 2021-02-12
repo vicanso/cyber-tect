@@ -127,7 +127,8 @@ type (
 
 	// DetectorConfig 检测配置
 	DetectorConfig struct {
-		Interval string `validate:"required,xDuration"`
+		Interval    string `validate:"required,xDuration"`
+		Concurrency int    `validate:"required,numeric,min=1,max=20"`
 	}
 )
 
@@ -289,7 +290,8 @@ func GetMinioConfig() MinioConfig {
 func GetDetectorConfig() DetectorConfig {
 	prefix := "detector."
 	detectorConfig := DetectorConfig{
-		Interval: defaultViperX.GetStringFromENVDefault(prefix+"interval", "1m"),
+		Interval:    defaultViperX.GetStringFromENVDefault(prefix+"interval", "1m"),
+		Concurrency: defaultViperX.GetInt(prefix + "concurrency"),
 	}
 	mustValidate(detectorConfig)
 	return detectorConfig

@@ -21,10 +21,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/service"
+	parallel "github.com/vicanso/go-parallel"
+	"github.com/vicanso/hes"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 )
@@ -32,6 +35,8 @@ import (
 const defaultTimeout = 3 * time.Second
 
 var getEntClient = helper.EntGetClient
+
+var detectorConfig = config.GetDetectorConfig()
 
 // 记录失败次数
 var taskFailCountMap = sync.Map{}
@@ -117,4 +122,20 @@ func doAlarm(detail alarmDetail) {
 	)
 	service.SendEmail(title, message, emails...)
 
+}
+
+func convertParallelError(err error, message string) error {
+	if err == nil {
+		return nil
+	}
+	errs := hes.Error{
+		Message: message,
+	}
+	pErr, _ := err.(*parallel.Errors)
+	if pErr != nil {
+		for _, e := range pErr.Errs {
+			errs.Add(e)
+		}
+	}
+	return &errs
 }

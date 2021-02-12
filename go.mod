@@ -29,6 +29,7 @@ require (
 	github.com/vicanso/elton-jwt v1.2.0
 	github.com/vicanso/elton-session v1.1.0
 	github.com/vicanso/go-axios v0.2.0
+	github.com/vicanso/go-parallel v0.0.1
 	github.com/vicanso/go-performance v0.0.3
 	github.com/vicanso/hes v0.3.4
 	github.com/vicanso/http-trace v1.0.3

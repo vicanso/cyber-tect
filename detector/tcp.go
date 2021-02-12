@@ -23,7 +23,7 @@ import (
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/ent/tcpdetector"
-	"github.com/vicanso/hes"
+	"github.com/vicanso/go-parallel"
 )
 
 type (
@@ -102,18 +102,19 @@ func (srv *TCPSrv) Detect() (err error) {
 	if err != nil {
 		return
 	}
-	errs := hes.Error{
-		Message: "tcp detect fail",
-	}
-	for _, item := range result {
-		detectResult, e := srv.detect(item)
-		if e != nil {
-			errs.Add(e)
-		}
+
+	pErr := parallel.Parallel(len(result), detectorConfig.Concurrency, func(index int) error {
+		item := result[index]
+		detectResult, err := srv.detect(item)
 		srv.doAlarm(item.Name, item.Receivers, detectResult)
+		return err
+	})
+	// 如果parallel检测失败，则转换为http error
+	if pErr != nil {
+		err = convertParallelError(pErr, "tcp detect fail")
 	}
-	if errs.IsNotEmpty() {
-		err = &errs
+	if err != nil {
+		return
 	}
 	return
 }

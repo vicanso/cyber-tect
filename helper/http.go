@@ -103,8 +103,10 @@ func newHTTPOnDone(serviceName string) axios.OnDone {
 		}
 		// 输出响应数据，如果响应数据为隐私数据可不输出
 		var data interface{}
+		size := -1
 		if resp != nil {
 			data = resp.UnmarshalData
+			size = len(resp.Data)
 		}
 		log.Default().Info("http request stats",
 			zap.String("service", serviceName),
@@ -114,7 +116,7 @@ func newHTTPOnDone(serviceName string) axios.OnDone {
 			zap.Any("params", conf.Params),
 			zap.Any("query", conf.Query),
 			zap.Any("data", data),
-			zap.Int("size", len(resp.Data)),
+			zap.Int("size", size),
 			zap.Int("status", status),
 			zap.String("addr", addr),
 			zap.Bool("reused", reused),

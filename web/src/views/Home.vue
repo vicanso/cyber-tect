@@ -149,6 +149,7 @@ export default defineComponent({
     return {
       querySize: null,
       query: {
+        ignoreCount: true,
         order: "-updatedAt",
         offset: 0,
         limit: 30 * 3,

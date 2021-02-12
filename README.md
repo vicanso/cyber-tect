@@ -2,75 +2,57 @@
 
 [![Build Status](https://github.com/vicanso/cybertect/workflows/Test/badge.svg)](https://github.com/vicanso/cybertect/actions)
 
-基于`elton`的脚手架，实现了数据校验、行为统计等功能。
+提供常用的HTTP接口、TCP端口、DNS域名解析以及Ping的定时检测告警。
 
-## 特性
+## HTTP检测
 
-### 简单易用的应用配置
+HTTP检测通过指定检测URL，定时调用判断返回的HTTP状态码是否>=200且<400，如果是则认为成功，否则失败（对于https还检测期证书是否差不多过期，如果要过期则认为检测失败），失败时通过email发送告警邮箱。
 
-- 应用配置通过加载default.yml + 当前GO_ENV所对应的yml组合生成，简化配置
-- 支持配置参数的校验，保证应用启动时的参数准确性
-- 支持优先从ENV中获取配置参数，若获取失败再使用yml配置
+- `名称` 检测配置名称
+- `URL` 检测地址，配置检测的http(s)访问地址则可
+- `IP列表` 指定URL中域名对应的解析，如果域名解析的IP为多个，可以配置多个IP地址，以`,`分隔。如果不需要指定（配置的检测地址为IP形式或直接通过DNS解析），则配置为`0.0.0.0`
+- `状态` 是否启用状态
+- `超时` 设置超时时长，单位为秒
+- `接收者` 选择接收告警邮件的用户
+- `描述` 检测配置描述
 
+![](./images/http-setting.jpg)
 
+完成配置之后，系统会定时执行检测配置，相关检测结果可在列表中查询并可查询每次检测的详情，包括HTTP请求的完成链路时间（tcp连接、tls连接等）。
 
-### 简单易用的缓存模块
+![](./images/http-detect-result.jpg)
 
-缓存模块支持三类缓存：LRU+TTL的高速缓存，redis+ttl的共有缓存以及redis+lru+ttl的多级缓存
+![](./images/http-detect-result-detail.jpg)
 
-```go
-// redis缓存中简化的struct读取与保存
-err := cache.GetRedisCache().SetStruct(context.Background(), "key", &map[string]string{
-  "name": "my name",
-}, time.Minute)
-data := make(map[string]string)
-err = cache.GetRedisCache().GetStruct(context.Background(), "key", &data)
-```
-### 详尽的性能指标
+## DNS检测
 
-性能指标中包括以下的相关指标：
+DNS检测域名在指定DNS服务器的解析记录是否与期望的IP列表一致，主要用于检测是否有DNS劫持，支持IPV4与IPV6的DNS解析。
 
-- `goMaxProcs` 程序使用的最大CPU数量
-- `threadCount` 程序当前线程数
-- `memSys` 系统申请内存
-- `memHeapSys` 系统申请heap
-- `memHeapInuse` 使用中的heap
-- `memFrees` heap对象释放的数量
-- `routineCount` goroutine的数量
-- `cpuUsage` CPU使用率
-- `lastGC` 上一次GC的时间
-- `numGC` GC的次数
-- `recentPause` 最近一次GC暂停的时长
-- `pauseTotal` GC暂停的总时长
-- `connProcessing` 当前处理中的连接数（http.Server)
-- `connProcessedCount` 处理过的连接总数
-- `connAlive` 当前活跃的连接数
-- `connCreatedCount` 被创建的连接总数
-- `concurrency` 请求并发数
-- `requestProcessedTotal` 处理过的请求总数
+![](./images/dns-setting.jpg)
 
-### Redis
+![](./images/dns-detect-result.jpg)
 
-redis模块记录了当前并发请求以及pipeline请求量，可以设置最大并发请求量，提供简单的熔断处理。
+![](./images/dns-detect-result-detail.jpg)
 
+## TCP
 
-## commit
+TCP检测指定的一堆地址的端口监听状态，如redis集群等，主要用于简单的服务是否可用的检测。
 
-feat：新功能（feature）
+![](./images/tcp-setting.jpg)
 
-fix：修补bug
+![](./images/tcp-detect-result.jpg)
 
-docs：文档（documentation）
+![](./images/tcp-detect-result-detail.jpg)
 
-style： 格式（不影响代码运行的变动）
+## Ping
 
-refactor：重构（即不是新增功能，也不是修改bug的代码变动）
+Ping检测用于检测网络的连通性，主要用于测试简单的网络连通、机器是否在线等最基本的检测。
 
-test：增加测试
+![](./images/ping-setting.jpg)
 
-chore：构建过程或辅助工具的变动
+![](./images/ping-detect-result.jpg)
 
-## 启动数据库
+![](./images/ping-detect-result-detail.jpg)
 
 ### postgres
 

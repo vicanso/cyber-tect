@@ -366,8 +366,8 @@ export default defineComponent({
         receivers: item.receivers,
         description: item.description,
         host: item.host,
-        ips: (item.ips || []).join(","),
-        servers: (item.servers || []).join(","),
+        ips: (item.ips || []).map(item => item.trim()).join(","),
+        servers: (item.servers || []).map(item => item.trim()).join(","),
       };
     },
 

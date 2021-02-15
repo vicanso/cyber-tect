@@ -70,7 +70,10 @@ func doAlarm(detail alarmDetail) {
 	}
 	currentCount := failCount.Load()
 	newCount := uint32(0)
-	if !detail.IsSuccess {
+	// 成功则失败次数重置为0
+	if detail.IsSuccess {
+		failCount.Store(0)
+	} else {
 		newCount = failCount.Inc()
 	}
 	// 状态未变化

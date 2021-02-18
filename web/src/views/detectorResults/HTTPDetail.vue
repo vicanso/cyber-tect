@@ -64,6 +64,7 @@ el-popover(
       ): template(
         #default="scope"
       ): HTTPTimeline(
+        :total="scope.row.duration"
         :dns="scope.row.dnsLookup"
         :tcp="scope.row.tcpConnection"
         :tls="scope.row.tlsHandshake"

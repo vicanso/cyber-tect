@@ -81,8 +81,9 @@ func doAlarm(detail alarmDetail) {
 		return
 	}
 
-	// 如果非首次失败，而且失败数量不是10的整数位，则忽略（不连续告警）
-	if newCount != 1 && newCount%10 != 0 {
+	// 如果非前几次失败，而且失败数量不是10的整数位，则忽略（不连续告警）
+	// 由于使用邮件告警，容易忽略，因此前几次均发送
+	if newCount > 3 && newCount%10 != 0 {
 		return
 	}
 	// 如果状态变化，而且此次是success
@@ -91,7 +92,6 @@ func doAlarm(detail alarmDetail) {
 	if detail.IsSuccess {
 		title = detail.Name + "(success)"
 	} else {
-		// 如果是首次失败，或者每10次失败均发送系统失败信息
 		message = strings.Join(detail.Messages, ",")
 		title = detail.Name + "(fail)"
 		if message == "" {

@@ -99,7 +99,8 @@ func (srv *HTTPSrv) check(url, ip string, timeout time.Duration) (ht *HT.HTTPTra
 	}
 	defer resp.Body.Close()
 	buf, _ := ioutil.ReadAll(resp.Body)
-	if resp.StatusCode >= http.StatusBadRequest {
+	// < 200 或者 >= 400 均认为失败
+	if resp.StatusCode >= http.StatusBadRequest || resp.StatusCode < http.StatusOK {
 		err = &hes.Error{
 			StatusCode: resp.StatusCode,
 			Message:    util.CutRune(string(buf), 500),

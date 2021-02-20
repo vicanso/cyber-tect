@@ -1,4 +1,4 @@
-# cybertect
+# Cyber Tect
 
 [![Build Status](https://github.com/vicanso/cyber-tect/workflows/Test/badge.svg)](https://github.com/vicanso/cyber-tect/actions)
 

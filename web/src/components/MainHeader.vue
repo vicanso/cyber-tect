@@ -27,6 +27,13 @@ header.header
             v-model="querySize"
             type="number"
           )
+          el-form-item(
+            label="定时刷新："
+          ): el-input(
+            placeholder="请输入定时刷新间隔，单位秒"
+            v-model="refreshInterval"
+            type="number"
+          )
           el-button.btn(
             type="primary"
             @click="doSaveSetting"
@@ -99,6 +106,7 @@ export default defineComponent({
     const setting = getSetting();
     return {
       querySize: setting.mainDetectorResultCount || 0,
+      refreshInterval: setting.mainDetectorRefreshInterval || 0,
       profileRoute: getProfileRouteName(),
       homeRoute: getHomeRouteName(),
       loginRoute: getLoginRouteName(),
@@ -119,6 +127,7 @@ export default defineComponent({
     async doSaveSetting() {
       const setting = getSetting();
       setting.mainDetectorResultCount = Number(this.querySize);
+      setting.mainDetectorRefreshInterval = Number(this.refreshInterval);
       try {
         await saveSetting(setting);
         this.$message.info("已成功更新，请刷新首页");

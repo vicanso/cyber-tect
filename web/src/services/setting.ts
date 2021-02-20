@@ -9,11 +9,14 @@ interface UserSetting {
   mainNavShrinking: boolean;
   // mainDetectorResultCount 首页展示的检测结果数
   mainDetectorResultCount: number;
+  // mainDetectorRefreshInterval 首页展示定时刷新间隔
+  mainDetectorRefreshInterval: number;
 }
 
 let currentUserSetting: UserSetting = {
   mainNavShrinking: false,
   mainDetectorResultCount: 100,
+  mainDetectorRefreshInterval: 0,
 };
 
 export async function loadSetting(): void {

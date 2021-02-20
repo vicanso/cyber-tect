@@ -164,6 +164,15 @@ export default defineComponent({
       this.querySize = setting.mainDetectorResultCount;
     }
     this.fetch();
+    if (setting.mainDetectorRefreshInterval) {
+      this.timer = setInterval(
+        () => this.fetch(),
+        setting.mainDetectorRefreshInterval * 1000
+      );
+    }
+  },
+  beforeUnmount() {
+    clearInterval(this.timer);
   },
   methods: {
     fetch() {

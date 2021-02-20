@@ -1,6 +1,6 @@
 # cybertect
 
-[![Build Status](https://github.com/vicanso/cybertect/workflows/Test/badge.svg)](https://github.com/vicanso/cybertect/actions)
+[![Build Status](https://github.com/vicanso/cyber-tect/workflows/Test/badge.svg)](https://github.com/vicanso/cyber-tect/actions)
 
 提供常用的HTTP接口、TCP端口、DNS域名解析以及Ping的定时检测告警。
 
@@ -54,6 +54,18 @@ Ping检测用于检测网络的连通性，主要用于测试简单的网络连�
 
 ![](./images/ping-detect-result-detail.jpg)
 
+## 个人信息设置
+
+告警信息使用Email发送，因此需要设置个人邮箱后才可接收到告警信息。
+
+![](./images/profile.jpg)
+
+## 首页设置
+
+首页展示最近的检测结果，可配置展示的数量及定时刷新。
+
+![](./images/main-setting.jpg)
+
 ### postgres
 
 ```
@@ -99,6 +111,3 @@ docker run -d --restart=always \
 - `MAIL_PASS` 邮箱密码
 - `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
 
-## 规范
-
-- 所有自定义的error都必须为hes.Error

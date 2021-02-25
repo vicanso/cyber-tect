@@ -45,7 +45,7 @@ mail:
 # 告警接收邮件列表
 alarm:
   receivers:
-  - tree.xie@outlook.com
+  # - tree.xie@outlook.com
 
 # 定位相关配置
 location:

@@ -108,7 +108,7 @@ type (
 	// AlarmConfig alarm配置
 	AlarmConfig struct {
 		// 接收人列表
-		Receivers []string `validate:"required"`
+		Receivers []string
 	}
 	// LocationConfig 定位配置
 	LocationConfig struct {

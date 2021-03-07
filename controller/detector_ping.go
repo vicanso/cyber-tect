@@ -209,6 +209,10 @@ func (params *detectorListPingResultParams) where(query *ent.PingDetectorResultQ
 	if ms > 0 {
 		query.Where(pingdetectorresult.MaxDurationGTE(ms))
 	}
+	createdAtRange := params.GetCreatedAtGT()
+	if !createdAtRange.IsZero() {
+		query.Where(pingdetectorresult.CreatedAtGTE(createdAtRange))
+	}
 }
 
 // queryAll query all ping result

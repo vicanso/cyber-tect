@@ -86,27 +86,6 @@
           v-if="!pings.processing"
           :results="pings.items"
         )
-    //- el-col.graph(
-    //-   :span="12"
-    //- ): el-card
-    //-   template(
-    //-     #header
-    //-   )
-    //-     span 调整拉取展示数量
-    //-   el-form(
-    //-     ref="form"
-    //-   )
-    //-     el-form-item(
-    //-       label="展示数量："
-    //-     ): el-input(
-    //-       placeholder="请输入每个分类展示的检测数量"
-    //-       v-model="querySize"
-    //-       type="number"
-    //-     )
-    //-     el-button.refresh(
-    //-       type="primary"
-    //-       @click="refresh"
-    //-     ) 刷新
 </template>
 
 <script lang="ts">
@@ -149,6 +128,8 @@ export default defineComponent({
     return {
       querySize: null,
       query: {
+        // 所有结果均返回
+        result: "",
         ignoreCount: true,
         order: "-updatedAt",
         offset: 0,
@@ -163,6 +144,11 @@ export default defineComponent({
       this.query.limit = setting.mainDetectorResultCount;
       this.querySize = setting.mainDetectorResultCount;
     }
+    if (setting.mainDetectorOnlyFailure) {
+      // 只返回失败结果
+      this.query.result = "2"; 
+    }
+    this.query.timeRange = setting.mainDetectorTimeRange;
     this.fetch();
     if (setting.mainDetectorRefreshInterval) {
       this.timer = setInterval(

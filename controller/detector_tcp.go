@@ -208,6 +208,10 @@ func (params *detectorListTCPResultParams) where(query *ent.TCPDetectorResultQue
 	if ms > 0 {
 		query.Where(tcpdetectorresult.MaxDurationGTE(ms))
 	}
+	createdAtRange := params.GetCreatedAtGT()
+	if !createdAtRange.IsZero() {
+		query.Where(tcpdetectorresult.CreatedAtGTE(createdAtRange))
+	}
 }
 
 // query query all tcp result

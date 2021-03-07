@@ -215,6 +215,11 @@ func (params *detectorListHTTPResultParams) where(query *ent.HTTPDetectorResultQ
 	if ms > 0 {
 		query.Where(httpdetectorresult.MaxDurationGTE(ms))
 	}
+	createdAtRange := params.GetCreatedAtGT()
+	if !createdAtRange.IsZero() {
+		query.Where(httpdetectorresult.CreatedAtGTE(createdAtRange))
+	}
+
 }
 
 // queryAll query all http result

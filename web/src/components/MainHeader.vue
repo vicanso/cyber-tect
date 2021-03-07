@@ -34,6 +34,17 @@ header.header
             v-model="refreshInterval"
             type="number"
           )
+          el-form-item(
+            label="结果筛选："
+          ): el-checkbox(
+            v-model="onlyFailure"
+          ) 仅展示失败
+          el-form-item(
+            label="查询区间："
+          ): el-input(
+            placeholder="仅支持使用单位h,如2h(最近2小时)"
+            v-model="timeRange"
+          )
           el-button.btn(
             type="primary"
             @click="doSaveSetting"
@@ -107,6 +118,8 @@ export default defineComponent({
     return {
       querySize: setting.mainDetectorResultCount || 0,
       refreshInterval: setting.mainDetectorRefreshInterval || 0,
+      onlyFailure: setting.mainDetectorOnlyFailure || false,
+      timeRange: setting.mainDetectorTimeRange || "",
       profileRoute: getProfileRouteName(),
       homeRoute: getHomeRouteName(),
       loginRoute: getLoginRouteName(),
@@ -128,6 +141,8 @@ export default defineComponent({
       const setting = getSetting();
       setting.mainDetectorResultCount = Number(this.querySize);
       setting.mainDetectorRefreshInterval = Number(this.refreshInterval);
+      setting.mainDetectorOnlyFailure = Boolean(this.onlyFailure);
+      setting.mainDetectorTimeRange = this.timeRange;
       try {
         await saveSetting(setting);
         this.$message.info("已成功更新，请刷新首页");

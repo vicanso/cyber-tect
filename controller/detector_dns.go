@@ -219,6 +219,10 @@ func (params *detectorListDNSResultParams) where(query *ent.DNSDetectorResultQue
 	if ms > 0 {
 		query.Where(dnsdetectorresult.MaxDurationGTE(ms))
 	}
+	createdAtRange := params.GetCreatedAtGT()
+	if !createdAtRange.IsZero() {
+		query.Where(dnsdetectorresult.CreatedAtGTE(createdAtRange))
+	}
 }
 
 // queryAll query all dns result

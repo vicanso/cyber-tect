@@ -11,12 +11,18 @@ interface UserSetting {
   mainDetectorResultCount: number;
   // mainDetectorRefreshInterval 首页展示定时刷新间隔
   mainDetectorRefreshInterval: number;
+  // mainDetectorOnlyFailure 首页仅展示失败记录
+  mainDetectorOnlyFailure: boolean;
+  // mainDetectorTimeRange 首页查询的时间区间
+  mainDetectorTimeRange: string;
 }
 
 let currentUserSetting: UserSetting = {
   mainNavShrinking: false,
   mainDetectorResultCount: 100,
   mainDetectorRefreshInterval: 0,
+  mainDetectorOnlyFailure: false,
+  mainDetectorTimeRange: "",
 };
 
 export async function loadSetting(): void {

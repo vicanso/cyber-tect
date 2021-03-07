@@ -51,9 +51,10 @@ type (
 	detectorListResultParams struct {
 		listParams
 
-		Task     string `json:"task,omitempty" validate:"omitempty,xDetectorTaskID"`
-		Result   string `json:"result,omitempty" validate:"omitempty,xDetectorResult"`
-		Duration string `json:"duration,omitempty" validate:"omitempty,xDuration"`
+		Task      string `json:"task,omitempty" validate:"omitempty,xDetectorTaskID"`
+		Result    string `json:"result,omitempty" validate:"omitempty,xDetectorResult"`
+		Duration  string `json:"duration,omitempty" validate:"omitempty,xDuration"`
+		TimeRange string `json:"timeRange,omitempty" validate:"omitempty,xDuration"`
 	}
 )
 
@@ -102,6 +103,15 @@ func (params *detectorListResultParams) GetDurationMillSecond() int {
 	}
 	d, _ := time.ParseDuration(params.Duration)
 	return int(d.Milliseconds())
+}
+
+// GetCreatedAtGT 获取结束时间，查询的记录必须大于等于此时间
+func (params *detectorListResultParams) GetCreatedAtGT() time.Time {
+	if params.TimeRange == "" {
+		return time.Time{}
+	}
+	d, _ := time.ParseDuration(params.TimeRange)
+	return time.Now().Add(-d)
 }
 
 // listReceiver 获取接收者列表

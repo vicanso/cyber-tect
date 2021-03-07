@@ -76,7 +76,7 @@ func init() {
 		closeOnce.Do(func() {
 			// 关闭influxdb，flush统计数据
 			helper.GetInfluxSrv().Close()
-			helper.EntGetClient().Close()
+			_ = helper.EntGetClient().Close()
 		})
 	}
 }

@@ -146,7 +146,7 @@ export default defineComponent({
     }
     if (setting.mainDetectorOnlyFailure) {
       // 只返回失败结果
-      this.query.result = "2"; 
+      this.query.result = "2";
     }
     this.query.timeRange = setting.mainDetectorTimeRange;
     this.fetch();

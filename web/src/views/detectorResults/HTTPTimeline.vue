@@ -71,10 +71,16 @@ export default defineComponent({
         return;
       }
       const widthPercent = (100 * value) / duration;
+      let width = `${widthPercent}`;
+      const i = width.indexOf(".");
+      if (i >= 1) {
+        // 直接截断（避免width超过100%）
+        width = width.substring(0, i + 3);
+      }
       percent += widthPercent;
       blocks.push({
         title: `${names[index]}: ${value}ms`,
-        width: `${widthPercent}%`,
+        width: `${width}%`,
         backgroundColor: colors[index],
       });
     });

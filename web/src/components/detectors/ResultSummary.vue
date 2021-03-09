@@ -20,8 +20,6 @@
 import { defineComponent } from "vue";
 import { formatDate } from "../../helpers/util";
 
-// 图示方块宽度
-const boxWidth = 20;
 class Color {
   r: number;
   g: number;
@@ -52,25 +50,27 @@ export default defineComponent({
     },
     results: {
       type: Array,
-      default: [],
+      default: () => [],
     },
   },
   data() {
     const items = [];
-    this.$props.results.forEach((item: any) => {
-      if (item.result === resultFail) {
-        item.color = defaultFailColor.toString();
-      } else {
-        if (item.maxDuration >= 3000) {
-          item.color = defaultSuccessSlowerColor.toString();
-        } else if (item.maxDuration >= 1000) {
-          item.color = defaultSuccessSlowColor.toString();
+    this.$props.results.forEach(
+      (item: { result: number; color: string; maxDuration: number }) => {
+        if (item.result === resultFail) {
+          item.color = defaultFailColor.toString();
         } else {
-          item.color = defaultSuccessColor.toString();
+          if (item.maxDuration >= 3000) {
+            item.color = defaultSuccessSlowerColor.toString();
+          } else if (item.maxDuration >= 1000) {
+            item.color = defaultSuccessSlowColor.toString();
+          } else {
+            item.color = defaultSuccessColor.toString();
+          }
         }
+        items.push(item);
       }
-      items.push(item);
-    });
+    );
     return {
       items,
     };

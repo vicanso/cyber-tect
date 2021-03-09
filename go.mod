@@ -9,6 +9,7 @@ require (
 	github.com/felixge/fgprof v0.9.1
 	github.com/fogleman/gg v1.3.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/go-ping/ping v0.0.0-20210216210419-25d1413fb7bb
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/gobuffalo/packr/v2 v2.8.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0

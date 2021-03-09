@@ -16,11 +16,12 @@ package detector
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"net"
 	"strings"
 	"time"
 
+	"github.com/go-ping/ping"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/pingdetector"
 	"github.com/vicanso/cybertect/ent/schema"
@@ -32,15 +33,25 @@ type (
 )
 
 // check ping check
-func (srv *PingSrv) check(ip string, timeout time.Duration) error {
-
-	network := "ip4:icmp"
-	addr := net.ParseIP(ip)
-	// 如果不是ipv4
-	if addr.To4() == nil {
-		network = "ip6:icmp"
+func (srv *PingSrv) check(ip string, timeout time.Duration) (err error) {
+	pinger, err := ping.NewPinger(ip)
+	if err != nil {
+		return
 	}
-	return portCheck(network, ip, timeout)
+	pinger.SetPrivileged(true)
+	pinger.Count = 3
+	pinger.Timeout = timeout
+	err = pinger.Run()
+	if err != nil {
+		return
+	}
+	loss := int(pinger.Statistics().PacketLoss)
+	if loss > 50 {
+		msg := fmt.Sprintf("Too many packets are lost, loss:%d%%", loss)
+		err = errors.New(msg)
+		return
+	}
+	return
 }
 
 // detect ping detect

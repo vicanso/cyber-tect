@@ -41,6 +41,7 @@ func (srv *PingSrv) check(ip string, timeout time.Duration) (err error) {
 	pinger.SetPrivileged(true)
 	pinger.Count = 3
 	pinger.Timeout = timeout
+	pinger.Interval = 100 * time.Millisecond
 	err = pinger.Run()
 	if err != nil {
 		return

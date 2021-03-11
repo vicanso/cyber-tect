@@ -70,7 +70,8 @@ export default defineComponent({
       if (!value) {
         return;
       }
-      const widthPercent = (100 * value) / duration;
+      // 设置最大为99%，避免过小的百分比导致换行
+      const widthPercent = (99 * value) / duration;
       let width = `${widthPercent}`;
       const i = width.indexOf(".");
       if (i >= 1) {

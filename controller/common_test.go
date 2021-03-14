@@ -50,7 +50,7 @@ func TestCommonCtrl(t *testing.T) {
 		assert.Nil(err)
 		info, ok := c.Body.(*applicationInfoResp)
 		assert.True(ok)
-		assert.True(strings.HasPrefix(info.GO, "go1.15"))
+		assert.True(strings.HasPrefix(info.GO, "go1.16"))
 		assert.Equal("public, max-age=60", c.Header().Get(elton.HeaderCacheControl))
 	})
 

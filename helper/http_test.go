@@ -81,7 +81,7 @@ func TestOnError(t *testing.T) {
 	})
 	done()
 	he := hes.Wrap(err)
-	assert.Equal(`{"statusCode":400,"category":"test","message":"error message","extra":{"requestCURL":"curl -XGET 'https://test.com'","requestRoute":"/","requestService":"test"}}`, string(he.ToJSON()))
+	assert.Equal(`{"statusCode":400,"category":"test","message":"error message","extra":{"requestCURL":"curl -XGET 'https://test.com/'","requestRoute":"/","requestService":"test"}}`, string(he.ToJSON()))
 	assert.Equal("/", resp.Config.Route)
 
 	data = []byte("abc")
@@ -94,7 +94,7 @@ func TestOnError(t *testing.T) {
 	})
 	done()
 	he = hes.Wrap(err)
-	assert.Equal(`{"statusCode":400,"category":"test","message":"abc","extra":{"requestCURL":"curl -XGET 'https://test.com'","requestRoute":"/","requestService":"test"}}`, string(he.ToJSON()))
+	assert.Equal(`{"statusCode":400,"category":"test","message":"abc","extra":{"requestCURL":"curl -XGET 'https://test.com/'","requestRoute":"/","requestService":"test"}}`, string(he.ToJSON()))
 	assert.Equal("/", resp.Config.Route)
 }
 

@@ -15,6 +15,9 @@
 package middleware
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/elton"
 	jwt "github.com/vicanso/elton-jwt"
@@ -31,7 +34,11 @@ func NewSession() elton.Handler {
 
 	// 用于初始化创建token使用（此时可能token还没有或者已过期)
 	return jwt.NewJWT(jwt.Config{
-		CookieName:  scf.Key,
+		Cookie: http.Cookie{
+			Path:   "/",
+			Name:   scf.Key,
+			MaxAge: int(scf.TTL) / int(time.Second),
+		},
 		TTLToken:    ttlToken,
 		Passthrough: true,
 	})

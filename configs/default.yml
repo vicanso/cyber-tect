@@ -12,7 +12,8 @@ basic:
 session:
   path: /
   key: cybertect
-  ttl: 240h
+  # 5天
+  ttl: 120h
   # 用于加密session cookie 
   secret: SECRET
   trackKey: jt

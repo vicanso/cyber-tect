@@ -45,7 +45,7 @@ func TestSessionConfig(t *testing.T) {
 	assert := assert.New(t)
 
 	sessionConfig := GetSessionConfig()
-	assert.Equal(240*time.Hour, sessionConfig.TTL)
+	assert.Equal(120*time.Hour, sessionConfig.TTL)
 	assert.Equal("cybertect", sessionConfig.Key)
 	assert.Equal("/", sessionConfig.CookiePath)
 	assert.NotEmpty(sessionConfig.Secret)

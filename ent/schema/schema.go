@@ -17,9 +17,10 @@ package schema
 import (
 	"time"
 
-	"github.com/facebook/ent"
-	"github.com/facebook/ent/schema/field"
-	"github.com/facebook/ent/schema/mixin"
+	"entgo.io/ent"
+	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
+	"entgo.io/ent/schema/mixin"
 )
 
 type Status int8
@@ -100,6 +101,14 @@ func (TimeMixin) Fields() []ent.Field {
 			Immutable().
 			UpdateDefault(time.Now).
 			Comment("更新时间，更新记录时由程序自动生成"),
+	}
+}
+
+// Indexes of the DetectorResultMixin
+func (TimeMixin) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("created_at"),
+		index.Fields("updated_at"),
 	}
 }
 

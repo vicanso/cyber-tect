@@ -27,7 +27,6 @@ const (
 	FieldAddrs = "addrs"
 	// FieldResults holds the string denoting the results field in the database.
 	FieldResults = "results"
-
 	// Table holds the table name of the tcpdetectorresult in the database.
 	Table = "tcp_detector_results"
 )

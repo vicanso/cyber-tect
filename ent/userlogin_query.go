@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebook/ent/dialect/sql/sqlgraph"
-	"github.com/facebook/ent/schema/field"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/schema/field"
 	"github.com/vicanso/cybertect/ent/predicate"
 	"github.com/vicanso/cybertect/ent/userlogin"
 )
@@ -261,7 +261,7 @@ func (ulq *UserLoginQuery) GroupBy(field string, fields ...string) *UserLoginGro
 		if err := ulq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		return ulq.sqlQuery(), nil
+		return ulq.sqlQuery(ctx), nil
 	}
 	return group
 }
@@ -334,7 +334,7 @@ func (ulq *UserLoginQuery) sqlCount(ctx context.Context) (int, error) {
 func (ulq *UserLoginQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := ulq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }
@@ -384,7 +384,7 @@ func (ulq *UserLoginQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (ulq *UserLoginQuery) sqlQuery() *sql.Selector {
+func (ulq *UserLoginQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(ulq.driver.Dialect())
 	t1 := builder.Table(userlogin.Table)
 	selector := builder.Select(t1.Columns(userlogin.Columns...)...).From(t1)
@@ -679,7 +679,7 @@ func (uls *UserLoginSelect) Scan(ctx context.Context, v interface{}) error {
 	if err := uls.prepareQuery(ctx); err != nil {
 		return err
 	}
-	uls.sql = uls.UserLoginQuery.sqlQuery()
+	uls.sql = uls.UserLoginQuery.sqlQuery(ctx)
 	return uls.sqlScan(ctx, v)
 }
 

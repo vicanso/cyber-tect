@@ -22,7 +22,7 @@ import (
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/ent/userlogin"
 
-	"github.com/facebook/ent"
+	"entgo.io/ent"
 )
 
 const (

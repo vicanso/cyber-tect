@@ -31,7 +31,6 @@ const (
 	FieldGroups = "groups"
 	// FieldEmail holds the string denoting the email field in the database.
 	FieldEmail = "email"
-
 	// Table holds the table name of the user in the database.
 	Table = "users"
 )

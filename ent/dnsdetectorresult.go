@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebook/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/dnsdetectorresult"
 	"github.com/vicanso/cybertect/ent/schema"
 )
@@ -19,20 +19,28 @@ type DNSDetectorResult struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
+	// 创建时间，添加记录时由程序自动生成
 	CreatedAt time.Time `json:"createdAt,omitempty" sql:"created_at"`
 	// UpdatedAt holds the value of the "updated_at" field.
+	// 更新时间，更新记录时由程序自动生成
 	UpdatedAt time.Time `json:"updatedAt,omitempty" sql:"updated_at"`
 	// Task holds the value of the "task" field.
+	// 任务ID
 	Task int `json:"task,omitempty"`
 	// Result holds the value of the "result" field.
+	// 检测结果
 	Result int8 `json:"result,omitempty"`
 	// MaxDuration holds the value of the "maxDuration" field.
+	// 最长时长
 	MaxDuration int `json:"maxDuration,omitempty" sql:"max_duration"`
 	// Messages holds the value of the "messages" field.
+	// 出错信息汇总
 	Messages []string `json:"messages,omitempty"`
 	// Host holds the value of the "host" field.
+	// 检测Host
 	Host string `json:"host,omitempty"`
 	// Results holds the value of the "results" field.
+	// 检测结果列表
 	Results schema.DNSDetectorSubResults `json:"results,omitempty"`
 }
 
@@ -106,7 +114,7 @@ func (ddr *DNSDetectorResult) assignValues(columns []string, values []interface{
 				return fmt.Errorf("unexpected type %T for field messages", values[i])
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &ddr.Messages); err != nil {
-					return fmt.Errorf("unmarshal field messages: %v", err)
+					return fmt.Errorf("unmarshal field messages: %w", err)
 				}
 			}
 		case dnsdetectorresult.FieldHost:
@@ -121,7 +129,7 @@ func (ddr *DNSDetectorResult) assignValues(columns []string, values []interface{
 				return fmt.Errorf("unexpected type %T for field results", values[i])
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &ddr.Results); err != nil {
-					return fmt.Errorf("unmarshal field results: %v", err)
+					return fmt.Errorf("unmarshal field results: %w", err)
 				}
 			}
 		}

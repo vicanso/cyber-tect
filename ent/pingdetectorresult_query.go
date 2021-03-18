@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebook/ent/dialect/sql/sqlgraph"
-	"github.com/facebook/ent/schema/field"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/schema/field"
 	"github.com/vicanso/cybertect/ent/pingdetectorresult"
 	"github.com/vicanso/cybertect/ent/predicate"
 )
@@ -261,7 +261,7 @@ func (pdrq *PingDetectorResultQuery) GroupBy(field string, fields ...string) *Pi
 		if err := pdrq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		return pdrq.sqlQuery(), nil
+		return pdrq.sqlQuery(ctx), nil
 	}
 	return group
 }
@@ -334,7 +334,7 @@ func (pdrq *PingDetectorResultQuery) sqlCount(ctx context.Context) (int, error) 
 func (pdrq *PingDetectorResultQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := pdrq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }
@@ -384,7 +384,7 @@ func (pdrq *PingDetectorResultQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (pdrq *PingDetectorResultQuery) sqlQuery() *sql.Selector {
+func (pdrq *PingDetectorResultQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(pdrq.driver.Dialect())
 	t1 := builder.Table(pingdetectorresult.Table)
 	selector := builder.Select(t1.Columns(pingdetectorresult.Columns...)...).From(t1)
@@ -679,7 +679,7 @@ func (pdrs *PingDetectorResultSelect) Scan(ctx context.Context, v interface{}) e
 	if err := pdrs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	pdrs.sql = pdrs.PingDetectorResultQuery.sqlQuery()
+	pdrs.sql = pdrs.PingDetectorResultQuery.sqlQuery(ctx)
 	return pdrs.sqlScan(ctx, v)
 }
 

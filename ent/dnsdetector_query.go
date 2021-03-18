@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebook/ent/dialect/sql/sqlgraph"
-	"github.com/facebook/ent/schema/field"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/schema/field"
 	"github.com/vicanso/cybertect/ent/dnsdetector"
 	"github.com/vicanso/cybertect/ent/predicate"
 )
@@ -261,7 +261,7 @@ func (ddq *DNSDetectorQuery) GroupBy(field string, fields ...string) *DNSDetecto
 		if err := ddq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		return ddq.sqlQuery(), nil
+		return ddq.sqlQuery(ctx), nil
 	}
 	return group
 }
@@ -334,7 +334,7 @@ func (ddq *DNSDetectorQuery) sqlCount(ctx context.Context) (int, error) {
 func (ddq *DNSDetectorQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := ddq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }
@@ -384,7 +384,7 @@ func (ddq *DNSDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (ddq *DNSDetectorQuery) sqlQuery() *sql.Selector {
+func (ddq *DNSDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(ddq.driver.Dialect())
 	t1 := builder.Table(dnsdetector.Table)
 	selector := builder.Select(t1.Columns(dnsdetector.Columns...)...).From(t1)
@@ -679,7 +679,7 @@ func (dds *DNSDetectorSelect) Scan(ctx context.Context, v interface{}) error {
 	if err := dds.prepareQuery(ctx); err != nil {
 		return err
 	}
-	dds.sql = dds.DNSDetectorQuery.sqlQuery()
+	dds.sql = dds.DNSDetectorQuery.sqlQuery(ctx)
 	return dds.sqlScan(ctx, v)
 }
 

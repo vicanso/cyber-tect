@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebook/ent/dialect/sql/sqlgraph"
-	"github.com/facebook/ent/schema/field"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/schema/field"
 	"github.com/vicanso/cybertect/ent/predicate"
 	"github.com/vicanso/cybertect/ent/tcpdetector"
 )
@@ -261,7 +261,7 @@ func (tdq *TCPDetectorQuery) GroupBy(field string, fields ...string) *TCPDetecto
 		if err := tdq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		return tdq.sqlQuery(), nil
+		return tdq.sqlQuery(ctx), nil
 	}
 	return group
 }
@@ -334,7 +334,7 @@ func (tdq *TCPDetectorQuery) sqlCount(ctx context.Context) (int, error) {
 func (tdq *TCPDetectorQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := tdq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }
@@ -384,7 +384,7 @@ func (tdq *TCPDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (tdq *TCPDetectorQuery) sqlQuery() *sql.Selector {
+func (tdq *TCPDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(tdq.driver.Dialect())
 	t1 := builder.Table(tcpdetector.Table)
 	selector := builder.Select(t1.Columns(tcpdetector.Columns...)...).From(t1)
@@ -679,7 +679,7 @@ func (tds *TCPDetectorSelect) Scan(ctx context.Context, v interface{}) error {
 	if err := tds.prepareQuery(ctx); err != nil {
 		return err
 	}
-	tds.sql = tds.TCPDetectorQuery.sqlQuery()
+	tds.sql = tds.TCPDetectorQuery.sqlQuery(ctx)
 	return tds.sqlScan(ctx, v)
 }
 

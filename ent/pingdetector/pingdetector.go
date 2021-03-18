@@ -31,7 +31,6 @@ const (
 	FieldTimeout = "timeout"
 	// FieldIps holds the string denoting the ips field in the database.
 	FieldIps = "ips"
-
 	// Table holds the table name of the pingdetector in the database.
 	Table = "ping_detectors"
 )

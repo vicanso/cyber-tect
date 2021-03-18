@@ -27,7 +27,6 @@ const (
 	FieldIps = "ips"
 	// FieldResults holds the string denoting the results field in the database.
 	FieldResults = "results"
-
 	// Table holds the table name of the pingdetectorresult in the database.
 	Table = "ping_detector_results"
 )

@@ -6,9 +6,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebook/ent/dialect/sql/sqlgraph"
-	"github.com/facebook/ent/schema/field"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/schema/field"
 	"github.com/vicanso/cybertect/ent/httpdetector"
 	"github.com/vicanso/cybertect/ent/predicate"
 	"github.com/vicanso/cybertect/ent/schema"
@@ -477,6 +477,13 @@ func (hduo *HTTPDetectorUpdateOne) sqlSave(ctx context.Context) (_node *HTTPDete
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing HTTPDetector.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if ps := hduo.mutation.predicates; len(ps) > 0 {
+		_spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
 	if value, ok := hduo.mutation.UpdatedAt(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,

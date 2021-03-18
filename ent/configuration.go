@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebook/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/configuration"
 	"github.com/vicanso/cybertect/ent/schema"
 )
@@ -18,22 +18,31 @@ type Configuration struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
+	// 创建时间，添加记录时由程序自动生成
 	CreatedAt time.Time `json:"createdAt,omitempty" sql:"created_at"`
 	// UpdatedAt holds the value of the "updated_at" field.
+	// 更新时间，更新记录时由程序自动生成
 	UpdatedAt time.Time `json:"updatedAt,omitempty" sql:"updated_at"`
 	// Status holds the value of the "status" field.
+	// 状态，默认为启用状态
 	Status schema.Status `json:"status,omitempty"`
 	// Name holds the value of the "name" field.
+	// 配置名称
 	Name string `json:"name,omitempty"`
 	// Category holds the value of the "category" field.
+	// 配置分类
 	Category configuration.Category `json:"category,omitempty"`
 	// Owner holds the value of the "owner" field.
+	// 创建者
 	Owner string `json:"owner,omitempty"`
 	// Data holds the value of the "data" field.
+	// 配置信息
 	Data string `json:"data,omitempty"`
 	// StartedAt holds the value of the "started_at" field.
+	// 配置启用时间
 	StartedAt time.Time `json:"startedAt,omitempty"`
 	// EndedAt holds the value of the "ended_at" field.
+	// 配置停用时间
 	EndedAt time.Time `json:"endedAt,omitempty"`
 }
 

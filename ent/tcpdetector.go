@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebook/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/ent/tcpdetector"
 )
@@ -19,22 +19,31 @@ type TCPDetector struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
+	// 创建时间，添加记录时由程序自动生成
 	CreatedAt time.Time `json:"createdAt,omitempty" sql:"created_at"`
 	// UpdatedAt holds the value of the "updated_at" field.
+	// 更新时间，更新记录时由程序自动生成
 	UpdatedAt time.Time `json:"updatedAt,omitempty" sql:"updated_at"`
 	// Status holds the value of the "status" field.
+	// 状态，默认为启用状态
 	Status schema.Status `json:"status,omitempty"`
 	// Name holds the value of the "name" field.
+	// 配置名称
 	Name string `json:"name,omitempty"`
 	// Owner holds the value of the "owner" field.
+	// 配置拥有者
 	Owner string `json:"owner,omitempty"`
 	// Description holds the value of the "description" field.
+	// 配置描述
 	Description string `json:"description,omitempty"`
 	// Receivers holds the value of the "receivers" field.
+	// 接收者列表
 	Receivers []string `json:"receivers,omitempty"`
 	// Timeout holds the value of the "timeout" field.
+	// 超时设置
 	Timeout string `json:"timeout,omitempty"`
 	// Addrs holds the value of the "addrs" field.
+	// 检测地址列表
 	Addrs []string `json:"addrs,omitempty"`
 }
 
@@ -114,7 +123,7 @@ func (td *TCPDetector) assignValues(columns []string, values []interface{}) erro
 				return fmt.Errorf("unexpected type %T for field receivers", values[i])
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &td.Receivers); err != nil {
-					return fmt.Errorf("unmarshal field receivers: %v", err)
+					return fmt.Errorf("unmarshal field receivers: %w", err)
 				}
 			}
 		case tcpdetector.FieldTimeout:
@@ -129,7 +138,7 @@ func (td *TCPDetector) assignValues(columns []string, values []interface{}) erro
 				return fmt.Errorf("unexpected type %T for field addrs", values[i])
 			} else if value != nil && len(*value) > 0 {
 				if err := json.Unmarshal(*value, &td.Addrs); err != nil {
-					return fmt.Errorf("unmarshal field addrs: %v", err)
+					return fmt.Errorf("unmarshal field addrs: %w", err)
 				}
 			}
 		}

@@ -33,7 +33,6 @@ const (
 	FieldIps = "ips"
 	// FieldURL holds the string denoting the url field in the database.
 	FieldURL = "url"
-
 	// Table holds the table name of the httpdetector in the database.
 	Table = "http_detectors"
 )

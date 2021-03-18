@@ -35,7 +35,6 @@ const (
 	FieldCity = "city"
 	// FieldIsp holds the string denoting the isp field in the database.
 	FieldIsp = "isp"
-
 	// Table holds the table name of the userlogin in the database.
 	Table = "user_logins"
 )

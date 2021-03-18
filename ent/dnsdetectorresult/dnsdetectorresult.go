@@ -27,7 +27,6 @@ const (
 	FieldHost = "host"
 	// FieldResults holds the string denoting the results field in the database.
 	FieldResults = "results"
-
 	// Table holds the table name of the dnsdetectorresult in the database.
 	Table = "dns_detector_results"
 )

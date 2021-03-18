@@ -5,7 +5,7 @@ package tcpdetectorresult
 import (
 	"time"
 
-	"github.com/facebook/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/predicate"
 )
 

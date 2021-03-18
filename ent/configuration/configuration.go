@@ -32,7 +32,6 @@ const (
 	FieldStartedAt = "started_at"
 	// FieldEndedAt holds the string denoting the ended_at field in the database.
 	FieldEndedAt = "ended_at"
-
 	// Table holds the table name of the configuration in the database.
 	Table = "configurations"
 )

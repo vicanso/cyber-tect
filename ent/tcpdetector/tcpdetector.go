@@ -31,7 +31,6 @@ const (
 	FieldTimeout = "timeout"
 	// FieldAddrs holds the string denoting the addrs field in the database.
 	FieldAddrs = "addrs"
-
 	// Table holds the table name of the tcpdetector in the database.
 	Table = "tcp_detectors"
 )

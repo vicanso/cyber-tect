@@ -27,7 +27,6 @@ const (
 	FieldURL = "url"
 	// FieldResults holds the string denoting the results field in the database.
 	FieldResults = "results"
-
 	// Table holds the table name of the httpdetectorresult in the database.
 	Table = "http_detector_results"
 )

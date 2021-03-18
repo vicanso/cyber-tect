@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/facebook/ent/dialect/sql"
-	"github.com/facebook/ent/dialect/sql/sqlgraph"
-	"github.com/facebook/ent/schema/field"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/schema/field"
 	"github.com/vicanso/cybertect/ent/httpdetector"
 	"github.com/vicanso/cybertect/ent/predicate"
 )
@@ -261,7 +261,7 @@ func (hdq *HTTPDetectorQuery) GroupBy(field string, fields ...string) *HTTPDetec
 		if err := hdq.prepareQuery(ctx); err != nil {
 			return nil, err
 		}
-		return hdq.sqlQuery(), nil
+		return hdq.sqlQuery(ctx), nil
 	}
 	return group
 }
@@ -334,7 +334,7 @@ func (hdq *HTTPDetectorQuery) sqlCount(ctx context.Context) (int, error) {
 func (hdq *HTTPDetectorQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := hdq.sqlCount(ctx)
 	if err != nil {
-		return false, fmt.Errorf("ent: check existence: %v", err)
+		return false, fmt.Errorf("ent: check existence: %w", err)
 	}
 	return n > 0, nil
 }
@@ -384,7 +384,7 @@ func (hdq *HTTPDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (hdq *HTTPDetectorQuery) sqlQuery() *sql.Selector {
+func (hdq *HTTPDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(hdq.driver.Dialect())
 	t1 := builder.Table(httpdetector.Table)
 	selector := builder.Select(t1.Columns(httpdetector.Columns...)...).From(t1)
@@ -679,7 +679,7 @@ func (hds *HTTPDetectorSelect) Scan(ctx context.Context, v interface{}) error {
 	if err := hds.prepareQuery(ctx); err != nil {
 		return err
 	}
-	hds.sql = hds.HTTPDetectorQuery.sqlQuery()
+	hds.sql = hds.HTTPDetectorQuery.sqlQuery(ctx)
 	return hds.sqlScan(ctx, v)
 }
 

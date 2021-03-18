@@ -35,7 +35,6 @@ const (
 	FieldIps = "ips"
 	// FieldServers holds the string denoting the servers field in the database.
 	FieldServers = "servers"
-
 	// Table holds the table name of the dnsdetector in the database.
 	Table = "dns_detectors"
 )

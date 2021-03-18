@@ -105,7 +105,7 @@ func NewNotFoundHandler() http.HandlerFunc {
 	// 如果1分钟同一个IP出现60次404
 	warner404 := warner.NewWarner(60*time.Second, 60)
 	warner404.ResetOnWarn = true
-	warner404.On(func(ip string, _ warner.Count) {
+	warner404.On(func(ip string, _ int) {
 		service.AlarmError("too many 404 request, client ip:" + ip)
 	})
 	go func() {

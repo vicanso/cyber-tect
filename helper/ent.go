@@ -25,8 +25,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/facebook/ent/dialect"
-	entsql "github.com/facebook/ent/dialect/sql"
+	"entgo.io/ent/dialect"
+	entsql "entgo.io/ent/dialect/sql"
 	"github.com/iancoleman/strcase"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/vicanso/cybertect/config"

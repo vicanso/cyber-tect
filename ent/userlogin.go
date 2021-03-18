@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebook/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/userlogin"
 )
 
@@ -17,28 +17,40 @@ type UserLogin struct {
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
+	// 创建时间，添加记录时由程序自动生成
 	CreatedAt time.Time `json:"createdAt,omitempty" sql:"created_at"`
 	// UpdatedAt holds the value of the "updated_at" field.
+	// 更新时间，更新记录时由程序自动生成
 	UpdatedAt time.Time `json:"updatedAt,omitempty" sql:"updated_at"`
 	// Account holds the value of the "account" field.
+	// 登录账户
 	Account string `json:"account,omitempty"`
 	// UserAgent holds the value of the "user_agent" field.
+	// 用户浏览器的user-agent
 	UserAgent string `json:"userAgent,omitempty"`
 	// IP holds the value of the "ip" field.
+	// 用户IP
 	IP string `json:"ip,omitempty"`
 	// TrackID holds the value of the "track_id" field.
+	// 用户的track id
 	TrackID string `json:"trackID,omitempty"`
 	// SessionID holds the value of the "session_id" field.
+	// 用户的session id
 	SessionID string `json:"sessionID,omitempty"`
 	// XForwardedFor holds the value of the "x_forwarded_for" field.
+	// 用户登录时的x-forwarded-for
 	XForwardedFor string `json:"xForwardedFor,omitempty"`
 	// Country holds the value of the "country" field.
+	// 用户登录IP定位的国家
 	Country string `json:"country,omitempty"`
 	// Province holds the value of the "province" field.
+	// 用户登录IP定位的省份
 	Province string `json:"province,omitempty"`
 	// City holds the value of the "city" field.
+	// 用户登录IP定位的城市
 	City string `json:"city,omitempty"`
 	// Isp holds the value of the "isp" field.
+	// 用户登录IP的网络服务商
 	Isp string `json:"isp,omitempty"`
 }
 

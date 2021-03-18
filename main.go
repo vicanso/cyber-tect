@@ -148,7 +148,7 @@ func newOnErrorHandler(e *elton.Elton) {
 	// exception的warner只有一个key，因此无需定时清除
 	warnerException := warner.NewWarner(60*time.Second, 5)
 	warnerException.ResetOnWarn = true
-	warnerException.On(func(_ string, _ warner.Count) {
+	warnerException.On(func(_ string, _ int) {
 		service.AlarmError("too many uncaught exception")
 	})
 	// 只有未被处理的error才会触发此回调

@@ -3,8 +3,8 @@
 package migrate
 
 import (
-	"github.com/facebook/ent/dialect/sql/schema"
-	"github.com/facebook/ent/schema/field"
+	"entgo.io/ent/dialect/sql/schema"
+	"entgo.io/ent/schema/field"
 )
 
 var (
@@ -28,6 +28,16 @@ var (
 		PrimaryKey:  []*schema.Column{ConfigurationsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
+			{
+				Name:    "configuration_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ConfigurationsColumns[1]},
+			},
+			{
+				Name:    "configuration_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{ConfigurationsColumns[2]},
+			},
 			{
 				Name:    "configuration_name",
 				Unique:  true,
@@ -63,6 +73,16 @@ var (
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
 			{
+				Name:    "dnsdetector_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{DNSDetectorsColumns[1]},
+			},
+			{
+				Name:    "dnsdetector_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{DNSDetectorsColumns[2]},
+			},
+			{
 				Name:    "dnsdetector_owner",
 				Unique:  false,
 				Columns: []*schema.Column{DNSDetectorsColumns[5]},
@@ -88,6 +108,16 @@ var (
 		PrimaryKey:  []*schema.Column{DNSDetectorResultsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
+			{
+				Name:    "dnsdetectorresult_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{DNSDetectorResultsColumns[1]},
+			},
+			{
+				Name:    "dnsdetectorresult_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{DNSDetectorResultsColumns[2]},
+			},
 			{
 				Name:    "dnsdetectorresult_task",
 				Unique:  false,
@@ -122,6 +152,16 @@ var (
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
 			{
+				Name:    "httpdetector_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{HTTPDetectorsColumns[1]},
+			},
+			{
+				Name:    "httpdetector_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{HTTPDetectorsColumns[2]},
+			},
+			{
 				Name:    "httpdetector_owner",
 				Unique:  false,
 				Columns: []*schema.Column{HTTPDetectorsColumns[5]},
@@ -147,6 +187,16 @@ var (
 		PrimaryKey:  []*schema.Column{HTTPDetectorResultsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
+			{
+				Name:    "httpdetectorresult_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{HTTPDetectorResultsColumns[1]},
+			},
+			{
+				Name:    "httpdetectorresult_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{HTTPDetectorResultsColumns[2]},
+			},
 			{
 				Name:    "httpdetectorresult_task",
 				Unique:  false,
@@ -180,6 +230,16 @@ var (
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
 			{
+				Name:    "pingdetector_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PingDetectorsColumns[1]},
+			},
+			{
+				Name:    "pingdetector_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PingDetectorsColumns[2]},
+			},
+			{
 				Name:    "pingdetector_owner",
 				Unique:  false,
 				Columns: []*schema.Column{PingDetectorsColumns[5]},
@@ -205,6 +265,16 @@ var (
 		PrimaryKey:  []*schema.Column{PingDetectorResultsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
+			{
+				Name:    "pingdetectorresult_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PingDetectorResultsColumns[1]},
+			},
+			{
+				Name:    "pingdetectorresult_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{PingDetectorResultsColumns[2]},
+			},
 			{
 				Name:    "pingdetectorresult_task",
 				Unique:  false,
@@ -238,6 +308,16 @@ var (
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
 			{
+				Name:    "tcpdetector_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{TCPDetectorsColumns[1]},
+			},
+			{
+				Name:    "tcpdetector_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{TCPDetectorsColumns[2]},
+			},
+			{
 				Name:    "tcpdetector_owner",
 				Unique:  false,
 				Columns: []*schema.Column{TCPDetectorsColumns[5]},
@@ -263,6 +343,16 @@ var (
 		PrimaryKey:  []*schema.Column{TCPDetectorResultsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
+			{
+				Name:    "tcpdetectorresult_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{TCPDetectorResultsColumns[1]},
+			},
+			{
+				Name:    "tcpdetectorresult_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{TCPDetectorResultsColumns[2]},
+			},
 			{
 				Name:    "tcpdetectorresult_task",
 				Unique:  false,
@@ -296,6 +386,16 @@ var (
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
 			{
+				Name:    "user_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[1]},
+			},
+			{
+				Name:    "user_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[2]},
+			},
+			{
 				Name:    "user_account",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[4]},
@@ -325,6 +425,16 @@ var (
 		PrimaryKey:  []*schema.Column{UserLoginsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
+			{
+				Name:    "userlogin_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserLoginsColumns[1]},
+			},
+			{
+				Name:    "userlogin_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserLoginsColumns[2]},
+			},
 			{
 				Name:    "userlogin_account",
 				Unique:  false,

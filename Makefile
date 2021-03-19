@@ -11,7 +11,7 @@ test:
 	MAIL_USER=test@outlook.com go test -race -cover ./...
 
 generate: 
-	go generate ./ent
+	entc generate ./ent/schema --target ./ent
 
 describe:
 	entc describe ./ent/schema

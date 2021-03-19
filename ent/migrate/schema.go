@@ -440,11 +440,6 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{UserLoginsColumns[3]},
 			},
-			{
-				Name:    "userlogin_created_at",
-				Unique:  false,
-				Columns: []*schema.Column{UserLoginsColumns[1]},
-			},
 		},
 	}
 	// Tables holds all the tables in the schema.

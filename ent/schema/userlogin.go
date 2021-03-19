@@ -68,6 +68,5 @@ func (UserLogin) Edges() []ent.Edge {
 func (UserLogin) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("account"),
-		index.Fields("created_at"),
 	}
 }

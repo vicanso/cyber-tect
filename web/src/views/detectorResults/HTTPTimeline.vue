@@ -66,12 +66,13 @@ export default defineComponent({
 
     const blocks = [];
     let percent = 0;
+    const maxWidth = 99;
     values.forEach((value, index) => {
       if (!value) {
         return;
       }
       // 设置最大为99%，避免过小的百分比导致换行
-      const widthPercent = (99 * value) / duration;
+      const widthPercent = (maxWidth * value) / duration;
       let width = `${widthPercent}`;
       const i = width.indexOf(".");
       if (i >= 1) {
@@ -88,7 +89,7 @@ export default defineComponent({
     // 如果汇总时间过少，则添加超时的timeline
     if (percent < 95) {
       blocks.push({
-        width: `${100 - percent}%`,
+        width: `${maxWidth - percent}%`,
         backgroundColor: timeoutColor,
       });
     }

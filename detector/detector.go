@@ -22,6 +22,10 @@ import (
 	"time"
 
 	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/cybertect/ent/dnsdetectorresult"
+	"github.com/vicanso/cybertect/ent/httpdetectorresult"
+	"github.com/vicanso/cybertect/ent/pingdetectorresult"
+	"github.com/vicanso/cybertect/ent/tcpdetectorresult"
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
@@ -141,4 +145,42 @@ func convertParallelError(err error, message string) error {
 		}
 	}
 	return &errs
+}
+
+// RemoveExpiredDetectorResult 清除过期数据
+func RemoveExpiredDetectorResult() (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	t := time.Now().AddDate(0, -1, 0)
+	_, err = getEntClient().DNSDetectorResult.
+		Delete().
+		Where(dnsdetectorresult.UpdatedAtLT(t)).
+		Exec(ctx)
+	if err != nil {
+		return
+	}
+	_, err = getEntClient().HTTPDetectorResult.
+		Delete().
+		Where(httpdetectorresult.UpdatedAtLT(t)).
+		Exec(ctx)
+	if err != nil {
+		return
+	}
+
+	_, err = getEntClient().TCPDetectorResult.
+		Delete().
+		Where(tcpdetectorresult.UpdatedAtLT(t)).
+		Exec(ctx)
+	if err != nil {
+		return
+	}
+	_, err = getEntClient().PingDetectorResult.
+		Delete().
+		Where(pingdetectorresult.UpdatedAtLT(t)).
+		Exec(ctx)
+	if err != nil {
+		return
+	}
+	return
+
 }

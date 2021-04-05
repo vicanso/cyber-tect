@@ -47,6 +47,7 @@ func init() {
 	_, _ = c.AddFunc("@every 1m", performanceStats)
 	_, _ = c.AddFunc("@every 1m", httpInstanceStats)
 	_, _ = c.AddFunc("@every 1m", routerConcurrencyStats)
+	_, _ = c.AddFunc("@every 5m", removeExpiredDetectorResult)
 
 	// 检测任务
 	spec := fmt.Sprintf("@every %s", detectorConfig.Interval)
@@ -202,4 +203,8 @@ func doTCPDetect() {
 func doPingDetect() {
 	srv := detector.PingSrv{}
 	doTask("ping detect", srv.Detect)
+}
+
+func removeExpiredDetectorResult() {
+	doTask("remove expired detector result", detector.RemoveExpiredDetectorResult)
 }

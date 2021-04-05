@@ -23,8 +23,8 @@ import (
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/dnsdetector"
 	"github.com/vicanso/cybertect/ent/dnsdetectorresult"
-	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/elton"
 )

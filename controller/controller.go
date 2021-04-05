@@ -21,10 +21,10 @@ import (
 	"strconv"
 
 	"github.com/vicanso/cybertect/cs"
-	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/middleware"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"

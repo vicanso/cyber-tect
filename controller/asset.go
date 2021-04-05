@@ -12,18 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// 通过packr2将静态文件打包，此controller提供各静态文件的响应处理，
 // 主要是管理系统的前端代码，对于资源等（如图片）尽可能不要打包进入程序
 
 package controller
 
 import (
 	"bytes"
-	"io"
-	"os"
 	"time"
 
-	"github.com/gobuffalo/packr/v2"
+	"github.com/vicanso/cybertect/asset"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/elton"
 	M "github.com/vicanso/elton/middleware"
@@ -31,40 +28,10 @@ import (
 
 type (
 	// assetCtrl asset ctrl
-	assetCtrl  struct{}
-	staticFile struct {
-		box *packr.Box
-	}
+	assetCtrl struct{}
 )
 
-var (
-	assetBox = packr.New("asset", "../web/dist")
-)
-
-// Exists 判断文件是否存在
-func (sf *staticFile) Exists(file string) bool {
-	return sf.box.Has(file)
-}
-
-// Get 获取文件内容
-func (sf *staticFile) Get(file string) ([]byte, error) {
-	return sf.box.Find(file)
-}
-
-// Stat 获取文件stat信息
-func (sf *staticFile) Stat(file string) os.FileInfo {
-	// 文件打包至程序中，因此无file info
-	return nil
-}
-
-// NewReader 创建读取文件的reader
-func (sf *staticFile) NewReader(file string) (io.Reader, error) {
-	buf, err := sf.Get(file)
-	if err != nil {
-		return nil, err
-	}
-	return bytes.NewReader(buf), nil
-}
+var assetFS = M.NewEmbedStaticFS(asset.GetFS(), "dist")
 
 func init() {
 	g := router.NewGroup("")
@@ -72,10 +39,7 @@ func init() {
 	g.GET("/", ctrl.getIndex)
 	g.GET("/favicon.{ext}", ctrl.getFavIcon)
 
-	sf := &staticFile{
-		box: assetBox,
-	}
-	g.GET("/static/*", M.NewStaticServe(sf, M.StaticServeConfig{
+	g.GET("/static/*", M.NewStaticServe(assetFS, M.StaticServeConfig{
 		// 客户端缓存一年
 		MaxAge: 365 * 24 * time.Hour,
 		// 缓存服务器缓存一个小时
@@ -91,7 +55,7 @@ func init() {
 // 静态文件响应
 func sendFile(c *elton.Context, file string) (err error) {
 	// 因为静态文件打包至程序中，直接读取
-	buf, err := assetBox.Find(file)
+	buf, err := assetFS.Get(file)
 	if err != nil {
 		return
 	}

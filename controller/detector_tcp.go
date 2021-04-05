@@ -21,10 +21,10 @@ import (
 
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
-	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/ent/tcpdetector"
 	"github.com/vicanso/cybertect/ent/tcpdetectorresult"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/elton"
 )

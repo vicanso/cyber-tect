@@ -23,7 +23,7 @@ import (
 
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/dnsdetector"
-	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/go-parallel"
 	"github.com/vicanso/hes"

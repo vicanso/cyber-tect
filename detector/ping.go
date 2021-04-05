@@ -24,7 +24,7 @@ import (
 	"github.com/go-ping/ping"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/pingdetector"
-	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/go-parallel"
 )
 

@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/cybertect/ent/configuration"
 	confSchema "github.com/vicanso/cybertect/ent/configuration"
-	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/hes"
 )

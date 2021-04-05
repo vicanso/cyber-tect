@@ -18,9 +18,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )

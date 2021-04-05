@@ -23,9 +23,9 @@ import (
 
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/configuration"
-	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
 	"go.uber.org/zap"

@@ -3,7 +3,7 @@ FROM node:14-alpine as webbuilder
 COPY . /cybertect
 RUN cd /cybertect/web \
   && npm i \
-  && npm run  build \
+  && npm run build \
   && rm -rf node_module
 
 FROM golang:1.16-alpine as builder
@@ -12,8 +12,11 @@ COPY --from=webbuilder /cybertect /cybertect
 
 RUN apk update \
   && apk add git make \
-  && go get -u github.com/gobuffalo/packr/v2/packr2 \
   && cd /cybertect \
+  && rm -rf asset/dist \
+  && cp -rf web/dist asset/ \
+  && make install \
+  && make generate \
   && make build
 
 FROM alpine 

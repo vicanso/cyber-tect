@@ -21,8 +21,8 @@ import (
 	"time"
 
 	"github.com/vicanso/cybertect/ent"
-	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/ent/tcpdetector"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/go-parallel"
 )
 

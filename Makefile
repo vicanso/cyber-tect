@@ -10,11 +10,14 @@ doc:
 test:
 	MAIL_USER=test@outlook.com go test -race -cover ./...
 
+install:
+	go get entgo.io/ent/cmd/entc
+
 generate: 
-	entc generate ./ent/schema --target ./ent
+	entc generate ./schema --target ./ent
 
 describe:
-	entc describe ./ent/schema
+	entc describe ./schema
 
 test-cover:
 	MAIL_USER=test@outlook.com go test -race -coverprofile=test.out ./... && go tool cover --html=test.out
@@ -26,11 +29,8 @@ tidy:
 	go mod tidy
 
 build:
-	packr2
 	go build -ldflags "-X main.Version=0.0.1 -X 'main.BuildedAt=`date`'" -o cybertect 
 
-clean:
-	packr2 clean
 
 lint:
 	golangci-lint run --timeout 2m --skip-dirs web

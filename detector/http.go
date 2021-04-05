@@ -26,7 +26,7 @@ import (
 
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/httpdetector"
-	"github.com/vicanso/cybertect/ent/schema"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	parallel "github.com/vicanso/go-parallel"
 	"github.com/vicanso/hes"

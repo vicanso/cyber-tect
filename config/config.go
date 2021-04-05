@@ -20,19 +20,21 @@ package config
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
 	"io"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/gobuffalo/packr/v2"
 	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/viperx"
 )
 
+//go:embed *.yml
+var configFS embed.FS
+
 var (
-	box = packr.New("config", "../configs")
 	env = os.Getenv("GO_ENV")
 
 	defaultViperX = mustLoadConfig()
@@ -142,7 +144,7 @@ func mustLoadConfig() *viperx.ViperX {
 		"default",
 		GetENV(),
 	} {
-		data, err := box.Find(name + "." + configType)
+		data, err := configFS.ReadFile(name + "." + configType)
 		if err != nil {
 			panic(err)
 		}

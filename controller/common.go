@@ -25,8 +25,8 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/vicanso/cybertect/config"
-	"github.com/vicanso/cybertect/ent/schema"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"

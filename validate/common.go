@@ -26,8 +26,8 @@ func init() {
 	Add("xLimit", newNumberRange(1, 200))
 	// 更大的数量限制，一般管理后台接口使用
 	Add("xLargerLimit", newNumberRange(1, 200))
-	// offset设置最多为1万已满足场景需要，如果有更多的处理再调整
-	Add("xOffset", newNumberRange(0, 10000))
+	// offset设置已满足大部分场景需要，如果有更多的处理再调整
+	Add("xOffset", newNumberRange(0, 100*1000))
 	AddAlias("xOrder", "ascii,min=0,max=100")
 	AddAlias("xFields", "ascii,min=0,max=100")
 	AddAlias("xKeyword", "min=1,max=10")

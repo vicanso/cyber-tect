@@ -62,5 +62,6 @@ minio:
   ssl: false
 
 detector:
+  expired: DETECTOR_RESULT_EXPIRED
   interval: DETECTOR_INTERVAL
   concurrency: 5

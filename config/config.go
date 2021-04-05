@@ -25,6 +25,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/vicanso/cybertect/validate"
@@ -129,8 +130,9 @@ type (
 
 	// DetectorConfig 检测配置
 	DetectorConfig struct {
-		Interval    string `validate:"required,xDuration"`
-		Concurrency int    `validate:"required,numeric,min=1,max=20"`
+		Expired     time.Duration `validate:"required"`
+		Interval    string        `validate:"required,xDuration"`
+		Concurrency int           `validate:"required,numeric,min=1,max=20"`
 	}
 )
 
@@ -291,9 +293,20 @@ func GetMinioConfig() MinioConfig {
 // GetDetectorConfig 获取检测配置
 func GetDetectorConfig() DetectorConfig {
 	prefix := "detector."
+	expired := defaultViperX.GetStringFromENVDefault(prefix+"expired", "30d")
+	if strings.HasSuffix(expired, "d") {
+		d, _ := strconv.Atoi(expired[0 : len(expired)-1])
+		expired = fmt.Sprintf("%dh", 24*d)
+	}
+	expiredTime, err := time.ParseDuration(expired)
+	if err != nil {
+		panic(err)
+	}
+
 	detectorConfig := DetectorConfig{
 		Interval:    defaultViperX.GetStringFromENVDefault(prefix+"interval", "1m"),
 		Concurrency: defaultViperX.GetInt(prefix + "concurrency"),
+		Expired:     expiredTime,
 	}
 	mustValidate(detectorConfig)
 	return detectorConfig

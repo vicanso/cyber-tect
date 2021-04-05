@@ -151,7 +151,7 @@ func convertParallelError(err error, message string) error {
 func RemoveExpiredDetectorResult() (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	t := time.Now().AddDate(0, -1, 0)
+	t := time.Now().Add(-detectorConfig.Expired)
 	_, err = getEntClient().DNSDetectorResult.
 		Delete().
 		Where(dnsdetectorresult.UpdatedAtLT(t)).

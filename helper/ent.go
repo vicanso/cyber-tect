@@ -32,7 +32,6 @@ import (
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
-	"github.com/vicanso/cybertect/ent/hook"
 	"github.com/vicanso/cybertect/ent/migrate"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/util"
@@ -203,8 +202,8 @@ func initSchemaHooks(c *ent.Client) {
 		}
 		return false
 	}
-	// 禁止删除数据
-	c.Use(hook.Reject(ent.OpDelete | ent.OpDeleteOne))
+	// 检测结果定期删除，因此需要允许删除
+	// c.Use(hook.Reject(ent.OpDelete | ent.OpDeleteOne))
 	// 数据库操作统计
 	c.Use(func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {

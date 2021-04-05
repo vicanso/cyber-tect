@@ -132,6 +132,7 @@ docker run -d --restart=always \
   -e MAIL_USER=tree.xie@outlook.com \
   -e MAIL_PASS=pass \
   -e DETECTOR_INTERVAL=1m \
+  -e DETECTOR_RESULT_EXPIRED=30d \
   --name=cybertect \
   vicanso/cybertect
 ```
@@ -144,3 +145,4 @@ docker run -d --restart=always \
 - `MAIL_USER` 邮箱账号
 - `MAIL_PASS` 邮箱密码
 - `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
+- `DETECTOR_RESULT_EXPIRED` 检测结果过期时间，默认为30天(30d)

@@ -47,7 +47,7 @@ func init() {
 	_, _ = c.AddFunc("@every 1m", performanceStats)
 	_, _ = c.AddFunc("@every 1m", httpInstanceStats)
 	_, _ = c.AddFunc("@every 1m", routerConcurrencyStats)
-	_, _ = c.AddFunc("@every 5m", removeExpiredDetectorResult)
+	_, _ = c.AddFunc("@every 24h", removeExpiredDetectorResult)
 
 	// 检测任务
 	spec := fmt.Sprintf("@every %s", detectorConfig.Interval)

@@ -89,7 +89,7 @@ func (srv *DNSSrv) detect(config *ent.DNSDetector) (dnsDetectorResult *ent.DNSDe
 
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail
-			subResult.Message = err.Error()
+			subResult.Message = fmt.Sprintf("%s(%s), %s", config.Host, server, err.Error())
 			result = schema.DetectorResultFail
 			messages = append(messages, subResult.Message)
 		} else {

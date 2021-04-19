@@ -75,7 +75,7 @@ func (srv *PingSrv) detect(config *ent.PingDetector) (pingDetectorResult *ent.Pi
 		}
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail
-			subResult.Message = err.Error()
+			subResult.Message = fmt.Sprintf("%s, %s", ip, err.Error())
 			result = schema.DetectorResultFail
 			messages = append(messages, subResult.Message)
 		} else {

@@ -159,7 +159,7 @@ func (srv *HTTPSrv) detect(config *ent.HTTPDetector) (httpDetectorResult *ent.HT
 		}
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail
-			subResult.Message = err.Error()
+			subResult.Message = fmt.Sprintf("%s(%s), %s", config.URL, ip, err.Error())
 			result = schema.DetectorResultFail
 			messages = append(messages, subResult.Message)
 		} else {

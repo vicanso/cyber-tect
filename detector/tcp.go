@@ -55,7 +55,7 @@ func (srv *TCPSrv) detect(config *ent.TCPDetector) (tcpDetectorResult *ent.TCPDe
 		}
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail
-			subResult.Message = err.Error()
+			subResult.Message = fmt.Sprintf("%s, %s", addr, err.Error())
 			result = schema.DetectorResultFail
 			messages = append(messages, subResult.Message)
 		} else {

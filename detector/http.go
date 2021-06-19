@@ -39,6 +39,9 @@ const acceptEncodingChrome = "gzip"
 // warningCertExpiredDuration 证书过期告警时间（7天）
 var warningCertExpiredDuration = 7 * 24 * time.Hour
 
+// 未指定IP时使用
+var nilIPAddr = "0.0.0.0"
+
 type (
 	HTTPSrv struct{}
 )
@@ -47,7 +50,7 @@ type (
 func (srv *HTTPSrv) check(url, ip string, timeout time.Duration) (ht *HT.HTTPTrace, err error) {
 	var dialContext func(ctx context.Context, network, addr string) (net.Conn, error)
 	// 自定义dns解析（更新为0.0.0.0)表示不指定IP
-	if ip != "" && ip != "0.0.0.0" {
+	if ip != "" && ip != nilIPAddr {
 		dialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
 			dia := &net.Dialer{
 				Timeout:   30 * time.Second,
@@ -159,6 +162,9 @@ func (srv *HTTPSrv) detect(config *ent.HTTPDetector) (httpDetectorResult *ent.HT
 		}
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail
+			if (ip == "" || ip == nilIPAddr) && ht != nil {
+				ip = ht.Addr
+			}
 			subResult.Message = fmt.Sprintf("%s(%s), %s", config.URL, ip, err.Error())
 			result = schema.DetectorResultFail
 			messages = append(messages, subResult.Message)
@@ -209,12 +215,12 @@ func (srv *HTTPSrv) Detect() (err error) {
 	if err != nil {
 		return
 	}
-	pErr := parallel.Parallel(len(result), detectorConfig.Concurrency, func(index int) error {
+	pErr := parallel.Parallel(func(index int) error {
 		item := result[index]
 		detectResult, err := srv.detect(item)
 		srv.doAlarm(item.Name, item.Receivers, detectResult)
 		return err
-	})
+	}, len(result), detectorConfig.Concurrency)
 	// 如果parallel检测失败，则转换为http error
 	if pErr != nil {
 		err = convertParallelError(pErr, "http detect fail")

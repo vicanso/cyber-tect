@@ -138,12 +138,12 @@ func (srv *DNSSrv) Detect() (err error) {
 		return
 	}
 
-	pErr := parallel.Parallel(len(result), detectorConfig.Concurrency, func(index int) error {
+	pErr := parallel.Parallel(func(index int) error {
 		item := result[index]
 		detectResult, err := srv.detect(item)
 		srv.doAlarm(item.Name, item.Receivers, detectResult)
 		return err
-	})
+	}, len(result), detectorConfig.Concurrency)
 	// 如果parallel检测失败，则转换为http error
 	if pErr != nil {
 		err = convertParallelError(pErr, "dns detect fail")

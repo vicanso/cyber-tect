@@ -166,6 +166,9 @@ func (srv *HTTPSrv) detect(config *ent.HTTPDetector) (httpDetectorResult *ent.HT
 				ip = ht.Addr
 			}
 			subResult.Message = fmt.Sprintf("%s(%s), %s", config.URL, ip, err.Error())
+			if ht != nil {
+				subResult.Message += fmt.Sprintf("(%s)", ht.Stats().String())
+			}
 			result = schema.DetectorResultFail
 			messages = append(messages, subResult.Message)
 		} else {

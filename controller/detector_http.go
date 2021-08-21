@@ -234,7 +234,11 @@ func (params *detectorListHTTPResultParams) queryAll(ctx context.Context) (httpR
 	if len(fields) == 0 {
 		return query.All(ctx)
 	}
-	scan := query.Select(fields[0], fields[1:]...)
+	var newFiles []string
+	if len(fields) > 1 {
+		newFiles = fields[1:]
+	}
+	scan := query.Select(fields[0], newFiles...)
 	return scan.All(ctx)
 }
 

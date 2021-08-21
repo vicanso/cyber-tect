@@ -33,6 +33,7 @@ build:
 
 
 lint:
+	golangci-lint --version
 	golangci-lint run --timeout 2m --skip-dirs web
 
 hooks:

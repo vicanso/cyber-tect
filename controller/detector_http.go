@@ -234,7 +234,7 @@ func (params *detectorListHTTPResultParams) queryAll(ctx context.Context) (httpR
 	if len(fields) == 0 {
 		return query.All(ctx)
 	}
-	var newFiles []string
+	newFiles := make([]string, 0)
 	if len(fields) > 1 {
 		newFiles = fields[1:]
 	}

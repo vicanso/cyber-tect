@@ -62,7 +62,8 @@ export default defineComponent({
       processingColor,
       transferColor,
     ];
-    const duration = $props.total;
+    let duration = 0;
+    values.forEach(v => duration += v);
 
     const blocks = [];
     let percent = 0;

@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"net"
 	"net/http"
 
@@ -40,11 +41,11 @@ type (
 )
 
 // GetPerformance 获取应用性能指标
-func GetPerformance() Performance {
-	return Performance{
+func GetPerformance(ctx context.Context) *Performance {
+	return &Performance{
 		Concurrency:           GetConcurrency(),
 		RequestProcessedTotal: requestProcessConcurrency.Total(),
-		CPUMemory:             performance.CurrentCPUMemory(),
+		CPUMemory:             performance.CurrentCPUMemory(ctx),
 		ConnStats:             httpServerConnStats.Stats(),
 	}
 

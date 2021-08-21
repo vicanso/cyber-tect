@@ -15,6 +15,7 @@
 package controller
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,7 +45,7 @@ func TestListParams(t *testing.T) {
 
 func newContextAndUserSession() (*elton.Context, *service.UserSession) {
 	s := session.Session{}
-	_, _ = s.Fetch()
+	_, _ = s.Fetch(context.Background())
 	c := elton.NewContext(nil, nil)
 	c.Set(session.Key, &s)
 	us := service.NewUserSession(c)

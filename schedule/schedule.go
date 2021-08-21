@@ -15,6 +15,7 @@
 package schedule
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -122,7 +123,9 @@ var prevPauseTotal time.Duration
 // performanceStats 系统性能
 func performanceStats() {
 	doStatsTask("performance stats", func() map[string]interface{} {
-		data := service.GetPerformance()
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		data := service.GetPerformance(ctx)
 		fields := map[string]interface{}{
 			cs.FieldGoMaxProcs:       data.GoMaxProcs,
 			cs.FieldProcessing:       int(data.Concurrency),

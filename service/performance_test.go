@@ -15,6 +15,7 @@
 package service
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -29,6 +30,6 @@ func TestPerformanceConcurrency(t *testing.T) {
 
 func TestGetPerformance(t *testing.T) {
 	assert := assert.New(t)
-	p := GetPerformance()
+	p := GetPerformance(context.Background())
 	assert.NotEmpty(p.MemSys)
 }

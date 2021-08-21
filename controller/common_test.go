@@ -64,7 +64,7 @@ func TestCommonCtrl(t *testing.T) {
 	})
 
 	t.Run("getPerformance", func(t *testing.T) {
-		c := elton.NewContext(nil, nil)
+		c := elton.NewContext(nil, httptest.NewRequest("GET", "/", nil))
 		err := ctrl.getPerformance(c)
 		assert.Nil(err)
 		_, ok := c.Body.(*service.Performance)

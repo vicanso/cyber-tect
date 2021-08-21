@@ -112,16 +112,26 @@ func (srv *HTTPSrv) check(url, ip string, timeout time.Duration) (ht *HT.HTTPTra
 	}
 	return
 }
+func ceilToMs(d time.Duration) int {
+	if d == 0 {
+		return 0
+	}
+	offset := 0
+	if d%time.Millisecond != 0 {
+		offset++
+	}
+	return int(d.Milliseconds()) + offset
+}
 
 // fillSubResult 填充相关检测结果
 func (srv *HTTPSrv) fillSubResult(ht *HT.HTTPTrace, subResult *schema.HTTPDetectorSubResult) {
 	stats := ht.Stats()
-	subResult.Duration = int(stats.Total.Milliseconds())
-	subResult.DNSLookup = int(stats.DNSLookup.Milliseconds())
-	subResult.TCPConnection = int(stats.TCPConnection.Milliseconds())
-	subResult.TLSHandshake = int(stats.TLSHandshake.Milliseconds())
-	subResult.ServerProcessing = int(stats.ServerProcessing.Milliseconds())
-	subResult.ContentTransfer = int(stats.ContentTransfer.Milliseconds())
+	subResult.Duration = ceilToMs(stats.Total)
+	subResult.DNSLookup = ceilToMs(stats.DNSLookup)
+	subResult.TCPConnection = ceilToMs(stats.TCPConnection)
+	subResult.TLSHandshake = ceilToMs(stats.TLSHandshake)
+	subResult.ServerProcessing = ceilToMs(stats.ServerProcessing)
+	subResult.ContentTransfer = ceilToMs(stats.ContentTransfer)
 	if ht.Addr != "" {
 		subResult.Addr = ht.Addr
 	}

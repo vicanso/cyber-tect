@@ -227,11 +227,7 @@ func (params *detectorListPingResultParams) queryAll(ctx context.Context) (pingR
 	if len(fields) == 0 {
 		return query.All(ctx)
 	}
-	newFiles := make([]string, 0)
-	if len(fields) > 1 {
-		newFiles = fields[1:]
-	}
-	scan := query.Select(fields[0], newFiles...)
+	scan := query.Select(fields...)
 	return scan.All(ctx)
 }
 

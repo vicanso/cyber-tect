@@ -225,7 +225,7 @@ func (params *detectorListTCPResultParams) queryAll(ctx context.Context) (tcpRes
 	if len(fields) == 0 {
 		return query.All(ctx)
 	}
-	scan := query.Select(fields[0], fields[1:]...)
+	scan := query.Select(fields...)
 	return scan.All(ctx)
 }
 

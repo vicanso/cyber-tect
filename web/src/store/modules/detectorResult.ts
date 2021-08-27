@@ -85,6 +85,23 @@ function fillName(items: any[], detectors: any[]) {
   });
 }
 
+function fillCount(
+  params: Record<string, unknown>,
+  data: Record<string, unknown>,
+  key: string
+) {
+  const offset = Number(params.offset);
+  const limit = Number(params.limit);
+  data.count = offset + limit;
+  if (!data[key] || !(data[key] as []).length) {
+    return;
+  }
+  // 如果刚好满一页，设置多一条
+  if ((data[key] as []).length % limit === 0) {
+    data.count = (data.count as number) + 1;
+  }
+}
+
 export const detectorResultStore = createStore<DetectorResultState>({
   state,
   mutations: {
@@ -175,8 +192,14 @@ export const detectorResultStore = createStore<DetectorResultState>({
       context.commit(mutationHTTPListProcessing, true);
       try {
         const { data } = await request.get(DETECTORS_HTTPS_RESULTS, {
-          params,
+          params: Object.assign(
+            {
+              ignoreCount: true,
+            },
+            params
+          ),
         });
+        fillCount(params, data, "httpResults");
         context.commit(mutationHTTPList, data);
       } finally {
         context.commit(mutationHTTPListProcessing, false);
@@ -193,8 +216,14 @@ export const detectorResultStore = createStore<DetectorResultState>({
       context.commit(mutationDNSListProcessing, true);
       try {
         const { data } = await request.get(DETECTORS_DNSES_RESULTS, {
-          params,
+          params: Object.assign(
+            {
+              ignoreCount: true,
+            },
+            params
+          ),
         });
+        fillCount(params, data, "dnsResults");
         context.commit(mutationDNSList, data);
       } finally {
         context.commit(mutationDNSListProcessing, false);
@@ -211,8 +240,14 @@ export const detectorResultStore = createStore<DetectorResultState>({
       context.commit(mutationTCPListProcessing, true);
       try {
         const { data } = await request.get(DETECTORS_TCPS_RESULTS, {
-          params,
+          params: Object.assign(
+            {
+              ignoreCount: true,
+            },
+            params
+          ),
         });
+        fillCount(params, data, "tcpResults");
         context.commit(mutationTCPList, data);
       } finally {
         context.commit(mutationTCPListProcessing, false);
@@ -229,8 +264,14 @@ export const detectorResultStore = createStore<DetectorResultState>({
       context.commit(mutationPingListProcessing, true);
       try {
         const { data } = await request.get(DETECTORS_PINGS_RESULTS, {
-          params,
+          params: Object.assign(
+            {
+              ignoreCount: true,
+            },
+            params
+          ),
         });
+        fillCount(params, data, "pingResults");
         context.commit(mutationPingList, data);
       } finally {
         context.commit(mutationPingListProcessing, false);

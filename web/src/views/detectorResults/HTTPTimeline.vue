@@ -63,7 +63,7 @@ export default defineComponent({
       transferColor,
     ];
     let duration = 0;
-    values.forEach(v => duration += v);
+    values.forEach((v) => (duration += v));
 
     const blocks = [];
     let percent = 0;

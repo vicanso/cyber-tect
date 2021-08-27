@@ -75,7 +75,7 @@
     )
   //- 分页
   el-pagination.pagination(
-    layout="prev, pager, next, sizes"
+    layout="prev, next, sizes"
     :current-page="currentPage"
     :page-size="query.limit"
     :page-sizes="pageSizes"

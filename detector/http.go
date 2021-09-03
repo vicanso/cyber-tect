@@ -175,6 +175,9 @@ func (srv *HTTPSrv) detect(config *ent.HTTPDetector) (httpDetectorResult *ent.HT
 			if (ip == "" || ip == nilIPAddr) && ht != nil {
 				ip = ht.Addr
 			}
+			if ip == "" && len(ht.Addrs) != 0 {
+				ip = ht.Addrs[0]
+			}
 			subResult.Message = fmt.Sprintf("%s(%s), %s", config.URL, ip, err.Error())
 			if ht != nil {
 				subResult.Message += fmt.Sprintf("(%s)", ht.Stats().String())

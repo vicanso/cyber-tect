@@ -6,7 +6,7 @@ RUN cd /cybertect/web \
   && npm run build \
   && rm -rf node_module
 
-FROM golang:1.16-alpine as builder
+FROM golang:1.17-alpine as builder
 
 COPY --from=webbuilder /cybertect /cybertect
 

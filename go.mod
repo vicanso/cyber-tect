@@ -32,7 +32,7 @@ require (
 	github.com/vicanso/go-parallel v0.4.1
 	github.com/vicanso/go-performance v0.3.0
 	github.com/vicanso/hes v0.3.9
-	github.com/vicanso/http-trace v1.0.5
+	github.com/vicanso/http-trace v1.0.6
 	github.com/vicanso/ips v1.2.1
 	github.com/vicanso/lru-ttl v1.3.0
 	github.com/vicanso/viperx v0.1.4
@@ -41,7 +41,7 @@ require (
 	go.uber.org/ratelimit v0.2.0
 	go.uber.org/zap v1.19.0
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
-	golang.org/x/net v0.0.0-20210902165921-8d991716f632 // indirect
+	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )

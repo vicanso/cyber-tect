@@ -19,13 +19,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/elton"
+	"github.com/vicanso/cybertect/config"
 )
 
 func TestGetTrackID(t *testing.T) {
 	assert := assert.New(t)
-	sessionConfig = config.GetSessionConfig()
+	sessionConfig = config.MustGetSessionConfig()
 	req := httptest.NewRequest("GET", "/", nil)
 	cookie := http.Cookie{
 		Name:  sessionConfig.TrackKey,
@@ -34,4 +34,17 @@ func TestGetTrackID(t *testing.T) {
 	req.AddCookie(&cookie)
 	c := elton.NewContext(nil, req)
 	assert.Equal(cookie.Value, GetTrackID(c))
+}
+
+func TestGetSessionID(t *testing.T) {
+	assert := assert.New(t)
+	sessionConfig = config.MustGetSessionConfig()
+	req := httptest.NewRequest("GET", "/", nil)
+	cookie := http.Cookie{
+		Name:  sessionConfig.Key,
+		Value: "abcd",
+	}
+	req.AddCookie(&cookie)
+	c := elton.NewContext(nil, req)
+	assert.Equal(cookie.Value, GetSessionID(c))
 }

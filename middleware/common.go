@@ -20,14 +20,12 @@ import (
 	"strings"
 	"time"
 
-	warner "github.com/vicanso/count-warner"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/service"
-	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
-	"go.uber.org/zap"
 )
 
 const (
@@ -42,34 +40,32 @@ func WaitFor(d time.Duration, onlyErrOccurreds ...bool) elton.Handler {
 	if len(onlyErrOccurreds) != 0 {
 		onlyErrOccurred = onlyErrOccurreds[0]
 	}
-	return func(c *elton.Context) (err error) {
+	return func(c *elton.Context) error {
 		start := time.Now()
-		err = c.Next()
+		err := c.Next()
 		// 如果未出错，而且配置为仅在出错时才等待
 		if err == nil && onlyErrOccurred {
-			return
+			return err
 		}
 		use := time.Now().UnixNano() - start.UnixNano()
 		// 无论成功还是失败都wait for
 		if use < ns {
 			time.Sleep(time.Duration(ns-use) * time.Nanosecond)
 		}
-		return
+		return err
 	}
 }
 
 // ValidateCaptcha 图形难码校验
 func ValidateCaptcha(magicalCaptcha string) elton.Handler {
-	return func(c *elton.Context) (err error) {
+	return func(c *elton.Context) error {
 		value := c.GetRequestHeader(xCaptchaHeader)
 		if value == "" {
-			err = hes.New("图形验证码参数不能为空", errCommonCategory)
-			return
+			return hes.New("图形验证码参数不能为空", errCommonCategory)
 		}
 		arr := strings.Split(value, ":")
 		if len(arr) != 2 {
-			err = hes.New(fmt.Sprintf("图形验证码参数长度异常(%d)", len(arr)), errCommonCategory)
-			return
+			return hes.New(fmt.Sprintf("图形验证码参数长度异常(%d)", len(arr)), errCommonCategory)
 		}
 		// 如果有配置万能验证码，则判断是否相等
 		if magicalCaptcha != "" && arr[1] == magicalCaptcha {
@@ -77,11 +73,13 @@ func ValidateCaptcha(magicalCaptcha string) elton.Handler {
 		}
 		valid, err := service.ValidateCaptcha(c.Context(), arr[0], arr[1])
 		if err != nil {
+			if helper.RedisIsNilError(err) {
+				err = hes.New("图形验证码已过期，请刷新", errCommonCategory)
+			}
 			return err
 		}
 		if !valid {
-			err = hes.New("图形验证码错误", errCommonCategory)
-			return
+			return hes.New("图形验证码错误", errCommonCategory)
 		}
 		return c.Next()
 	}
@@ -89,31 +87,18 @@ func ValidateCaptcha(magicalCaptcha string) elton.Handler {
 
 // NewNoCacheWithCondition 创建no cache的中间件，此中间件根据设置的key value来判断是否设置为no cache
 func NewNoCacheWithCondition(key, value string) elton.Handler {
-	return func(c *elton.Context) (err error) {
-		err = c.Next()
+	return func(c *elton.Context) error {
+		err := c.Next()
 		if c.QueryParam(key) == value {
 			c.NoCache()
 		}
-		return
+		return err
 	}
 }
 
 // NewNotFoundHandler 创建404 not found的处理函数
 func NewNotFoundHandler() http.HandlerFunc {
 	// 对于404的请求，不会执行中间件，一般都是因为攻击之类才会导致大量出现404，
-	// 因此可在此处汇总出错IP，针对较频繁出错IP，增加告警信息
-	// 如果1分钟同一个IP出现60次404
-	warner404 := warner.NewWarner(60*time.Second, 60)
-	warner404.ResetOnWarn = true
-	warner404.On(func(ip string, _ int) {
-		service.AlarmError("too many 404 request, client ip:" + ip)
-	})
-	go func() {
-		// 因为404是根据IP来告警，因此可能存在大量不同的key，因此定时清除过期数据
-		for range time.NewTicker(5 * time.Minute).C {
-			warner404.ClearExpired()
-		}
-	}()
 	notFoundErrBytes := (&hes.Error{
 		Message:    "Not Found",
 		StatusCode: http.StatusNotFound,
@@ -121,33 +106,35 @@ func NewNotFoundHandler() http.HandlerFunc {
 	}).ToJSON()
 	return func(resp http.ResponseWriter, req *http.Request) {
 		ip := elton.GetClientIP(req)
-		log.Default().Info("404",
-			zap.String("ip", ip),
-			zap.String("method", req.Method),
-			zap.String("uri", req.RequestURI),
-		)
+		log.Info(req.Context()).
+			Str("category", "404").
+			Str("ip", ip).
+			Str("method", req.Method).
+			Str("uri", req.RequestURI).
+			Msg("")
+
 		status := http.StatusNotFound
 		resp.Header().Set(elton.HeaderContentType, elton.MIMEApplicationJSON)
 		resp.WriteHeader(status)
 		_, err := resp.Write(notFoundErrBytes)
 		if err != nil {
-			log.Default().Info("404 response fail",
-				zap.String("ip", ip),
-				zap.String("uri", req.RequestURI),
-				zap.Error(err),
-			)
+			log.Error(req.Context()).
+				Str("ip", ip).
+				Str("uri", req.RequestURI).
+				Err(err).
+				Msg("404 response fail")
 		}
-		warner404.Inc(ip, 1)
 
 		tags := map[string]string{
 			cs.TagMethod: req.Method,
+			cs.TagRoute:  "404",
 		}
 		fields := map[string]interface{}{
 			cs.FieldIP:     ip,
 			cs.FieldURI:    req.RequestURI,
 			cs.FieldStatus: status,
 		}
-		helper.GetInfluxSrv().Write(cs.MeasurementHTTPStats, tags, fields)
+		helper.GetInfluxDB().Write(cs.MeasurementHTTPStats, tags, fields)
 	}
 }
 
@@ -160,30 +147,32 @@ func NewMethodNotAllowedHandler() http.HandlerFunc {
 	}).ToJSON()
 	return func(resp http.ResponseWriter, req *http.Request) {
 		ip := elton.GetClientIP(req)
-		log.Default().Info("method not allowed",
-			zap.String("ip", ip),
-			zap.String("method", req.Method),
-			zap.String("uri", req.RequestURI),
-		)
+		log.Info(req.Context()).
+			Str("category", "405").
+			Str("ip", ip).
+			Str("method", req.Method).
+			Str("uri", req.RequestURI).
+			Msg("")
 		resp.Header().Set(elton.HeaderContentType, elton.MIMEApplicationJSON)
 		status := http.StatusMethodNotAllowed
 		resp.WriteHeader(status)
 		_, err := resp.Write(methodNotAllowedErrBytes)
 		if err != nil {
-			log.Default().Info("method not allowed response fail",
-				zap.String("ip", ip),
-				zap.String("uri", req.RequestURI),
-				zap.Error(err),
-			)
+			log.Error(req.Context()).
+				Str("ip", ip).
+				Str("uri", req.RequestURI).
+				Err(err).
+				Msg("405 response fail")
 		}
 		tags := map[string]string{
 			cs.TagMethod: req.Method,
+			cs.TagRoute:  "405",
 		}
 		fields := map[string]interface{}{
 			cs.FieldIP:     ip,
 			cs.FieldURI:    req.RequestURI,
 			cs.FieldStatus: status,
 		}
-		helper.GetInfluxSrv().Write(cs.MeasurementHTTPStats, tags, fields)
+		helper.GetInfluxDB().Write(cs.MeasurementHTTPStats, tags, fields)
 	}
 }

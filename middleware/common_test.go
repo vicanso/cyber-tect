@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/elton"
+	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/hes"
 )
 

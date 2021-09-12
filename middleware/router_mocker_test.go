@@ -21,13 +21,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/elton"
+	routermock "github.com/vicanso/cybertect/router_mock"
 )
 
 func TestNewRouterMocker(t *testing.T) {
 	assert := assert.New(t)
-	routeConfigs := []*service.RouterConfig{
+	routeConfigs := []*routermock.RouterMock{
 		{
 			Method:   "GET",
 			Route:    "/route-match",
@@ -43,7 +43,7 @@ func TestNewRouterMocker(t *testing.T) {
 			Status:     201,
 		},
 	}
-	getConfig := func(method, route string) (found *service.RouterConfig) {
+	getConfig := func(method, route string) (found *routermock.RouterMock) {
 		for _, r := range routeConfigs {
 			if r.Method == method && r.Route == route {
 				found = r

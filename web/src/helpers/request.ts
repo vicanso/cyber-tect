@@ -1,7 +1,9 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { gzip } from "pako";
 
+import HTTPError from "./http-error";
 import { isDevelopment } from "../constants/env";
+// import { httpRequests } from "../store";
 
 const requestedAt = "X-Requested-At";
 // 最小压缩长度
@@ -49,11 +51,36 @@ request.interceptors.request.use(
   }
 );
 
-// 设置接口最少要xms才完成，能让客户看到loading
-const minUse = 150;
+// addRequestStats 添加http请求的相关记录
+function addRequestStats(
+  config: AxiosRequestConfig | undefined,
+  res: AxiosResponse | undefined,
+  he: HTTPError | undefined
+): void {
+  const data: Record<string, unknown> = {};
+  if (config) {
+    data.method = config.method;
+    data.url = config.url;
+    data.data = config.data;
+    const value = config.headers[requestedAt];
+    data.use = Date.now() - Number(value);
+  }
+  if (res) {
+    data.status = res.status;
+  }
+  if (he) {
+    data.message = he.message;
+  }
+  // httpRequests.add(data);
+}
+
+// 设置接口最少要x ms才完成，能让客户看到loading
+const minUse = 300;
 const timeoutErrorCodes = ["ECONNABORTED", "ECONNREFUSED", "ECONNRESET"];
 request.interceptors.response.use(
   async (res) => {
+    addRequestStats(res.config, res, undefined);
+    // 根据请求开始时间计算耗时，并判断是否需要延时响应
     const value = res.config.headers[requestedAt];
     if (value) {
       const use = Date.now() - Number(value);
@@ -65,22 +92,27 @@ request.interceptors.response.use(
   },
   (err) => {
     const { response } = err;
+    const he = new HTTPError(0, "请求出错");
     if (timeoutErrorCodes.includes(err.code)) {
-      err.exception = true;
-      err.category = "timeout";
-      err.message = "请求超时，请稍候再试";
+      he.exception = true;
+      he.code = err.code;
+      he.category = "timeout";
+      he.message = "请求超时，请稍候再试";
     } else if (response) {
+      he.status = response.status;
       if (response.data && response.data.message) {
-        err.message = response.data.message;
-        err.code = response.data.code;
-        err.category = response.data.category;
+        he.message = response.data.message;
+        he.code = response.data.code;
+        he.category = response.data.category;
       } else {
-        err.exception = true;
-        err.category = "exception";
-        err.message = `未知错误[${response.statusCode || -1}]`;
+        he.exception = true;
+        he.category = "exception";
+        he.message = `未知错误`;
       }
+      he.extra = response.data?.extra;
     }
-    return Promise.reject(err);
+    addRequestStats(response?.config, response, he);
+    return Promise.reject(he);
   }
 );
 

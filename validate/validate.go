@@ -16,10 +16,16 @@ package validate
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/mcuadros/go-defaults"
+	"github.com/spf13/cast"
 	"github.com/vicanso/hes"
 )
 
@@ -149,17 +155,21 @@ func isInString(fl validator.FieldLevel, values []string) bool {
 // }
 
 // doValidate 校验struct
-func doValidate(s interface{}, data interface{}) (err error) {
+func doValidate(s interface{}, data interface{}) error {
 	// statusCode := http.StatusBadRequest
 	if data != nil {
 		switch data := data.(type) {
 		case []byte:
-			err = json.Unmarshal(data, s)
+			if len(data) == 0 {
+				he := hes.New("data is empty")
+				he.Category = errJSONParseCategory
+				return he
+			}
+			err := json.Unmarshal(data, s)
 			if err != nil {
 				he := hes.Wrap(err)
 				he.Category = errJSONParseCategory
-				err = he
-				return
+				return he
 			}
 		default:
 			buf, err := json.Marshal(data)
@@ -172,25 +182,126 @@ func doValidate(s interface{}, data interface{}) (err error) {
 			}
 		}
 	}
+	defaults.SetDefaults(s)
+	return defaultValidator.Struct(s)
+}
+
+func wrapError(err error) error {
+
+	he := hes.Wrap(err)
+	if he.Category == "" {
+		he.Category = errCategory
+	}
+	he.StatusCode = http.StatusBadRequest
+	return he
+}
+
+// Query 转换数据后执行校验，用于将query转换为struct时使用
+func Query(s interface{}, data map[string]string) (err error) {
+	v := reflect.ValueOf(s)
+	if v.Kind() != reflect.Ptr {
+		err = wrapError(errors.New("only support pointer"))
+		return
+	}
+	v = v.Elem()
+	t := v.Type()
+	len := t.NumField()
+	for i := 0; i < len; i++ {
+		field := t.Field(i)
+		// we can't access the value of unexported fields
+		if field.PkgPath != "" {
+			continue
+		}
+		value := v.FieldByIndex(field.Index)
+		tag := field.Tag.Get("json")
+		tagValue := data[tag]
+		// 如果值为空，则不做赋值处理
+		if tagValue == "" {
+			continue
+		}
+		switch value.Kind() {
+		case reflect.Int:
+			fallthrough
+		case reflect.Int8:
+			fallthrough
+		case reflect.Int16:
+			fallthrough
+		case reflect.Int32:
+			fallthrough
+		case reflect.Int64:
+			v, e := cast.ToInt64E(tagValue)
+			if e != nil {
+				err = wrapError(e)
+				return
+			}
+			value.SetInt(v)
+		case reflect.Float64:
+			fallthrough
+		case reflect.Float32:
+			v, e := cast.ToFloat64E(tagValue)
+			if e != nil {
+				err = wrapError(e)
+				return
+			}
+			value.SetFloat(v)
+		case reflect.Bool:
+			v, e := cast.ToBoolE(tagValue)
+			if e != nil {
+				err = wrapError(e)
+				return
+			}
+			value.SetBool(v)
+		case reflect.String:
+			value.SetString(tagValue)
+		default:
+			err = wrapError(fmt.Errorf("not support the type:%s", tag))
+			return
+		}
+	}
+	defaults.SetDefaults(s)
 	err = defaultValidator.Struct(s)
 	return
 }
 
 // Do 执行校验
-func Do(s interface{}, data interface{}) (err error) {
-	err = doValidate(s, data)
+func Do(s interface{}, data interface{}) error {
+	err := doValidate(s, data)
 	if err != nil {
-		he := hes.Wrap(err)
-		if he.Category == "" {
-			he.Category = errCategory
-		}
-		err = he
+		return wrapError(err)
 	}
-	return
+	return nil
+}
+
+// 对struct校验
+func Struct(s interface{}) error {
+	defaults.SetDefaults(s)
+	err := defaultValidator.Struct(s)
+	if err != nil {
+		return wrapError(err)
+	}
+	return nil
+}
+
+// 任何参数均返回true，不校验。用于临时将某个校验禁用
+func notValidate(fl validator.FieldLevel) bool {
+	return true
+}
+
+func getCustomDefine(tag string) string {
+	return os.Getenv("VALIDATE_" + tag)
 }
 
 // Add 添加一个校验函数
 func Add(tag string, fn validator.Func, args ...bool) {
+	custom := getCustomDefine(tag)
+	if custom == "*" {
+		_ = defaultValidator.RegisterValidation(tag, notValidate)
+		return
+	}
+	if custom != "" {
+		defaultValidator.RegisterAlias(tag, custom)
+		return
+	}
 	err := defaultValidator.RegisterValidation(tag, fn, args...)
 	if err != nil {
 		panic(err)
@@ -199,5 +310,13 @@ func Add(tag string, fn validator.Func, args ...bool) {
 
 // AddAlias add alias
 func AddAlias(alias, tags string) {
+	custom := getCustomDefine(alias)
+	if custom == "*" {
+		_ = defaultValidator.RegisterValidation(alias, notValidate)
+		return
+	}
+	if custom != "" {
+		tags = custom
+	}
 	defaultValidator.RegisterAlias(alias, tags)
 }

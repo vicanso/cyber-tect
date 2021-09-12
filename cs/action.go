@@ -31,20 +31,6 @@ const (
 	// ActionConfigurationUpdate update configuration
 	ActionConfigurationUpdate = "updateConfiguration"
 
-	// ActionDetectorHTTPAdd add http detector
-	ActionDetectorHTTPAdd = "addHTTPDetector"
-	// ActionDetectorHTTPUpdate update http detector
-	ActionDetectorHTTPUpdate = "updateHTTPDetector"
-	// ActionDetectorDNSAdd add dns detector
-	ActionDetectorDNSAdd = "addDNSDetector"
-	// ActionDetectorDNSUpdate update dns detector
-	ActionDetectorDNSUpdate = "updateDNSDetector"
-	// ActionDetectorTCPAdd add tcp detector
-	ActionDetectorTCPAdd = "addTCPDetector"
-	// ActionDetectorTCPUpdate update tcp detector
-	ActionDetectorTCPUpdate = "updateTCPDetector"
-	// ActionDetectorPingAdd add ping detector
-	ActionDetectorPingAdd = "addPingDetector"
-	// ActionDetectorPingUpdate update ping detector
-	ActionDetectorPingUpdate = "updatePingDetector"
+	// ActionAdminCleanCache clean cache
+	ActionAdminCleanCache = "cleanCache"
 )

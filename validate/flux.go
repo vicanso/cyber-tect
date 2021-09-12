@@ -18,5 +18,5 @@ func init() {
 	// influxdb measurement
 	AddAlias("xMeasurement", "ascii,min=1,max=20")
 	// influxdb tag
-	AddAlias("xTag", "ascii,min=1,max=20")
+	AddAlias("xTag", "ascii,min=1,max=200")
 }

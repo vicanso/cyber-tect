@@ -29,9 +29,9 @@ func TestRandomString(t *testing.T) {
 	assert.True(reg.MatchString(RandomDigit(10)))
 }
 
-func TestGenUlid(t *testing.T) {
+func TestGenXID(t *testing.T) {
 	assert := assert.New(t)
-	assert.Equal(26, len(GenUlid()))
+	assert.Equal(20, len(GenXID()))
 }
 
 func TestSha256(t *testing.T) {

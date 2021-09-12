@@ -8,7 +8,7 @@ import (
 
 func TestApplicationStatus(t *testing.T) {
 	assert := assert.New(t)
-	originalApplicationStatus := applicationStatusAtom.Load()
+	originalApplicationStatus := applicationStatus.Load()
 	defer SetApplicationStatus(originalApplicationStatus)
 
 	assert.Equal(originalApplicationStatus, GetApplicationStatus())

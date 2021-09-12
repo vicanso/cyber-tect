@@ -18,24 +18,29 @@ import (
 	"strings"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/cybertect/validate"
-	"github.com/vicanso/elton"
 )
 
-type (
-	fileCtrl struct{}
+type fileCtrl struct{}
 
-	// fileUploadParams 文件上传参数
-	fileUploadParams struct {
-		Bucket string `json:"bucket,omitempty" validate:"required,xFileBucket"`
-	}
+// 响应相关定义
+type (
 	// fileUploadResp 文件上传响应
 	fileUploadResp struct {
-		Name string `json:"name,omitempty"`
-		Size int64  `json:"size,omitempty"`
+		Name string `json:"name"`
+		Size int64  `json:"size"`
+	}
+)
+
+// 参数相关定义
+type (
+	// fileUploadParams 文件上传参数
+	fileUploadParams struct {
+		Bucket string `json:"bucket" validate:"required,xFileBucket"`
 	}
 )
 
@@ -54,22 +59,22 @@ func init() {
 }
 
 // upload 上传文件
-func (*fileCtrl) upload(c *elton.Context) (err error) {
+func (*fileCtrl) upload(c *elton.Context) error {
 	params := fileUploadParams{}
-	err = validate.Do(&params, c.Query())
+	err := validate.Do(&params, c.Query())
 	if err != nil {
-		return
+		return err
 	}
 
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
-		return
+		return err
 	}
 	defer file.Close()
 	us := getUserSession(c)
 	contentType := header.Header.Get("Content-Type")
 	fileType := strings.Split(contentType, "/")[1]
-	name := util.GenUlid() + "." + fileType
+	name := util.GenXID() + "." + fileType
 	info, err := fileSrv.Upload(c.Context(), service.UploadParams{
 		Bucket: params.Bucket,
 		Name:   name,
@@ -78,16 +83,16 @@ func (*fileCtrl) upload(c *elton.Context) (err error) {
 		Opts: minio.PutObjectOptions{
 			ContentType: contentType,
 			UserTags: map[string]string{
-				"account": us.GetInfo().Account,
+				"account": us.MustGetInfo().Account,
 			},
 		},
 	})
 	if err != nil {
-		return
+		return err
 	}
 	c.Body = &fileUploadResp{
 		Name: info.Key,
 		Size: info.Size,
 	}
-	return
+	return nil
 }

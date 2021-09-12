@@ -22,9 +22,9 @@ import (
 
 func TestIPBlocker(t *testing.T) {
 	assert := assert.New(t)
-	ResetIPBlocker([]string{
+	assert.Nil(ResetIPBlocker([]string{
 		"1.1.1.1",
-	})
+	}))
 	assert.True(IsBlockIP("1.1.1.1"))
 	assert.False(IsBlockIP("1.1.1.2"))
 }

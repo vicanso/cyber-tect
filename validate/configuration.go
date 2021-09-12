@@ -17,6 +17,6 @@ package validate
 func init() {
 	// 应用配置名称
 	AddAlias("xConfigurationName", "min=2,max=20")
-	AddAlias("xConfigurationCategory", "alphanum,min=2,max=20")
+	AddAlias("xConfigurationCategory", "alphanum,min=2,max=30")
 	AddAlias("xConfigurationData", "min=0,max=500")
 }

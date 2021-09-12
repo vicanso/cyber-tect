@@ -1,38 +1,36 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import vueJsx from "@vitejs/plugin-vue-jsx";
+import VitePluginLinaria from 'vite-plugin-linaria';
 
+// https://vitejs.dev/config/
 export default defineConfig({
   base: process.env.STATIC || "/",
   plugins: [
-    vue({
-      template: {
-        preprocessOptions: {
-          doctype: "html",
-        },
-      },
-    }),
+    vue(),
+    vueJsx(),
+    VitePluginLinaria(),
   ],
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
           common: [
-            "vue",
-            "vuex",
-            "vue-router",
             "axios",
             "dayjs",
             "localforage",
             "pako",
           ],
-          plus: ["element-plus"],
-          pluscss: ["element-plus/lib/theme-chalk/index.css"],
+          ui: [
+            "vue",
+            "vue-router",
+          ],
+          naive: [
+            "naive-ui",
+          ]
         },
       },
     },
-  },
-  optimizeDeps: {
-    include: ["dayjs", "localforage", "pako"],
   },
   server: {
     proxy: {

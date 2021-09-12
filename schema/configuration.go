@@ -33,6 +33,12 @@ const (
 	ConfigurationCategoryRouter = "router"
 	// ConfigurationCategorySessionInterceptor session interceptor分类
 	ConfigurationCategorySessionInterceptor = "sessionInterceptor"
+	// ConfigurationCategoryRequestConcurrency request concurrency
+	ConfigurationCategoryRequestConcurrency = "requestConcurrency"
+	// ConfigurationCategoryEmail 邮箱配置
+	ConfigurationCategoryEmail = "email"
+	// ConfigurationHTTPServerInterceptor http服务的拦截配置
+	ConfigurationHTTPServerInterceptor = "httpServerInterceptor"
 )
 
 // Configuration holds the schema definition for the Configuration entity.
@@ -63,20 +69,26 @@ func (Configuration) Fields() []ent.Field {
 				ConfigurationCategoryRouterConcurrency,
 				ConfigurationCategoryRouter,
 				ConfigurationCategorySessionInterceptor,
+				ConfigurationCategoryRequestConcurrency,
+				ConfigurationCategoryEmail,
+				ConfigurationHTTPServerInterceptor,
 			).
 			Comment("配置分类"),
 		field.String("owner").
 			NotEmpty().
 			Comment("创建者"),
-		field.String("data").
+		field.Text("data").
 			NotEmpty().
 			Comment("配置信息"),
 		field.Time("started_at").
-			StructTag(`json:"startedAt,omitempty"`).
+			StructTag(`json:"startedAt"`).
 			Comment("配置启用时间"),
 		field.Time("ended_at").
-			StructTag(`json:"endedAt,omitempty"`).
+			StructTag(`json:"endedAt"`).
 			Comment("配置停用时间"),
+		field.String("description").
+			Comment("配置说明").
+			Optional(),
 	}
 }
 

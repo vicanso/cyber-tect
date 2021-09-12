@@ -1,0 +1,9 @@
+{{ define "model/fields/additional" }}
+	{{/* 添加额外字段 */}}
+	{{- range $i, $f := $.Fields }}
+	{{- if eq $f.Name "status" }}
+		// 状态描述
+		StatusDesc string `json:"statusDesc,omitempty"`
+	{{- end }}
+	{{- end }}
+{{ end }}

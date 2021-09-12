@@ -18,18 +18,18 @@ import (
 	"bytes"
 	"net/http"
 
+	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
-	"github.com/vicanso/cybertect/service"
+	"github.com/vicanso/cybertect/session"
 	"github.com/vicanso/cybertect/util"
-	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
-	"go.uber.org/zap"
 )
 
 // New Error handler
 func NewError() elton.Handler {
+
 	return func(c *elton.Context) error {
 		err := c.Next()
 		if err == nil {
@@ -39,12 +39,6 @@ func NewError() elton.Handler {
 		he, ok := err.(*hes.Error)
 		if !ok {
 			// 如果不是以http error的形式返回的error则为非主动抛出错误
-			log.Default().Error("unexpected error",
-				zap.String("method", c.Request.Method),
-				zap.String("route", c.Route),
-				zap.String("uri", uri),
-				zap.Error(err),
-			)
 			he = hes.NewWithError(err)
 			he.StatusCode = http.StatusInternalServerError
 			he.Exception = true
@@ -59,12 +53,23 @@ func NewError() elton.Handler {
 			he.Extra = make(map[string]interface{})
 		}
 		account := ""
-		tid := util.GetTrackID(c)
-		us := service.NewUserSession(c)
+		tid := util.GetDeviceID(c.Context())
+		us := session.NewUserSession(c)
 		if us != nil && us.IsLogin() {
-			account = us.Account
+			account = us.MustGetInfo().Account
 		}
+
 		ip := c.RealIP()
+		log.Info(c.Context()).
+			Str("catgory", "httpError").
+			Bool("exception", he.Exception).
+			Str("ip", ip).
+			Str("method", c.Request.Method).
+			Str("route", c.Route).
+			Str("uri", uri).
+			Str("error", he.Error()).
+			Msg("")
+
 		sid := util.GetSessionID(c)
 
 		he.Extra["route"] = c.Route
@@ -89,7 +94,7 @@ func NewError() elton.Handler {
 			tags[cs.TagCategory] = he.Category
 		}
 
-		helper.GetInfluxSrv().Write(cs.MeasurementHTTPError, tags, fields)
+		helper.GetInfluxDB().Write(cs.MeasurementHTTPError, tags, fields)
 		c.StatusCode = he.StatusCode
 		c.BodyBuffer = bytes.NewBuffer(he.ToJSON())
 		return nil

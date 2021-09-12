@@ -35,7 +35,7 @@ func TestConfigENV(t *testing.T) {
 func TestBasicConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	basicConfig := GetBasicConfig()
+	basicConfig := MustGetBasicConfig()
 	assert.Equal("cybertect", basicConfig.Name)
 	assert.Equal(uint(1000), basicConfig.RequestLimit)
 	assert.Equal(":7001", basicConfig.Listen)
@@ -44,64 +44,66 @@ func TestBasicConfig(t *testing.T) {
 func TestSessionConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	sessionConfig := GetSessionConfig()
-	assert.Equal(120*time.Hour, sessionConfig.TTL)
+	sessionConfig := MustGetSessionConfig()
+	assert.Equal(240*time.Hour, sessionConfig.TTL)
 	assert.Equal("cybertect", sessionConfig.Key)
 	assert.Equal("/", sessionConfig.CookiePath)
-	assert.NotEmpty(sessionConfig.Secret)
+	assert.Equal([]string{"cuttlefish", "secret"}, sessionConfig.Keys)
 	assert.Equal("jt", sessionConfig.TrackKey)
+}
+
+func TestRedisConfig(t *testing.T) {
+	assert := assert.New(t)
+
+	redisConfig := MustGetRedisConfig()
+	assert.Equal([]string{"127.0.0.1:6379"}, redisConfig.Addrs)
+	assert.Equal("", redisConfig.Password)
+	assert.Equal(200*time.Millisecond, redisConfig.Slow)
+	assert.Equal(uint32(1000), redisConfig.MaxProcessing)
 }
 
 func TestMailConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	mailConfig := GetMailConfig()
+	mailConfig := MustGetMailConfig()
 	assert.Equal("smtp.office365.com", mailConfig.Host)
 	assert.Equal(587, mailConfig.Port)
-	assert.Equal("test@outlook.com", mailConfig.User)
-	assert.Equal("MAIL_PASS", mailConfig.Password)
+	assert.Equal("tree.xie@outlook.com", mailConfig.User)
+	assert.Equal("EMAIL_PASS", mailConfig.Password)
 }
 
 func TestInfluxdbConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	influxdbConfig := GetInfluxdbConfig()
+	influxdbConfig := MustGetInfluxdbConfig()
 	assert.Equal("http://127.0.0.1:8086", influxdbConfig.URI)
 	assert.Equal("cybertect", influxdbConfig.Bucket)
 	assert.Equal("bigTree", influxdbConfig.Org)
-	assert.Equal("YXFOYqPAxtF2wxfVMn-M168Y8rbAFhOsMDKCVWaStmEtFTqFX9KtcYDQk5ouwCNJY0iyW1KVE-VhmmAAhnfG5w==", influxdbConfig.Token)
+	assert.Equal("YcAmMWPl0XR_OKJYNIozsiBI0qBGIe4-Y_rWKUcNbQ8sYobWFrsMCgY_t0FRlpAMkVNgghhcQ1TgDixt92Qe6w==", influxdbConfig.Token)
 	assert.Equal(uint(100), influxdbConfig.BatchSize)
-	assert.Equal(10*time.Second, influxdbConfig.FlushInterval)
-	assert.True(influxdbConfig.Disabled)
+	assert.Equal(30*time.Second, influxdbConfig.FlushInterval)
+	assert.False(influxdbConfig.Disabled)
 }
 
-func TestAlarmConfig(t *testing.T) {
+func TestMustGetPostgresConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	alarmConfig := GetAlarmConfig()
-	assert.NotNil(alarmConfig)
-}
-
-func TestGetPostgresConfig(t *testing.T) {
-	assert := assert.New(t)
-
-	postgresConfig := GetPostgresConfig()
+	postgresConfig := MustGetPostgresConfig()
 	assert.NotNil(postgresConfig.URI)
 }
 
-func TestGetLocationConfig(t *testing.T) {
+func TestMustGetLocationConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	locationConfig := GetLocationConfig()
+	locationConfig := MustGetLocationConfig()
 	assert.Equal("https://ip.npmtrend.com", locationConfig.BaseURL)
-	assert.Equal("location", locationConfig.Name)
 	assert.Equal(3*time.Second, locationConfig.Timeout)
 }
 
-func TestGetMinioConfig(t *testing.T) {
+func TestMustGetMinioConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	minioConfig := GetMinioConfig()
+	minioConfig := MustGetMinioConfig()
 	assert.Equal("127.0.0.1:9000", minioConfig.Endpoint)
 	assert.Equal("origin", minioConfig.AccessKeyID)
 	assert.Equal("test123456", minioConfig.SecretAccessKey)

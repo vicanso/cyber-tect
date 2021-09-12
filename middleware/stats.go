@@ -16,13 +16,12 @@ package middleware
 
 import (
 	"github.com/dustin/go-humanize"
+	"github.com/vicanso/elton"
+	M "github.com/vicanso/elton/middleware"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/util"
-	"github.com/vicanso/elton"
-	M "github.com/vicanso/elton/middleware"
-	"go.uber.org/zap"
 )
 
 func NewStats() elton.Handler {
@@ -36,20 +35,22 @@ func NewStats() elton.Handler {
 			// 此处记录的session id，需要从客户登录记录中获取对应的session id
 			// us := service.NewUserSession(c)
 			sid := util.GetSessionID(c)
-			log.Default().Info("access log",
-				// 由客户端设置的uuid
-				zap.String("uuid", c.GetRequestHeader("X-UUID")),
-				zap.String("ip", info.IP),
-				zap.String("sid", sid),
-				zap.String("method", info.Method),
-				zap.String("route", info.Route),
-				zap.String("uri", info.URI),
-				zap.Int("status", info.Status),
-				zap.Uint32("connecting", info.Connecting),
-				zap.String("consuming", info.Consuming.String()),
-				zap.String("size", humanize.Bytes(uint64(info.Size))),
-				zap.Int("bytes", info.Size),
-			)
+			// 由客户端设置的uuid
+			// zap.String("uuid", c.GetRequestHeader("X-UUID")),
+			log.Info(c.Context()).
+				Str("category", "accessLog").
+				Str("ip", info.IP).
+				Str("sid", sid).
+				Str("method", info.Method).
+				Str("route", info.Route).
+				Str("uri", info.URI).
+				Int("status", info.Status).
+				Uint32("connecting", info.Connecting).
+				Str("consuming", info.Consuming.String()).
+				Str("size", humanize.Bytes(uint64(info.Size))).
+				Int("bytes", info.Size).
+				Msg("")
+
 			tags := map[string]string{
 				cs.TagMethod: info.Method,
 				cs.TagRoute:  info.Route,
@@ -63,7 +64,7 @@ func NewStats() elton.Handler {
 				cs.FieldSize:       info.Size,
 				cs.FieldProcessing: info.Connecting,
 			}
-			helper.GetInfluxSrv().Write(cs.MeasurementHTTPStats, tags, fields)
+			helper.GetInfluxDB().Write(cs.MeasurementHTTPStats, tags, fields)
 		},
 	})
 }

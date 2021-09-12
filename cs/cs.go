@@ -14,18 +14,13 @@
 
 package cs
 
+import "regexp"
+
 const (
 	// CID context id
 	CID = "cid"
 	// UserSession user session
 	UserSession = "userSession"
-)
-
-type ContextKey string
-
-const (
-	// ConnContextKey conn context key
-	ConnContextKey ContextKey = "connContext"
 )
 
 const (
@@ -39,3 +34,6 @@ const (
 	// ResultFail result fail
 	ResultFail
 )
+
+// ***处理
+var MaskRegExp = regexp.MustCompile(`(?i)password`)

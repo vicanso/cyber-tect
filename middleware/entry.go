@@ -15,8 +15,9 @@
 package middleware
 
 import (
-	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
+	"github.com/vicanso/cybertect/service"
+	"github.com/vicanso/cybertect/util"
 )
 
 const (
@@ -28,12 +29,24 @@ type ExitFunc func() int32
 
 // NewEntry create an entry middleware
 func NewEntry(entryFn EntryFunc, exitFn ExitFunc) elton.Handler {
-	return func(c *elton.Context) (err error) {
+	return func(c *elton.Context) error {
+		// 如果请求头指定connection: close
+		// server conn stats中无法判断现在处理请求事件
+		// 处理完成时，需要手工将现在处理的连接数-1
+		if c.GetRequestHeader("Connection") == "close" {
+			defer service.DecHTTPConnProcessing()
+		}
 		entryFn()
 		defer exitFn()
 		if c.ID != "" {
 			c.SetHeader(xResponseID, c.ID)
+			c.WithContext(util.SetTraceID(c.Context(), c.ID))
 		}
+		deviceID := util.GetTrackID(c)
+		if deviceID != "" {
+			c.WithContext(util.SetDeviceID(c.Context(), deviceID))
+		}
+
 		// 测试环境返回x-forwarded-for，方便确认链路
 		if !util.IsProduction() {
 			c.SetHeader(elton.HeaderXForwardedFor, c.GetRequestHeader(elton.HeaderXForwardedFor))

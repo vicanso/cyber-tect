@@ -19,6 +19,7 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/shirou/gopsutil/v3/process"
 	performance "github.com/vicanso/go-performance"
 )
 
@@ -30,25 +31,48 @@ func GetHTTPServerConnState() func(net.Conn, http.ConnState) {
 	return httpServerConnStats.ConnState
 }
 
+// dec http connection processing
+func DecHTTPConnProcessing() {
+	httpServerConnStats.DecProcessing()
+}
+
 type (
 	// Performance 应用性能指标
 	Performance struct {
-		Concurrency           int32 `json:"concurrency,omitempty"`
-		RequestProcessedTotal int64 `json:"requestProcessedTotal,omitempty"`
+		Concurrency           int32 `json:"concurrency"`
+		RequestProcessedTotal int64 `json:"requestProcessedTotal"`
 		performance.CPUMemory
-		performance.ConnStats
+		HTTPServerConnStats *performance.ConnStats        `json:"httpServerConnStats"`
+		IOCountersStat      *process.IOCountersStat       `json:"ioCountersStat"`
+		ConnStat            *performance.ConnectionsCount `json:"connStat"`
+		NumCtxSwitchesStat  *process.NumCtxSwitchesStat   `json:"numCtxSwitchesStat"`
+		PageFaultsStat      *process.PageFaultsStat       `json:"pageFaultsStat"`
+		NumFds              int                           `json:"numFds"`
+		OpenFilesStats      []process.OpenFilesStat       `json:"openFilesStats"`
 	}
 )
 
 // GetPerformance 获取应用性能指标
 func GetPerformance(ctx context.Context) *Performance {
+	ioCountersStat, _ := performance.IOCounters(ctx)
+	connStat, _ := performance.ConnectionsStat(ctx)
+	numCtxSwitchesStat, _ := performance.NumCtxSwitches(ctx)
+	numFds, _ := performance.NumFds(ctx)
+	pageFaults, _ := performance.PageFaults(ctx)
+	openFilesStats, _ := performance.OpenFiles(ctx)
+	httpServerConnStats := httpServerConnStats.Stats()
 	return &Performance{
 		Concurrency:           GetConcurrency(),
 		RequestProcessedTotal: requestProcessConcurrency.Total(),
 		CPUMemory:             performance.CurrentCPUMemory(ctx),
-		ConnStats:             httpServerConnStats.Stats(),
+		HTTPServerConnStats:   &httpServerConnStats,
+		IOCountersStat:        ioCountersStat,
+		ConnStat:              connStat,
+		NumCtxSwitchesStat:    numCtxSwitchesStat,
+		NumFds:                int(numFds),
+		PageFaultsStat:        pageFaults,
+		OpenFilesStats:        openFilesStats,
 	}
-
 }
 
 // IncreaseConcurrency 当前并发请求+1
@@ -67,6 +91,6 @@ func GetConcurrency() int32 {
 }
 
 // UpdateCPUUsage 更新cpu使用率
-func UpdateCPUUsage() error {
-	return performance.UpdateCPUUsage()
+func UpdateCPUUsage(ctx context.Context) error {
+	return performance.UpdateCPUUsage(ctx)
 }

@@ -22,12 +22,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/cybertect/ent/configuration"
 	confSchema "github.com/vicanso/cybertect/ent/configuration"
+	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/hes"
 )
 
 func TestConfigurationParams(t *testing.T) {
+	// 测试代码中不执行main，因此在此处调用初始化
+	_ = helper.EntInitSchema()
 	assert := assert.New(t)
 	now := func() time.Time {
 		t := time.Now()
@@ -37,7 +40,7 @@ func TestConfigurationParams(t *testing.T) {
 	name := util.RandomString(8)
 	category := confSchema.CategoryBlockIP
 	defer func() {
-		_, _ = getEntClient().Configuration.Delete().Where(configuration.Name(name)).Exec(context.Background())
+		_, _ = getConfigurationClient().Delete().Where(configuration.Name(name)).Exec(context.Background())
 	}()
 
 	configID := 0

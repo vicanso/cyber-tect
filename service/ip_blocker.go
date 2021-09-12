@@ -15,57 +15,22 @@
 package service
 
 import (
-	"sync"
-
 	"github.com/vicanso/ips"
 )
 
-var (
-	ipBlocker = &IPBlocker{
-		mutex: sync.RWMutex{},
-		IPS:   ips.New(),
-	}
-)
-
-type (
-	// IPBlocker IP拦截器
-
-	IPBlocker struct {
-		mutex sync.RWMutex
-		IPS   *ips.IPS
-	}
-)
+var blockIPS = ips.New()
 
 // ResetIPBlocker 重置IP拦截器的IP列表
-func ResetIPBlocker(ipList []string) {
-	// blocker 有读写锁，因此ips可以使用无锁
-	list := ips.NewWithoutMutex()
-	for _, value := range ipList {
-		_ = list.Add(value)
-	}
-	ipBlocker.mutex.Lock()
-	defer ipBlocker.mutex.Unlock()
-	ipBlocker.IPS = list
+func ResetIPBlocker(ipList []string) error {
+	return blockIPS.Replace(ipList...)
 }
 
 // IsBlockIP 判断该IP是否有需要拦截
 func IsBlockIP(ip string) bool {
-	ipBlocker.mutex.RLock()
-	defer ipBlocker.mutex.RUnlock()
-	blocked := ipBlocker.IPS.Contains(ip)
-	return blocked
+	return blockIPS.Contains(ip)
 }
 
 // GetIPBlockList 获取block的ip地址列表
 func GetIPBlockList() []string {
-	ipBlocker.mutex.RLock()
-	defer ipBlocker.mutex.RUnlock()
-	ipList := make([]string, 0)
-	for _, item := range ipBlocker.IPS.IPList {
-		ipList = append(ipList, item.String())
-	}
-	for _, item := range ipBlocker.IPS.IPNetList {
-		ipList = append(ipList, item.String())
-	}
-	return ipList
+	return blockIPS.Strings()
 }

@@ -18,15 +18,15 @@ import (
 	"bytes"
 	"time"
 
-	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/elton"
+	routermock "github.com/vicanso/cybertect/router_mock"
 )
 
-type GetConfigFunc func(method, route string) *service.RouterConfig
+type GetConfigFunc func(method, route string) *routermock.RouterMock
 
 // NewRouterMocker create a router mocker
 func NewRouterMocker(fn GetConfigFunc) elton.Handler {
-	return func(c *elton.Context) (err error) {
+	return func(c *elton.Context) error {
 		routerConfig := fn(c.Request.Method, c.Route)
 		if routerConfig == nil {
 			return c.Next()

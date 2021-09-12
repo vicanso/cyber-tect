@@ -26,22 +26,22 @@ func (UserLogin) Fields() []ent.Field {
 			Immutable().
 			Comment("登录账户"),
 		field.String("user_agent").
-			StructTag(`json:"userAgent,omitempty"`).
+			StructTag(`json:"userAgent"`).
 			Optional().
 			Comment("用户浏览器的user-agent"),
 		field.String("ip").
 			Optional().
 			Comment("用户IP"),
 		field.String("track_id").
-			StructTag(`json:"trackID,omitempty"`).
+			StructTag(`json:"trackID"`).
 			Optional().
 			Comment("用户的track id"),
 		field.String("session_id").
-			StructTag(`json:"sessionID,omitempty"`).
+			StructTag(`json:"sessionID"`).
 			Optional().
 			Comment("用户的session id"),
 		field.String("x_forwarded_for").
-			StructTag(`json:"xForwardedFor,omitempty"`).
+			StructTag(`json:"xForwardedFor"`).
 			Optional().
 			Comment("用户登录时的x-forwarded-for"),
 		field.String("country").

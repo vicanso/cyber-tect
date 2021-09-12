@@ -33,10 +33,9 @@ type IPBlockFunc func(string) bool
 
 // NewIPBlocker create a new block ip middleware
 func NewIPBlocker(fn IPBlockFunc) elton.Handler {
-	return func(c *elton.Context) (err error) {
+	return func(c *elton.Context) error {
 		if fn(c.RealIP()) {
-			err = ErrIPNotAllow
-			return
+			return ErrIPNotAllow
 		}
 		return c.Next()
 	}

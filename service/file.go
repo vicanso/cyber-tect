@@ -27,8 +27,8 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/elton"
+	"github.com/vicanso/cybertect/config"
 )
 
 type (
@@ -51,7 +51,7 @@ var defaultMinioClient = mustNewMinioClient()
 
 // mustNewMinioClient 初始化minio client
 func mustNewMinioClient() *minio.Client {
-	minioConfig := config.GetMinioConfig()
+	minioConfig := config.MustGetMinioConfig()
 	c, err := minio.New(minioConfig.Endpoint, &minio.Options{
 		Secure: minioConfig.SSL,
 		Creds:  credentials.NewStaticV4(minioConfig.AccessKeyID, minioConfig.SecretAccessKey, ""),
@@ -63,7 +63,7 @@ func mustNewMinioClient() *minio.Client {
 }
 
 // Upload 上传文件
-func (srv *FileSrv) Upload(ctx context.Context, params UploadParams) (info minio.UploadInfo, err error) {
+func (srv *FileSrv) Upload(ctx context.Context, params UploadParams) (minio.UploadInfo, error) {
 	return defaultMinioClient.PutObject(ctx, params.Bucket, params.Name, params.Reader, params.Size, params.Opts)
 }
 
@@ -73,29 +73,31 @@ func (srv *FileSrv) Get(ctx context.Context, bucket, filename string) (*minio.Ob
 }
 
 // GetData 获取文件内容及对应的http头
-func (srv *FileSrv) GetData(ctx context.Context, bucket, filename string) (data []byte, header http.Header, err error) {
+func (srv *FileSrv) GetData(ctx context.Context, bucket, filename string) ([]byte, http.Header, error) {
 	object, err := srv.Get(ctx, bucket, filename)
 	if err != nil {
-		return
+		return nil, nil, err
 	}
 	statsInfo, err := object.Stat()
 	if err != nil {
-		return
+		return nil, nil, err
 	}
-	header = make(http.Header)
+
+	data, err := ioutil.ReadAll(object)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	header := make(http.Header)
 	header.Set(elton.HeaderETag, statsInfo.ETag)
 	header.Set(elton.HeaderContentType, statsInfo.ContentType)
-
-	data, err = ioutil.ReadAll(object)
-	if err != nil {
-		return
-	}
-	return
+	return data, header, nil
 }
 
 // ResizeImage 调整图片尺寸
-func (srv *FileSrv) ResizeImage(reader io.Reader, imageType string, width, height int) (buffer *bytes.Buffer, err error) {
+func (srv *FileSrv) ResizeImage(reader io.Reader, imageType string, width, height int) (*bytes.Buffer, error) {
 	var img image.Image
+	var err error
 	switch imageType {
 	default:
 		img, _, err = image.Decode(reader)
@@ -107,14 +109,14 @@ func (srv *FileSrv) ResizeImage(reader io.Reader, imageType string, width, heigh
 		img, err = jpeg.Decode(reader)
 	}
 	if err != nil {
-		return
+		return nil, err
 	}
 	if width == 0 && height == 0 {
 		width = img.Bounds().Dx()
 		height = img.Bounds().Dy()
 	}
 	img = imaging.Resize(img, width, height, imaging.Lanczos)
-	buffer = new(bytes.Buffer)
+	buffer := new(bytes.Buffer)
 	switch imageType {
 	default:
 		err = jpeg.Encode(buffer, img, &jpeg.Options{
@@ -124,7 +126,7 @@ func (srv *FileSrv) ResizeImage(reader io.Reader, imageType string, width, heigh
 		err = png.Encode(buffer, img)
 	}
 	if err != nil {
-		return
+		return nil, err
 	}
-	return
+	return buffer, nil
 }

@@ -20,75 +20,115 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
+	"os"
+	"regexp"
+	"strconv"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-
+	"github.com/rs/zerolog"
+	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/util"
+	mask "github.com/vicanso/go-mask"
 )
 
-var defaultLogger = mustNewLogger("")
+var enabledDebugLog = false
+var defaultLogger = newLogger()
+
+// 日志中值的最大长度
+var logFieldValueMaxSize = 30
+var logMask = mask.New(
+	mask.RegExpOption(cs.MaskRegExp),
+	mask.MaxLengthOption(logFieldValueMaxSize),
+	mask.NotMaskRegExpOption(regexp.MustCompile(`stack`)),
+)
 
 type httpServerLogger struct{}
 
 func (hsl *httpServerLogger) Write(p []byte) (int, error) {
-	defaultLogger.Info(string(p),
-		zap.String("category", "httpServerLogger"),
-	)
+	Info(context.Background()).
+		Str("category", "httpServerLogger").
+		Msg(string(p))
 	return len(p), nil
 }
 
 type redisLogger struct{}
 
 func (rl *redisLogger) Printf(ctx context.Context, format string, v ...interface{}) {
-	defaultLogger.Info(fmt.Sprintf(format, v...),
-		zap.String("category", "redisLogger"),
-	)
+	Info(context.Background()).
+		Str("category", "redisLogger").
+		Msg(fmt.Sprintf(format, v...))
 }
 
-// mustNewLogger 初始化logger
-func mustNewLogger(outputPath string) *zap.Logger {
+type entLogger struct{}
 
+func (el *entLogger) Log(args ...interface{}) {
+	Info(context.Background()).
+		Msg(fmt.Sprint(args...))
+}
+
+// DebugEnabled 是否启用了debug日志
+func DebugEnabled() bool {
+	return enabledDebugLog
+}
+
+// newLogger 初始化logger
+func newLogger() *zerolog.Logger {
+	// 如果要节约日志空间，可以配置
+	zerolog.TimestampFieldName = "t"
+	zerolog.LevelFieldName = "l"
+	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.999Z07:00"
+
+	var l zerolog.Logger
 	if util.IsDevelopment() {
-		c := zap.NewDevelopmentConfig()
-		l, err := c.Build(zap.AddStacktrace(zap.ErrorLevel))
-		if err != nil {
-			panic(err)
-		}
-		return l
+		l = zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).
+			With().
+			Timestamp().
+			Logger()
+	} else {
+		l = zerolog.New(os.Stdout).
+			Level(zerolog.InfoLevel).
+			With().
+			Timestamp().
+			Logger()
 	}
-	c := zap.NewProductionConfig()
-	if outputPath != "" {
-		c.OutputPaths = []string{
-			outputPath,
-		}
-		c.ErrorOutputPaths = []string{
-			outputPath,
+
+	// 如果有配置指定日志级别，则以配置指定的输出
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel != "" {
+		lv, _ := strconv.Atoi(logLevel)
+		l = l.Level(zerolog.Level(lv))
+		if logLevel != "" && lv <= 0 {
+			enabledDebugLog = true
 		}
 	}
 
-	// 在一秒钟内, 如果某个级别的日志输出量超过了 Initial, 那么在超过之后, 每 Thereafter 条日志才会输出一条, 其余的日志都将被删除
-	c.Sampling.Initial = 1000
-	// 如果不希望任何日志丢失，则设置为nil
-	// c.Sampling = nil
-
-	c.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-	// 只针对panic 以上的日志增加stack trace
-	l, err := c.Build(zap.AddStacktrace(zap.DPanicLevel))
-	if err != nil {
-		panic(err)
-	}
-	return l
+	return &l
 }
 
-// SetOutputPath 设置日志的输出目录，在程序初始化时使用
-func SetOutputPath(outputPath string) {
-	defaultLogger = mustNewLogger(outputPath)
+func fillTraceInfos(ctx context.Context, e *zerolog.Event) *zerolog.Event {
+	deviceID := util.GetDeviceID(ctx)
+	if deviceID == "" {
+		return e
+	}
+	return e.Str("deviceID", deviceID).
+		Str("traceID", util.GetTraceID(ctx)).
+		Str("account", util.GetAccount(ctx))
 }
 
-// Default 获取默认的logger
-func Default() *zap.Logger {
-	return defaultLogger
+func Info(ctx context.Context) *zerolog.Event {
+	return fillTraceInfos(ctx, defaultLogger.Info())
+}
+
+func Error(ctx context.Context) *zerolog.Event {
+	return fillTraceInfos(ctx, defaultLogger.Error())
+}
+
+func Debug(ctx context.Context) *zerolog.Event {
+	return fillTraceInfos(ctx, defaultLogger.Debug())
+}
+
+func Warn(ctx context.Context) *zerolog.Event {
+	return fillTraceInfos(ctx, defaultLogger.Warn())
 }
 
 // NewHTTPServerLogger create a http server logger
@@ -99,4 +139,28 @@ func NewHTTPServerLogger() *log.Logger {
 // NewRedisLogger create a redis logger
 func NewRedisLogger() *redisLogger {
 	return &redisLogger{}
+}
+
+// NewEntLogger create a ent logger
+func NewEntLogger() *entLogger {
+	return &entLogger{}
+}
+
+// URLValues create a url.Values log event
+func URLValues(query url.Values) *zerolog.Event {
+	if len(query) == 0 {
+		return zerolog.Dict()
+	}
+	return zerolog.Dict().Fields(logMask.URLValues(query))
+}
+
+// Struct create a struct log event
+func Struct(data interface{}) *zerolog.Event {
+	if data == nil {
+		return zerolog.Dict()
+	}
+
+	// 转换出错忽略
+	m, _ := logMask.Struct(data)
+	return zerolog.Dict().Fields(m)
 }

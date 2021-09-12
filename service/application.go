@@ -22,7 +22,7 @@ import (
 
 var (
 	// 应用状态
-	applicationStatusAtom = atomic.NewInt32(ApplicationStatusStopped)
+	applicationStatus = atomic.NewInt32(ApplicationStatusStopped)
 	// 应用版本
 	applicationVersion string
 	// 应用构建时间
@@ -46,17 +46,17 @@ func init() {
 
 // SetApplicationStatus 设置应用运行状态
 func SetApplicationStatus(status int32) {
-	applicationStatusAtom.Store(status)
+	applicationStatus.Store(status)
 }
 
 // GetApplicationStatus 获取应用运行状态
 func GetApplicationStatus() int32 {
-	return applicationStatusAtom.Load()
+	return applicationStatus.Load()
 }
 
 // ApplicationIsRunning 判断应用是否正在运行
 func ApplicationIsRunning() bool {
-	return applicationStatusAtom.Load() == ApplicationStatusRunning
+	return applicationStatus.Load() == ApplicationStatusRunning
 }
 
 // GetApplicationVersion 获取应用版本号

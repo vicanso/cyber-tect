@@ -20,13 +20,13 @@ import (
 )
 
 func TestInfluxWrite(t *testing.T) {
-	GetInfluxSrv().Write("test", map[string]string{
+	GetInfluxDB().Write("test", map[string]string{
 		"type": "vip",
 	}, map[string]interface{}{
 		"name":  "test",
 		"count": 1,
 	})
-	GetInfluxSrv().Write("test", map[string]string{
+	GetInfluxDB().Write("test", map[string]string{
 		"type": "vip",
 	}, map[string]interface{}{
 		"name":  "test",

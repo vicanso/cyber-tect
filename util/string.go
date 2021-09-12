@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/mozillazg/go-pinyin"
-	"github.com/oklog/ulid/v2"
+	"github.com/rs/xid"
 )
 
 // https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go
@@ -69,11 +69,9 @@ func RandomDigit(n int) string {
 	return randomString(digitBytes, n)
 }
 
-// GenUlid 生成ulid
-func GenUlid() string {
-	entropy := rand.New(rand.NewSource(time.Now().UnixNano()))
-	t := time.Now()
-	return ulid.MustNew(ulid.Timestamp(t), entropy).String()
+// GenXID 生成xid
+func GenXID() string {
+	return strings.ToUpper(xid.New().String())
 }
 
 // Sha256 对字符串做sha256后返回base64字符串

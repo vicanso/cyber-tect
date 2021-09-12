@@ -19,7 +19,6 @@ import (
 	"database/sql"
 	"net/url"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -29,14 +28,15 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/iancoleman/strcase"
 	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/rs/zerolog"
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
+	"github.com/vicanso/cybertect/ent/hook"
 	"github.com/vicanso/cybertect/ent/migrate"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/util"
 	"go.uber.org/atomic"
-	"go.uber.org/zap"
 )
 
 var (
@@ -44,8 +44,6 @@ var (
 )
 var (
 	initSchemaOnce sync.Once
-
-	maskRegExp = regexp.MustCompile(`(?i)password`)
 )
 
 // processingKeyAll 记录所有表的正在处理请求
@@ -58,19 +56,28 @@ type entProcessingStats struct {
 
 // EntEntListParams 公共的列表查询参数
 type EntListParams struct {
-	Limit  string `json:"limit,omitempty" validate:"required,xLimit"`
-	Offset string `json:"offset,omitempty" validate:"omitempty,xOffset"`
-	Fields string `json:"fields,omitempty" validate:"omitempty,xFields"`
-	Order  string `json:"order,omitempty" validate:"omitempty,xOrder"`
-	// IgnoreCount 忽略计算总数
-	IgnoreCount string `json:"ignoreCount,omitempty"`
+	// 查询limit限制
+	// required: true
+	Limit string `json:"limit" validate:"required,xLimit"`
+
+	// 查询的offset偏移
+	Offset string `json:"offset" validate:"omitempty,xOffset"`
+
+	// 查询筛选的字段，如果多个字段以,分隔
+	Fields string `json:"fields" validate:"omitempty,xFields"`
+
+	// 查询的排序字段，如果以-前缀表示降序，如果多个字段以,分隔
+	Order string `json:"order" validate:"omitempty,xOrder"`
+
+	// 忽略计算总数，如果此字段不为空则表示不查询总数
+	IgnoreCount string `json:"ignoreCount"`
 }
 
 var currentEntProcessingStats = new(entProcessingStats)
 
 // mustNewEntClient 初始化客户端与driver
 func mustNewEntClient() (*entsql.Driver, *ent.Client) {
-	postgresConfig := config.GetPostgresConfig()
+	postgresConfig := config.MustGetPostgresConfig()
 
 	maskURI := postgresConfig.URI
 	urlInfo, _ := url.Parse(maskURI)
@@ -80,22 +87,28 @@ func mustNewEntClient() (*entsql.Driver, *ent.Client) {
 			maskURI = strings.ReplaceAll(maskURI, pass, "***")
 		}
 	}
-	log.Default().Info("connect postgres",
-		zap.String("uri", maskURI),
-	)
+	log.Info(context.Background()).
+		Str("uri", maskURI).
+		Msg("connect postgres")
 	db, err := sql.Open("pgx", postgresConfig.URI)
 	if err != nil {
 		panic(err)
 	}
+	if postgresConfig.MaxIdleConns != 0 {
+		db.SetMaxIdleConns(postgresConfig.MaxIdleConns)
+	}
+	if postgresConfig.MaxOpenConns != 0 {
+		db.SetMaxOpenConns(postgresConfig.MaxOpenConns)
+	}
+	if postgresConfig.MaxIdleTime != 0 {
+		db.SetConnMaxIdleTime(postgresConfig.MaxIdleTime)
+	}
 
 	// Create an ent.Driver from `db`.
 	driver := entsql.OpenDB(dialect.Postgres, db)
-	c := ent.NewClient(ent.Driver(driver))
+	entLogger := log.NewEntLogger()
+	c := ent.NewClient(ent.Driver(driver), ent.Log(entLogger.Log))
 
-	ctx := context.Background()
-	if err := c.Schema.Create(ctx); err != nil {
-		panic(err)
-	}
 	initSchemaHooks(c)
 	return driver, c
 }
@@ -202,8 +215,8 @@ func initSchemaHooks(c *ent.Client) {
 		}
 		return false
 	}
-	// 检测结果定期删除，因此需要允许删除
-	// c.Use(hook.Reject(ent.OpDelete | ent.OpDeleteOne))
+	// 禁止删除数据
+	c.Use(hook.Reject(ent.OpDelete | ent.OpDeleteOne))
 	// 数据库操作统计
 	c.Use(func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
@@ -241,7 +254,7 @@ func initSchemaHooks(c *ent.Client) {
 					}
 				}
 
-				if maskRegExp.MatchString(name) {
+				if cs.MaskRegExp.MatchString(name) {
 					data[name] = "***"
 				} else {
 					data[name] = value
@@ -249,16 +262,17 @@ func initSchemaHooks(c *ent.Client) {
 			}
 
 			d := time.Since(startedAt)
-			log.Default().Info("ent stats",
-				zap.String("schema", schemaType),
-				zap.String("op", op),
-				zap.Int("result", result),
-				zap.Int32("processing", processing),
-				zap.Int32("totalProcessing", totalProcessing),
-				zap.String("use", d.String()),
-				zap.Any("data", data),
-				zap.String("message", message),
-			)
+			log.Info(ctx).
+				Str("category", "entStats").
+				Str("schema", schemaType).
+				Str("op", op).
+				Int("result", result).
+				Int32("processing", processing).
+				Int32("totalProcessing", totalProcessing).
+				Str("use", d.String()).
+				Dict("data", zerolog.Dict().Fields(data)).
+				Str("message", message).
+				Msg("")
 			fields := map[string]interface{}{
 				cs.FieldProcessing:      int(processing),
 				cs.FieldTotalProcessing: int(totalProcessing),
@@ -273,7 +287,7 @@ func initSchemaHooks(c *ent.Client) {
 				cs.TagOP:     op,
 				cs.TagResult: strconv.Itoa(result),
 			}
-			GetInfluxSrv().Write(cs.MeasurementEntOP, tags, fields)
+			GetInfluxDB().Write(cs.MeasurementEntOP, tags, fields)
 			return mutateResult, err
 		})
 	})
@@ -312,10 +326,12 @@ func EntPing() error {
 }
 
 // EntInitSchema 初始化schema
-func EntInitSchema() (err error) {
-	// 只执行一次schema初始化以及hook
+func EntInitSchema() error {
+	var err error
 	initSchemaOnce.Do(func() {
-		err = defaultEntClient.Schema.Create(context.Background())
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		err = defaultEntClient.Schema.Create(ctx)
 	})
-	return
+	return err
 }

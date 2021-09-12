@@ -1,9 +1,10 @@
 # 系统基本配置
 basic:
   name: cybertect
-  # 系统并发限制
+  # 系统并发限制，如果调整此限制，需要确认tracer中的大小也需要调整
   requestLimit: 1000
   listen: :7001
+  # timeout: 60s
   # 如果需要支持前缀，则可添加配置
   # prefixes:
   # - /api
@@ -12,45 +13,53 @@ basic:
 session:
   path: /
   key: cybertect
-  # 5天
-  ttl: 120h
+  ttl: 240h
   # 用于加密session cookie 
-  secret: SECRET
+  # 需要配置此属性或通过管理后台配置
+  keys:
+  - cuttlefish
+  - secret
   trackKey: jt
+
+# redis 配置
+redis:
+  # 可以配置为下面的形式，则从env中获取REDIS_URI对应的字符串来当redis连接串
+  # uri: REDIS_URI
+  # uri: redis://:pass@127.0.0.1:6379/?slow=200ms&maxProcessing=1000
+  uri: redis://127.0.0.1:6379/?slow=200ms&maxProcessing=1000
 
 # postgres postgres配置
 postgres:
   # 可以配置为下面的形式，则从env中获取POSTGRES_URI对应的字符串来当postgres连接串
   # uri: POSTGRES_URI
-  uri: postgresql://vicanso:A123456@127.0.0.1:5432/cybertect
+  uri: postgresql://vicanso:A123456@127.0.0.1:5432/cybertect?maxIdleConns=5&maxIdleTime=30m&maxOpenConns=100
 
 # influxdb 配置
 influxdb:
   uri: http://127.0.0.1:8086
   bucket: cybertect 
   org: bigTree
-  token: YXFOYqPAxtF2wxfVMn-M168Y8rbAFhOsMDKCVWaStmEtFTqFX9KtcYDQk5ouwCNJY0iyW1KVE-VhmmAAhnfG5w==
-  batchSize: 100
-  flushInterval: 10s
+  token: YcAmMWPl0XR_OKJYNIozsiBI0qBGIe4-Y_rWKUcNbQ8sYobWFrsMCgY_t0FRlpAMkVNgghhcQ1TgDixt92Qe6w==
+  # batchSize: 100
+  # flushInterval: 10s
   # 如果与influxdb非同一内网，建议设置为true
   gzip: false
-  disabled: true 
+  disabled: false 
 
 # mail相关配置
 mail:
-  host: MAIL_HOST 
-  port: MAIL_PORT
-  user: MAIL_USER
-  password: MAIL_PASS
+  host: smtp.office365.com
+  port: 587
+  user: tree.xie@outlook.com
+  password: EMAIL_PASS
 
 # 告警接收邮件列表
 alarm:
   receivers:
-  # - tree.xie@outlook.com
+  - tree.xie@outlook.com
 
 # 定位相关配置
 location:
-  name: location
   timeout: 3s
   baseURL: https://ip.npmtrend.com
 
@@ -61,7 +70,7 @@ minio:
   secretAccessKey: test123456
   ssl: false
 
-detector:
-  expired: DETECTOR_RESULT_EXPIRED
-  interval: DETECTOR_INTERVAL
-  concurrency: 5
+# pyroscope配置
+pyroscope:
+  addr: http://127.0.0.1:4040
+  # token: ""

@@ -12,7 +12,13 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:vue/vue3-recommended',
   ],
-  rules: { 
-    "@typescript-eslint/no-explicit-any": ["off"],
+  rules: {
+    "vue/max-attributes-per-line": ["error", {
+      "singleline": 5,
+      "multiline": {
+        "max": 1,
+        "allowFirstLine": false
+      }
+    }]
   }
 };

@@ -1,26 +1,28 @@
-.PHONY: default test test-cover dev generate hooks
+.PHONY: default test test-cover dev generate hooks lint-web doc
 
 # for dev
 dev:
-	air -c .air.toml
-
+	air -c .air.toml	
+dev-debug:
+	LOG_LEVEL=0 make dev
 doc:
-	swagger generate spec -o ./api.yml && swagger validate ./api.yml 
+	CGO_ENABLED=0 swagger generate spec -t swagger -o ./asset/api.yml && swagger validate ./asset/api.yml 
 
 test:
-	MAIL_USER=test@outlook.com go test -race -cover ./...
+	go test -race -cover ./...
 
 install:
-	go get entgo.io/ent/cmd/entc
+	go install entgo.io/ent/cmd/entc
 
 generate: 
-	entc generate ./schema --target ./ent
+	rm -rf ./ent
+	entc generate ./schema --template ./template --target ./ent
 
 describe:
 	entc describe ./schema
 
 test-cover:
-	MAIL_USER=test@outlook.com go test -race -coverprofile=test.out ./... && go tool cover --html=test.out
+	go test -race -coverprofile=test.out ./... && go tool cover --html=test.out
 
 list-mod:
 	go list -m -u all
@@ -33,8 +35,10 @@ build:
 
 
 lint:
-	golangci-lint --version
-	golangci-lint run --timeout 2m --skip-dirs web
+	golangci-lint run
+
+lint-web:
+	cd web && yarn lint 
 
 hooks:
 	cp hooks/* .git/hooks/

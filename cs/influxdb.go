@@ -21,6 +21,8 @@ const (
 	MeasurementHTTPRequest = "httpRequest"
 	// MeasurementRedisStats redis性能统计
 	MeasurementRedisStats = "redisStats"
+	// MeasurementRedisOP redis操作
+	MeasurementRedisOP = "redisOP"
 	// MeasurementRedisError redis出错统计
 	MeasurementRedisError = "redisError"
 	// MeasurementRedisConn redis连接
@@ -59,6 +61,8 @@ const (
 	TagService = "service"
 	// TagAction 用户的操作action
 	TagAction = "action"
+	// TagStep 用户操作的步骤
+	TagStep = "step"
 	// TagResult 操作结果
 	TagResult = "result"
 	// TagSchema 数据库的schema
@@ -73,10 +77,12 @@ const (
 const (
 	// FieldIP ip
 	FieldIP = "ip"
+	// FieldAddr addr
+	FieldAddr = "addr"
 	// FieldURI uri
 	FieldURI = "uri"
-	// FieldRoute route
-	FieldRoute = "route"
+	// FieldRouteName routeName
+	FieldRouteName = "routeName"
 	// FieldPath path
 	FieldPath = "path"
 	// FieldAccount 账号
@@ -103,12 +109,14 @@ const (
 	FieldCity = "city"
 	// FieldISP ISP
 	FieldISP = "isp"
-	// FieldCategory 分类（注意tag也有分类字段，按需使用）
-	FieldCategory = "category"
+	// FieldErrCategory 出错分类
+	FieldErrCategory = "errCategory"
 )
 
 // int 类型
 const (
+	// FieldMaxConcurrency 限制的最大并发数
+	FieldMaxConcurrency = "maxConcurrency"
 	// FieldProcessing 正在处理请求数
 	FieldProcessing = "processing"
 	// FieldTotalProcessing 正在处理的总请求数
@@ -165,30 +173,121 @@ const (
 	FieldGoMaxProcs = "goMaxProcs"
 	// FieldThreadCount thread count
 	FieldThreadCount = "threadCount"
-	// FieldMemSys mem sys
+
+	// mem alloc
+	FieldMemAlloc = "memAlloc"
+	// mem total alloc
+	FieldMemTotalAlloc = "memTotalAlloc"
+	// mem sys
 	FieldMemSys = "memSys"
-	// FieldMemHeapSys mem heap sys
-	FieldMemHeapSys = "memHeapSys"
-	// FieldMemHeapInuse mem heap inuse
-	FieldMemHeapInuse = "memHeapInuse"
-	// FieldMemFrees mem frees
+	// mem lookups
+	FieldMemLookups = "memLookups"
+	// mem mallocs
+	FieldMemMallocs = "memMallocs"
+	// mem frees
 	FieldMemFrees = "memFrees"
+	// mem heap alloc
+	FieldMemHeapAlloc = "memHeapAlloc"
+	// mem heap sys
+	FieldMemHeapSys = "memHeapSys"
+	// mem heap idle
+	FieldMemHeapIdle = "memHeapIdle"
+	// mem heap inuse
+	FieldMemHeapInuse = "memHeapInuse"
+	// mem heap released
+	FieldMemHeapReleased = "memHeapReleased"
+	// mem heap objects
+	FieldMemHeapObjects = "memHeapObjects"
+	// mem stack inuse
+	FieldMemStackInuse = "memStackInuse"
+	// mem stack sys
+	FieldMemStackSys = "memStackSys"
+	// mem mspan inuse
+	FieldMemMSpanInuse = "memMSpanInuse"
+	// mem mspan sys
+	FieldMemMSpanSys = "memMSpanSys"
+	// mem mcache inuse
+	FieldMemMCacheInuse = "memMCacheInuse"
+	// mem mcache sys
+	FieldMemMCacheSys = "memMCacheSys"
+	// mem buck hash sys
+	FieldMemBuckHashSys = "memBuckHashSys"
+	// mem gc sys
+	FieldMemGCSys = "memGCSys"
+	// mem other sys
+	FieldMemOtherSys = "memOtherSys"
+
 	// FieldRoutineCount routine count
 	FieldRoutineCount = "routineCount"
-	// FieldCpuUsage cpu usage
-	FieldCpuUsage = "cpuUsage"
-	// FieldNumGC num gc
+	// cpu usage
+	FieldCPUUsage = "cpuUsage"
+	// cpu user
+	FieldCPUUser = "cpuUser"
+	// cpu system
+	FieldCPUSystem = "cpuSystem"
+	// cpu idle
+	FieldCPUIdle = "cpuIdle"
+	// cpu nice
+	FieldCPUNice = "cpuNice"
+	// cpu iowait
+	FieldCPUIowait = "cpuIowait"
+	// cpu irq
+	FieldCPUIrq = "cpuIrq"
+	// soft irq
+	FieldCPUSoftirq = "cpuSoftirq"
+	// cpu steal
+	FieldCPUSteal = "cpuSteal"
+	// cpu guest
+	FieldCPUGuest = "cpuGuest"
+	// cpu guest nice
+	FieldCPUGuestNice = "cpuGuestNice"
+
+	// io read count
+	FieldIOReadCount = "ioReadCount"
+	// io write count
+	FieldIOWriteCount = "ioWriteCount"
+	// io read mbytes
+	FieldIOReadMBytes = "ioReadMBytes"
+	// io write mbytes
+	FieldIOWriteMBytes = "ioWriteMBytes"
+
+	// num gc
 	FieldNumGC = "numGC"
-	// FieldPauseNS gc pause ns
-	FieldPauseNS = "pauseNS"
+	// num forced gc
+	FieldNumForcedGC = "numForcedGC"
+	// gc pause ms
+	FieldPauseMS = "pauseMS"
+
 	// FieldConnProcessing conn processing
 	FieldConnProcessing = "connProcessing"
 	// FieldConnAlive conn alive
 	FieldConnAlive = "connAlive"
 	// FieldConnCreatedCount conn created count
 	FieldConnCreatedCount = "connCreatedCount"
+	// connection total
+	FieldConnTotal = "connTotal"
+
+	// context switches voluntary
+	FieldCtxSwitchesVoluntary = "ctxSwitchesVoluntary"
+	// context switches involuntary
+	FieldCtxSwitchesInvoluntary = "ctxSwitchesInvoluntary"
+
+	// page fault minor
+	FieldPageFaultMinor = "pageFaultMinor"
+	// page fault major
+	FieldPageFaultMajor = "pageFaultMajor"
+	// page fault child minor
+	FieldPageFaultChildMinor = "pageFaultChildMinor"
+	// page fault child major
+	FieldPageFaultChildMajor = "pageFaultChildMajor"
+
+	// num of fd
+	FieldNumFds = "numFds"
+
 	// FieldTotal 总数
 	FieldTotal = "total"
+	// FieldPoolSize pool size
+	FieldPoolSize = "poolSize"
 )
 
 // bool 类型

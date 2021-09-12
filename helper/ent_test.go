@@ -25,11 +25,9 @@ func TestEnt(t *testing.T) {
 
 	assert.NotNil(EntGetClient())
 
-	err := EntInitSchema()
-	assert.Nil(err)
+	assert.Nil(EntInitSchema())
 
-	err = EntPing()
-	assert.Nil(err)
+	assert.Nil(EntPing())
 }
 
 func TestEntGetStats(t *testing.T) {

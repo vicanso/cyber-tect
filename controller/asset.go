@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// 此controller提供各静态文件的响应处理，
 // 主要是管理系统的前端代码，对于资源等（如图片）尽可能不要打包进入程序
 
 package controller
 
 import (
-	"bytes"
 	"time"
 
-	"github.com/vicanso/cybertect/asset"
-	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/elton"
 	M "github.com/vicanso/elton/middleware"
+	"github.com/vicanso/cybertect/asset"
+	"github.com/vicanso/cybertect/router"
 )
 
 type (
@@ -52,35 +52,22 @@ func init() {
 	}))
 }
 
-// 静态文件响应
-func sendFile(c *elton.Context, file string) (err error) {
-	// 因为静态文件打包至程序中，直接读取
-	buf, err := assetFS.Get(file)
-	if err != nil {
-		return
-	}
-	// 根据文件后续设置类型
-	c.SetContentTypeByExt(file)
-	c.BodyBuffer = bytes.NewBuffer(buf)
-	return
-}
-
 // getIndex 首页
-func (*assetCtrl) getIndex(c *elton.Context) (err error) {
-	err = sendFile(c, "index.html")
+func (*assetCtrl) getIndex(c *elton.Context) error {
+	err := assetFS.SendFile(c, "index.html")
 	if err != nil {
-		return
+		return err
 	}
 	c.CacheMaxAge(10 * time.Second)
-	return
+	return nil
 }
 
 // getFavIcon 图标
-func (*assetCtrl) getFavIcon(c *elton.Context) (err error) {
-	err = sendFile(c, "favicon.png")
+func (*assetCtrl) getFavIcon(c *elton.Context) error {
+	err := assetFS.SendFile(c, "favicon.png")
 	if err != nil {
-		return
+		return err
 	}
 	c.CacheMaxAge(time.Hour, 10*time.Minute)
-	return
+	return nil
 }

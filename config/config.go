@@ -23,6 +23,7 @@ import (
 	"embed"
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -54,15 +55,17 @@ type (
 	// BasicConfig 应用基本配置信息
 	BasicConfig struct {
 		// 监听地址
-		Listen string `validate:"required,ascii"`
+		Listen string `validate:"required,ascii" default:":7001"`
 		// 最大处理请求数
-		RequestLimit uint `validate:"required"`
+		RequestLimit uint `validate:"required" default:"1000"`
 		// 应用名称
 		Name string `validate:"required,ascii"`
 		// PID文件
 		PidFile string `validate:"required"`
 		// 应用前缀
 		Prefixes []string `validate:"omitempty,dive,xPath"`
+		// 超时（用于设置所有请求)
+		Timeout time.Duration `default:"2m"`
 	}
 	// SessionConfig session相关配置信息
 	SessionConfig struct {
@@ -73,14 +76,39 @@ type (
 		// cookie的有效期
 		TTL time.Duration `validate:"required"`
 		// 用于加密cookie的key
-		Secret string `validate:"required"`
+		Keys []string `validate:"required"`
 		// 用于跟踪用户的cookie
 		TrackKey string `validate:"required,ascii"`
 	}
-
+	// RedisConfig redis配置
+	RedisConfig struct {
+		// 连接地址
+		Addrs []string `validate:"required,dive,hostname_port"`
+		// 用户名
+		Username string
+		// 密码
+		Password string
+		// 慢请求时长
+		Slow time.Duration `validate:"required"`
+		// 最大的正在处理请求量
+		MaxProcessing uint32 `validate:"required" default:"100"`
+		// 连接池大小
+		PoolSize int `default:"100"`
+		// key前缀
+		Prefix string
+		// sentinel模式下使用的master name
+		Master string
+	}
 	// PostgresConfig postgres配置
 	PostgresConfig struct {
+		// 连接串
 		URI string `validate:"required,uri"`
+		// 最大连接数
+		MaxOpenConns int `default:"100"`
+		// 最大空闲连接数
+		MaxIdleConns int `default:"10"`
+		// 最大空闲时长
+		MaxIdleTime time.Duration `default:"5m"`
 	}
 	// MailConfig email的配置
 	MailConfig struct {
@@ -100,22 +128,17 @@ type (
 		// 认证的token
 		Token string `validate:"required,ascii"`
 		// 批量提交大小
-		BatchSize uint `validate:"required,min=1,max=5000"`
+		BatchSize uint `default:"100" validate:"required,min=1,max=5000"`
 		// 间隔提交时长
-		FlushInterval time.Duration `validate:"required"`
+		FlushInterval time.Duration `default:"30s" validate:"required"`
 		// 是否启用gzip
 		Gzip bool
 		// 是否禁用
 		Disabled bool
 	}
-	// AlarmConfig alarm配置
-	AlarmConfig struct {
-		// 接收人列表
-		Receivers []string
-	}
+
 	// LocationConfig 定位配置
 	LocationConfig struct {
-		Name    string        `validate:"required"`
 		Timeout time.Duration `validate:"required"`
 		BaseURL string        `validate:"required,url"`
 	}
@@ -127,12 +150,10 @@ type (
 		SecretAccessKey string `validate:"required,min=6"`
 		SSL             bool
 	}
-
-	// DetectorConfig 检测配置
-	DetectorConfig struct {
-		Expired     time.Duration `validate:"required"`
-		Interval    string        `validate:"required,xDuration"`
-		Concurrency int           `validate:"required,numeric,min=1,max=20"`
+	// PyroscopeConfig pyroscope的配置信息
+	PyroscopeConfig struct {
+		Addr  string `validate:"omitempty,url"`
+		Token string
 	}
 )
 
@@ -176,14 +197,15 @@ func GetENV() string {
 	return env
 }
 
-// GetBasicConfig 获取基本配置信息
-func GetBasicConfig() BasicConfig {
+// MustGetBasicConfig 获取基本配置信息
+func MustGetBasicConfig() *BasicConfig {
 	prefix := "basic."
-	basicConfig := BasicConfig{
+	basicConfig := &BasicConfig{
 		Name:         defaultViperX.GetString(prefix + "name"),
 		RequestLimit: defaultViperX.GetUint(prefix + "requestLimit"),
 		Listen:       defaultViperX.GetStringFromENV(prefix + "listen"),
 		Prefixes:     defaultViperX.GetStringSlice(prefix + "prefixes"),
+		Timeout:      defaultViperX.GetDuration(prefix + "timeout"),
 	}
 	pidFile := fmt.Sprintf("%s.pid", basicConfig.Name)
 	pwd, _ := os.Getwd()
@@ -191,57 +213,122 @@ func GetBasicConfig() BasicConfig {
 		pidFile = pwd + "/" + pidFile
 	}
 	basicConfig.PidFile = pidFile
-	mustValidate(&basicConfig)
+	mustValidate(basicConfig)
 	return basicConfig
 }
 
-// GetSessionConfig 获取session的配置
-func GetSessionConfig() SessionConfig {
+// MustGetSessionConfig 获取session的配置
+func MustGetSessionConfig() *SessionConfig {
 	prefix := "session."
-	sessConfig := SessionConfig{
+	sessConfig := &SessionConfig{
 		TTL:        defaultViperX.GetDuration(prefix + "ttl"),
 		Key:        defaultViperX.GetString(prefix + "key"),
 		CookiePath: defaultViperX.GetString(prefix + "path"),
-		Secret:     defaultViperX.GetStringFromENVDefault(prefix+"secret", time.Now().String()),
+		Keys:       defaultViperX.GetStringSlice(prefix + "keys"),
 		TrackKey:   defaultViperX.GetString(prefix + "trackKey"),
 	}
-	mustValidate(&sessConfig)
+	mustValidate(sessConfig)
 	return sessConfig
 }
 
-// GetPostgresConfig 获取postgres配置
-func GetPostgresConfig() PostgresConfig {
-	prefix := "postgres."
-	postgresConfig := PostgresConfig{
-		URI: defaultViperX.GetStringFromENV(prefix + "uri"),
-	}
-	mustValidate(&postgresConfig)
-	return postgresConfig
-}
-
-// GetMailConfig 获取邮件配置
-func GetMailConfig() MailConfig {
-	prefix := "mail."
-	portValue := defaultViperX.GetStringFromENVDefault(prefix+"port", "587")
-	port, err := strconv.Atoi(portValue)
+// MustGetRedisConfig 获取redis的配置
+func MustGetRedisConfig() *RedisConfig {
+	prefix := "redis."
+	uri := defaultViperX.GetStringFromENV(prefix + "uri")
+	uriInfo, err := url.Parse(uri)
 	if err != nil {
 		panic(err)
 	}
+	// 获取密码
+	password, _ := uriInfo.User.Password()
+	username := uriInfo.User.Username()
 
-	mailConfig := MailConfig{
-		Host:     defaultViperX.GetStringFromENVDefault(prefix+"host", "smtp.office365.com"),
-		Port:     port,
+	query := uriInfo.Query()
+	// 获取slow设置的时间间隔
+	slowValue := query.Get("slow")
+	slow := 100 * time.Millisecond
+	if slowValue != "" {
+		slow, err = time.ParseDuration(slowValue)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// 获取最大处理数的配置
+	maxProcessing := 1000
+	maxValue := query.Get("maxProcessing")
+	if maxValue != "" {
+		maxProcessing, err = strconv.Atoi(maxValue)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	// 转换失败则为0
+	poolSize, _ := strconv.Atoi(query.Get("poolSize"))
+
+	redisConfig := &RedisConfig{
+		Addrs:         strings.Split(uriInfo.Host, ","),
+		Username:      username,
+		Password:      password,
+		Slow:          slow,
+		MaxProcessing: uint32(maxProcessing),
+		PoolSize:      poolSize,
+		Master:        query.Get("master"),
+	}
+	keyPrefix := query.Get("prefix")
+	if keyPrefix != "" {
+		redisConfig.Prefix = keyPrefix + ":"
+	}
+
+	mustValidate(redisConfig)
+	return redisConfig
+}
+
+// MustGetPostgresConfig 获取postgres配置
+func MustGetPostgresConfig() *PostgresConfig {
+	prefix := "postgres."
+	uri := defaultViperX.GetStringFromENV(prefix + "uri")
+	rawQuery := ""
+	uriInfo, _ := url.Parse(uri)
+	maxIdleConns := 0
+	maxOpenConns := 0
+	var maxIdleTime time.Duration
+	if uriInfo != nil {
+		query := uriInfo.Query()
+		rawQuery = "?" + uriInfo.RawQuery
+		maxIdleConns, _ = strconv.Atoi(query.Get("maxIdleConns"))
+		maxOpenConns, _ = strconv.Atoi(query.Get("maxOpenConns"))
+		maxIdleTime, _ = time.ParseDuration(query.Get("maxIdleTime"))
+	}
+
+	postgresConfig := &PostgresConfig{
+		URI:          strings.ReplaceAll(uri, rawQuery, ""),
+		MaxIdleConns: maxIdleConns,
+		MaxOpenConns: maxOpenConns,
+		MaxIdleTime:  maxIdleTime,
+	}
+	mustValidate(postgresConfig)
+	return postgresConfig
+}
+
+// MustGetMailConfig 获取邮件配置
+func MustGetMailConfig() *MailConfig {
+	prefix := "mail."
+	mailConfig := &MailConfig{
+		Host:     defaultViperX.GetString(prefix + "host"),
+		Port:     defaultViperX.GetInt(prefix + "port"),
 		User:     defaultViperX.GetStringFromENV(prefix + "user"),
 		Password: defaultViperX.GetStringFromENV(prefix + "password"),
 	}
-	mustValidate(&mailConfig)
+	mustValidate(mailConfig)
 	return mailConfig
 }
 
-// GetInfluxdbConfig 获取influxdb配置
-func GetInfluxdbConfig() InfluxdbConfig {
+// MustGetInfluxdbConfig 获取influxdb配置
+func MustGetInfluxdbConfig() *InfluxdbConfig {
 	prefix := "influxdb."
-	influxdbConfig := InfluxdbConfig{
+	influxdbConfig := &InfluxdbConfig{
 		URI:           defaultViperX.GetStringFromENV(prefix + "uri"),
 		Bucket:        defaultViperX.GetString(prefix + "bucket"),
 		Org:           defaultViperX.GetString(prefix + "org"),
@@ -251,63 +338,40 @@ func GetInfluxdbConfig() InfluxdbConfig {
 		Gzip:          defaultViperX.GetBool(prefix + "gzip"),
 		Disabled:      defaultViperX.GetBool(prefix + "disabled"),
 	}
-	mustValidate(&influxdbConfig)
+	mustValidate(influxdbConfig)
 	return influxdbConfig
 }
 
-// GetAlarmConfig 获取告警配置
-func GetAlarmConfig() AlarmConfig {
-	prefix := "alarm."
-	alarmConfig := AlarmConfig{
-		Receivers: defaultViperX.GetStringSlice(prefix + "receivers"),
-	}
-	mustValidate(&alarmConfig)
-	return alarmConfig
-}
-
-// GetLocationConfig 获取定位的配置
-func GetLocationConfig() LocationConfig {
+// MustGetLocationConfig 获取定位的配置
+func MustGetLocationConfig() *LocationConfig {
 	prefix := "location."
-	locationConfig := LocationConfig{
-		Name:    defaultViperX.GetString(prefix + "name"),
+	locationConfig := &LocationConfig{
 		BaseURL: defaultViperX.GetString(prefix + "baseURL"),
 		Timeout: defaultViperX.GetDuration(prefix + "timeout"),
 	}
-	mustValidate(&locationConfig)
+	mustValidate(locationConfig)
 	return locationConfig
 }
 
-// GetMinioConfig 获取minio的配置
-func GetMinioConfig() MinioConfig {
+// MustGetMinioConfig 获取minio的配置
+func MustGetMinioConfig() *MinioConfig {
 	prefix := "minio."
-	minioConfig := MinioConfig{
+	minioConfig := &MinioConfig{
 		Endpoint:        defaultViperX.GetString(prefix + "endpoint"),
 		AccessKeyID:     defaultViperX.GetStringFromENV(prefix + "accessKeyID"),
 		SecretAccessKey: defaultViperX.GetStringFromENV(prefix + "secretAccessKey"),
 		SSL:             defaultViperX.GetBool(prefix + "ssl"),
 	}
-	mustValidate(&minioConfig)
+	mustValidate(minioConfig)
 	return minioConfig
 }
 
-// GetDetectorConfig 获取检测配置
-func GetDetectorConfig() DetectorConfig {
-	prefix := "detector."
-	expired := defaultViperX.GetStringFromENVDefault(prefix+"expired", "30d")
-	if strings.HasSuffix(expired, "d") {
-		d, _ := strconv.Atoi(expired[0 : len(expired)-1])
-		expired = fmt.Sprintf("%dh", 24*d)
+// MustGetPyroscopeConfig 获取pyroscope的配置信息
+func MustGetPyroscopeConfig() *PyroscopeConfig {
+	prefix := "pyroscope."
+	pyroscopeConfig := &PyroscopeConfig{
+		Addr:  defaultViperX.GetString(prefix + "addr"),
+		Token: defaultViperX.GetString(prefix + "token"),
 	}
-	expiredTime, err := time.ParseDuration(expired)
-	if err != nil {
-		panic(err)
-	}
-
-	detectorConfig := DetectorConfig{
-		Interval:    defaultViperX.GetStringFromENVDefault(prefix+"interval", "1m"),
-		Concurrency: defaultViperX.GetInt(prefix + "concurrency"),
-		Expired:     expiredTime,
-	}
-	mustValidate(detectorConfig)
-	return detectorConfig
+	return pyroscopeConfig
 }

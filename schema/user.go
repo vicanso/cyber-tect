@@ -34,8 +34,8 @@ const (
 
 // UserRoleInfo 用户角色信息
 type UserRoleInfo struct {
-	Name  string `json:"name,omitempty"`
-	Value string `json:"value,omitempty"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 // User holds the schema definition for the User entity.
@@ -61,7 +61,7 @@ func GetUserRoleList() []*UserRoleInfo {
 	}
 }
 
-// Mixin 用户表的minxin
+// Mixin 用户表的mixin
 func (User) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		TimeMixin{},

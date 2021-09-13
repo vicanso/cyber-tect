@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/dustin/go-humanize"
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/asset"
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/profiler"
@@ -33,6 +32,7 @@ import (
 	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )
 

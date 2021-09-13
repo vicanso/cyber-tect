@@ -55,9 +55,6 @@ import (
 	"time"
 
 	warner "github.com/vicanso/count-warner"
-	"github.com/vicanso/elton"
-	compress "github.com/vicanso/elton-compress"
-	M "github.com/vicanso/elton/middleware"
 	"github.com/vicanso/cybertect/config"
 	_ "github.com/vicanso/cybertect/controller"
 	"github.com/vicanso/cybertect/cs"
@@ -72,6 +69,9 @@ import (
 	_ "github.com/vicanso/cybertect/schedule"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
+	"github.com/vicanso/elton"
+	compress "github.com/vicanso/elton-compress"
+	M "github.com/vicanso/elton/middleware"
 	"github.com/vicanso/hes"
 	"go.uber.org/automaxprocs/maxprocs"
 )

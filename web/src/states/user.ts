@@ -12,7 +12,7 @@ import {
 import { sha256 } from "../helpers/crypto";
 import request from "../helpers/request";
 
-const hash = "JT";
+const hash = "CyberTect";
 
 function generatePassword(pass: string): string {
   return sha256(hash + sha256(pass + hash));

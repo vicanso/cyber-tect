@@ -21,11 +21,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/cybertect/validate"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )
 
@@ -263,7 +263,7 @@ func (ctrl fluxCtrl) listTagValue(c *elton.Context) error {
 
 func (ctrl fluxCtrl) list(c *elton.Context, measurement, responseKey string) error {
 	params := fluxListParams{}
-	err := validate.Do(&params, c.Query())
+	err := validate.Query(&params, c.Query())
 	if err != nil {
 		return err
 	}

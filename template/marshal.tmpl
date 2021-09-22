@@ -9,27 +9,17 @@ import "encoding/json"
 
 {{ range $n := $.Nodes }}
 
-{{/* 用户 */}}
-{{- if eq $n.Name "User" }}
-type MarshalUser User
-// 转换为json时先将相应字段填充
-func (u *User) MarshalJSON() ([]byte, error) {
-	tmp := (*MarshalUser)(u)
-	tmp.StatusDesc = tmp.Status.String()
-	return json.Marshal(tmp)
-}
-{{ end }}
-
-{{/* 应用配置 */}}
-{{- if eq $n.Name "Configuration" }}
-type MarshalConfiguration Configuration
-// 转换为json时先将相应字段填充
-func (c *Configuration) MarshalJSON() ([]byte, error) {
-	tmp := (*MarshalConfiguration)(c)
-	tmp.StatusDesc = tmp.Status.String()
-	return json.Marshal(tmp)
-}
-{{ end }}
+{{- range $i, $f := $n.Fields }}
+	{{/* 如果有status字段，则调整MarshalJSON */}}
+	{{- if eq $f.Name "status" }}
+	type Marshal{{ $n.Name }} {{ $n.Name }}
+	func (t *{{ $n.Name }}) MarshalJSON() ([]byte, error) {
+		tmp := (*Marshal{{ $n.Name }})(t)
+		tmp.StatusDesc = tmp.Status.String()
+		return json.Marshal(tmp)
+	}
+	{{- end }}
+{{- end }}
 
 {{ end }}
 

@@ -20,8 +20,6 @@ import (
 	"strconv"
 
 	"github.com/rs/zerolog"
-	"github.com/vicanso/elton"
-	M "github.com/vicanso/elton/middleware"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/helper"
@@ -32,6 +30,9 @@ import (
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/session"
 	"github.com/vicanso/cybertect/util"
+	"github.com/vicanso/cybertect/validate"
+	"github.com/vicanso/elton"
+	M "github.com/vicanso/elton/middleware"
 	"github.com/vicanso/hes"
 )
 
@@ -81,6 +82,8 @@ type (
 	trackerExtraParams struct {
 		// 步骤（tag)
 		Step string
+		// 自定义的tags`
+		CustomTags func(c *elton.Context) map[string]string
 	}
 )
 
@@ -228,6 +231,9 @@ func newTrackerMiddleware(action string, params ...trackerExtraParams) elton.Han
 			if currentStep != "" {
 				tags["step"] = currentStep
 			}
+			if extraParams != nil && extraParams.CustomTags != nil {
+				util.MergeMapString(tags, extraParams.CustomTags(c))
+			}
 			GetInfluxSrv().Write(cs.MeasurementUserTracker, tags, fields)
 		},
 	})
@@ -283,4 +289,12 @@ func isIntranet(c *elton.Context) error {
 		return c.Next()
 	}
 	return hes.NewWithStatusCode("Forbidden", 403)
+}
+
+func validateBody(c *elton.Context, params interface{}) error {
+	return validate.Do(params, c.RequestBody)
+}
+
+func validateQuery(c *elton.Context, params interface{}) error {
+	return validate.Query(params, c.Query())
 }

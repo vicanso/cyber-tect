@@ -12,27 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package util
+package validate
 
-// MergeMapStringInterface 合并map[string]interface{}
-func MergeMapStringInterface(target map[string]interface{}, sources ...map[string]interface{}) map[string]interface{} {
-	for _, source := range sources {
-		for key, value := range source {
-			if value != nil {
-				target[key] = value
-			}
-		}
-	}
-	return target
-}
-
-func MergeMapString(target map[string]string, sources ...map[string]string) map[string]string {
-	for _, source := range sources {
-		for key, value := range source {
-			if value != "" {
-				target[key] = value
-			}
-		}
-	}
-	return target
+func init() {
+	AddAlias("xDetectorName", "min=1,max=30")
+	AddAlias("xDetectorDesc", "min=1,max=300")
+	AddAlias("xDetectorReceiver", "email")
+	AddAlias("xDetectorTaskID", "number")
+	// 检测结果
+	AddAlias("xDetectorResult", "oneof=1 2")
 }

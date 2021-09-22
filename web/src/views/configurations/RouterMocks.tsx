@@ -1,11 +1,11 @@
 import { defineComponent, onMounted } from "vue";
-import ExConfigEditorList from "../components/ExConfigEditorList";
-import { ConfigCategory } from "../states/configs";
-import { FormItemTypes, FormItem } from "../components/ExForm";
-import useCommonState, { commonListRouter } from "../states/common";
+import ExConfigEditorList from "../../components/ExConfigEditorList";
+import { ConfigCategory } from "../../states/configs";
+import { FormItemTypes, FormItem } from "../../components/ExFormInterface";
+import useCommonState, { commonListRouter } from "../../states/common";
 import { useMessage } from "naive-ui";
-import { showError } from "../helpers/util";
-import ExLoading from "../components/ExLoading";
+import { showError } from "../../helpers/util";
+import ExLoading from "../../components/ExLoading";
 
 export default defineComponent({
   name: "RouterMocks",

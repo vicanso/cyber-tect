@@ -10,7 +10,8 @@ import {
 } from "naive-ui";
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 import { defineComponent, onUnmounted, ref } from "vue";
-import ExForm, { FormItemTypes } from "../components/ExForm";
+import ExForm from "../components/ExForm";
+import { FormItemTypes } from "../components/ExFormInterface";
 import ExTable from "../components/ExTable";
 import { diff, showError, showWarning } from "../helpers/util";
 import useUserState, {

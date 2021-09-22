@@ -6,6 +6,13 @@ import {
 } from "../constants/url";
 import request from "../helpers/request";
 import { settingStorage } from "../storages/local";
+
+export enum Mode {
+  List = "list",
+  Add = "add",
+  Update = "update",
+}
+
 interface Captcha {
   data: string;
   expiredAt: string;

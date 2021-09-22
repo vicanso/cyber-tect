@@ -25,6 +25,7 @@ export const names = {
   caches: "caches",
   emails: "emails",
   httpServerInterceptors: "httpServerInterceptors",
+  detectorHTTP: "detectorHTTP",
 };
 
 export const routes: Router[] = [
@@ -51,57 +52,57 @@ export const routes: Router[] = [
   {
     path: "/logins",
     name: names.logins,
-    component: () => import("../views/Logins"),
+    component: () => import("../views/stats/Logins"),
   },
   {
     path: "/user-trackers",
     name: names.userTrackers,
-    component: () => import("../views/UserTrackers"),
+    component: () => import("../views/stats/UserTrackers"),
   },
   {
     path: "/http-errors",
     name: names.httpErrors,
-    component: () => import("../views/HTTPErrors"),
+    component: () => import("../views/stats/HTTPErrors"),
   },
   {
     path: "/requests",
     name: names.requests,
-    component: () => import("../views/Requests"),
+    component: () => import("../views/stats/Requests"),
   },
   {
     path: "/mock-time",
     name: names.mockTime,
-    component: () => import("../views/MockTime"),
+    component: () => import("../views/configurations/MockTime"),
   },
   {
     path: "/configs",
     name: names.configs,
-    component: () => import("../views/Configs"),
+    component: () => import("../views/configurations/Configs"),
   },
   {
     path: "/block-ips",
     name: names.blockIPs,
-    component: () => import("../views/BlockIPs"),
+    component: () => import("../views/configurations/BlockIPs"),
   },
   {
     path: "/signed-keys",
     name: names.signedKeys,
-    component: () => import("../views/SignedKeys"),
+    component: () => import("../views/configurations/SignedKeys"),
   },
   {
     path: "/router-mocks",
     name: names.routerMocks,
-    component: () => import("../views/RouterMocks"),
+    component: () => import("../views/configurations/RouterMocks"),
   },
   {
     path: "/request-concurrencies",
     name: names.requestConcurrencies,
-    component: () => import("../views/RequestConcurrencies"),
+    component: () => import("../views/configurations/RequestConcurrencies"),
   },
   {
     path: "/session-interceptors",
     name: names.sessionInterceptors,
-    component: () => import("../views/SessionInterceptors"),
+    component: () => import("../views/configurations/SessionInterceptors"),
   },
   {
     path: "/caches",
@@ -111,11 +112,16 @@ export const routes: Router[] = [
   {
     path: "/emails",
     name: names.emails,
-    component: () => import("../views/Emails"),
+    component: () => import("../views/configurations/Emails"),
   },
   {
     path: "/http-server-interceptors",
     name: names.httpServerInterceptors,
-    component: () => import("../views/HTTPServerInterceptors"),
+    component: () => import("../views/configurations/HTTPServerInterceptors"),
+  },
+  {
+    path: "/detectors/http",
+    name: names.detectorHTTP,
+    component: () => import("../views/detectors/HTTP"),
   },
 ];

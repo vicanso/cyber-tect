@@ -12,14 +12,16 @@ import {
   NPagination,
   NSelect,
   NSpin,
+  NIcon,
   useMessage,
 } from "naive-ui";
+import { EditRegular } from "@vicons/fa";
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 import { Component, defineComponent, onMounted, ref, PropType } from "vue";
 import { css } from "@linaria/core";
 import { padding } from "../constants/style";
 import { getDaysAgo, showError, today, yesterday } from "../helpers/util";
-import { FormItemTypes } from "./ExForm";
+import { FormItemTypes } from "./ExFormInterface";
 
 interface Filter {
   type?: string;
@@ -41,6 +43,85 @@ const paginationClass = css`
   margin-top: ${padding}px;
   float: right;
 `;
+const ulClass = css`
+  padding: 0;
+  list-style: inside;
+`;
+
+// 列表形式的column
+export function newListColumn(params: {
+  key: string;
+  title: string;
+}): TableColumn {
+  return {
+    title: params.title,
+    key: params.key,
+    render: (row: Record<string, unknown>) => {
+      const values = row[params.key] as unknown[];
+      if (!values || values.length === 0) {
+        return "--";
+      }
+      const arr = values.map((value) => <li>{value}</li>);
+      return <ul class={ulClass}>{arr}</ul>;
+    },
+  };
+}
+
+// 操作相关
+export function newOPColumn(
+  fn: (params: Record<string, unknown>) => void
+): TableColumn {
+  return {
+    title: "操作",
+    key: "op",
+    render(row: Record<string, unknown>) {
+      return (
+        <NButton
+          bordered={false}
+          onClick={() => {
+            fn(row);
+          }}
+        >
+          <NIcon>
+            <EditRegular />
+          </NIcon>
+          更新
+        </NButton>
+      );
+    },
+  };
+}
+
+function isJSON(str: string): boolean {
+  if (str.length < 2) {
+    return false;
+  }
+  const firstLetter = str[0];
+  const lastLetter = str[str.length - 1];
+  // 示判断{]的场景
+  if (firstLetter !== "{" && firstLetter !== "[") {
+    return false;
+  }
+  if (lastLetter !== "}" && lastLetter !== "]") {
+    return false;
+  }
+  return true;
+}
+
+// json形式的展开栏
+export function newJSONRenderExpand(key: string): TableColumn {
+  return {
+    type: "expand",
+    expandable: () => true,
+    renderExpand: (row: Record<string, unknown>) => {
+      const str = row[key] as string;
+      if (isJSON(str.trim())) {
+        return <pre>{JSON.stringify(JSON.parse(str), null, 2)}</pre>;
+      }
+      return str;
+    },
+  };
+}
 
 export default defineComponent({
   name: "ExTable",

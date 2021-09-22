@@ -1,4 +1,4 @@
-import { ChartBar, Cogs, Deezer, User } from "@vicons/fa";
+import { Desktop, User } from "@vicons/fa";
 import { css } from "@linaria/core";
 import { NButton, NIcon, NMenu } from "naive-ui";
 import { Component, defineComponent, h } from "vue";
@@ -19,6 +19,17 @@ const loginButtonClass = css`
 
 const navigationOptions = [
   {
+    label: "检测配置",
+    key: "detector",
+    icon: renderIcon(Desktop),
+    children: [
+      {
+        label: "HTTP",
+        key: names.detectorHTTP,
+      },
+    ],
+  },
+  {
     label: "用户",
     key: "user",
     icon: renderIcon(User),
@@ -33,81 +44,82 @@ const navigationOptions = [
       },
     ],
   },
-  {
-    label: "统计",
-    key: "stats",
-    icon: renderIcon(ChartBar),
-    children: [
-      {
-        label: "用户行为",
-        key: names.userTrackers,
-      },
-      {
-        label: "响应出错记录",
-        key: names.httpErrors,
-      },
-      {
-        label: "后端HTTP调用",
-        key: names.requests,
-      },
-    ],
-  },
-  {
-    label: "配置",
-    key: "settings",
-    disabled: true,
-    icon: renderIcon(Cogs),
-    children: [
-      {
-        label: "所有配置",
-        key: names.configs,
-      },
-      {
-        label: "MockTime配置",
-        key: names.mockTime,
-      },
-      {
-        label: "黑名单IP",
-        key: names.blockIPs,
-      },
-      {
-        label: "SignedKey配置",
-        key: names.signedKeys,
-      },
-      {
-        label: "路由Mock配置",
-        key: names.routerMocks,
-      },
-      {
-        label: "HTTP实例并发配置",
-        key: names.requestConcurrencies,
-      },
-      {
-        label: "Session拦截配置",
-        key: names.sessionInterceptors,
-      },
-      {
-        label: "HTTP服务拦截配置",
-        key: names.httpServerInterceptors,
-      },
-      {
-        label: "接收邮箱配置",
-        key: names.emails,
-      },
-    ],
-  },
-  {
-    label: "其它",
-    key: "others",
-    disabled: true,
-    icon: renderIcon(Deezer),
-    children: [
-      {
-        label: "缓存",
-        key: names.caches,
-      },
-    ],
-  },
+
+  // {
+  //   label: "统计",
+  //   key: "stats",
+  //   icon: renderIcon(ChartBar),
+  //   children: [
+  //     {
+  //       label: "用户行为",
+  //       key: names.userTrackers,
+  //     },
+  //     {
+  //       label: "响应出错记录",
+  //       key: names.httpErrors,
+  //     },
+  //     {
+  //       label: "后端HTTP调用",
+  //       key: names.requests,
+  //     },
+  //   ],
+  // },
+  // {
+  //   label: "配置",
+  //   key: "settings",
+  //   disabled: true,
+  //   icon: renderIcon(Cogs),
+  //   children: [
+  //     {
+  //       label: "所有配置",
+  //       key: names.configs,
+  //     },
+  //     {
+  //       label: "MockTime配置",
+  //       key: names.mockTime,
+  //     },
+  //     {
+  //       label: "黑名单IP",
+  //       key: names.blockIPs,
+  //     },
+  //     {
+  //       label: "SignedKey配置",
+  //       key: names.signedKeys,
+  //     },
+  //     {
+  //       label: "路由Mock配置",
+  //       key: names.routerMocks,
+  //     },
+  //     {
+  //       label: "HTTP实例并发配置",
+  //       key: names.requestConcurrencies,
+  //     },
+  //     {
+  //       label: "Session拦截配置",
+  //       key: names.sessionInterceptors,
+  //     },
+  //     {
+  //       label: "HTTP服务拦截配置",
+  //       key: names.httpServerInterceptors,
+  //     },
+  //     {
+  //       label: "接收邮箱配置",
+  //       key: names.emails,
+  //     },
+  //   ],
+  // },
+  // {
+  //   label: "其它",
+  //   key: "others",
+  //   disabled: true,
+  //   icon: renderIcon(Deezer),
+  //   children: [
+  //     {
+  //       label: "缓存",
+  //       key: names.caches,
+  //     },
+  //   ],
+  // },
 ];
 
 export default defineComponent({

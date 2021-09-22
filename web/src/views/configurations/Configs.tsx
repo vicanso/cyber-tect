@@ -1,9 +1,9 @@
 import { defineComponent, ref } from "vue";
 import { NTabPane, NTabs, useMessage } from "naive-ui";
-import ExConfigTable from "../components/ExConfigTable";
-import { configGetCurrentValid } from "../states/configs";
-import { showError } from "../helpers/util";
-import ExLoading from "../components/ExLoading";
+import ExConfigTable from "../../components/ExConfigTable";
+import { configGetCurrentValid } from "../../states/configs";
+import { showError } from "../../helpers/util";
+import ExLoading from "../../components/ExLoading";
 
 const validTab = "当前生效配置";
 

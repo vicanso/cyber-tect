@@ -1,7 +1,7 @@
 import { defineComponent } from "vue";
-import ExConfigEditorList from "../components/ExConfigEditorList";
-import { ConfigCategory } from "../states/configs";
-import { FormItem, FormItemTypes } from "../components/ExForm";
+import ExConfigEditorList from "../../components/ExConfigEditorList";
+import { ConfigCategory } from "../../states/configs";
+import { FormItem, FormItemTypes } from "../../components/ExFormInterface";
 
 export default defineComponent({
   name: "Emails",

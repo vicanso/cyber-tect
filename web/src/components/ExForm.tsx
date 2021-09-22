@@ -1,38 +1,35 @@
 import {
   NButton,
   NDatePicker,
+  NDynamicInput,
   NForm,
   NFormItem,
   NGrid,
   NGridItem,
   NInput,
+  NInputGroup,
+  NInputGroupLabel,
   NInputNumber,
   NSelect,
 } from "naive-ui";
 import { Value } from "naive-ui/lib/select/src/interface";
 import { Component, defineComponent, PropType, ref } from "vue";
 
-export interface FormItem {
-  name: string;
-  key: string;
-  type?: string;
-  placeholder?: string;
-  span?: number;
-  defaultValue?: unknown;
-  disabled?: boolean;
-  // TODO 确认是否有其它方式表示
-  // eslint-disable-next-line
-  options?: any[];
-}
+import ExUserSelect from "./ExUserSelect";
+import { FormItem, FormItemTypes } from "./ExFormInterface";
 
-export enum FormItemTypes {
-  Select = "select",
-  MultiSelect = "multiselect",
-  DateTime = "datetime",
-  DateRange = "datrange",
-  InputNumber = "inputnumber",
-  TextArea = "textarea",
-  Blank = "blank",
+function durationToSeconds(d: string) {
+  if (!d || d.length < 2) {
+    return null;
+  }
+  const units = ["s", "m", "h"];
+  const seconds = [1, 60, 3600];
+  const index = units.indexOf(d[d.length - 1]);
+  if (index === -1) {
+    return 0;
+  }
+
+  return Number.parseInt(d) * seconds[index];
 }
 
 export default defineComponent({
@@ -83,6 +80,7 @@ export default defineComponent({
         />
       );
     };
+
     const formItems = this.$props.formItems as FormItem[];
     const arr = formItems.map((item) => {
       let component: Component;
@@ -95,6 +93,18 @@ export default defineComponent({
           break;
         case FormItemTypes.Select:
           component = createSelect(item, false);
+          break;
+        case FormItemTypes.MultiUserSelect:
+          component = (
+            <ExUserSelect
+              formItem={item}
+              multiple={true}
+              size={size}
+              onUpdateValue={(value) => {
+                params[item.key] = value;
+              }}
+            />
+          );
           break;
         case FormItemTypes.DateTime:
           {
@@ -137,6 +147,49 @@ export default defineComponent({
             );
           }
           break;
+        case FormItemTypes.InputNumberGroup:
+          {
+            component = (
+              <NInputGroup>
+                <NInputNumber
+                  class="widthFull"
+                  disabled={item.disabled || false}
+                  size={size}
+                  placeholder={item.placeholder}
+                  defaultValue={(item.defaultValue || null) as number}
+                  onUpdate:value={(value) => {
+                    params[item.key] = value;
+                  }}
+                />
+                {item.suffix && (
+                  <NInputGroupLabel size={size}>{item.suffix}</NInputGroupLabel>
+                )}
+              </NInputGroup>
+            );
+          }
+          break;
+        case FormItemTypes.InputDuration:
+          {
+            component = (
+              <NInputGroup>
+                <NInputNumber
+                  class="widthFull"
+                  disabled={item.disabled || false}
+                  size={size}
+                  placeholder={item.placeholder}
+                  defaultValue={
+                    (durationToSeconds(item.defaultValue as string) ||
+                      null) as number
+                  }
+                  onUpdate:value={(value) => {
+                    params[item.key] = `${value}s`;
+                  }}
+                />
+                <NInputGroupLabel size={size}>秒</NInputGroupLabel>
+              </NInputGroup>
+            );
+          }
+          break;
         case FormItemTypes.TextArea:
           {
             component = (
@@ -154,6 +207,21 @@ export default defineComponent({
                   params[item.key] = value;
                 }}
                 clearable
+              />
+            );
+          }
+          break;
+        case FormItemTypes.DynamicInput:
+          {
+            component = (
+              <NDynamicInput
+                placeholder={item.placeholder}
+                defaultValue={(item.defaultValue || []) as []}
+                onUpdateValue={(value) => {
+                  params[item.key] = value;
+                }}
+                min={item.min}
+                max={item.max}
               />
             );
           }

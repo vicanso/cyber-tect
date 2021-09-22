@@ -26,7 +26,6 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/tidwall/gjson"
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
@@ -41,6 +40,7 @@ import (
 	"github.com/vicanso/cybertect/session"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/cybertect/validate"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )
 
@@ -479,7 +479,7 @@ func pickUserInfo(c *elton.Context) (*userInfoResp, error) {
 
 func (*userCtrl) list(c *elton.Context) error {
 	params := userListParams{}
-	err := validate.Do(&params, c.Query())
+	err := validate.Query(&params, c.Query())
 	if err != nil {
 		return err
 	}
@@ -840,7 +840,7 @@ func (*userCtrl) getRoleList(c *elton.Context) error {
 // listLoginRecord list login record
 func (ctrl userCtrl) listLoginRecord(c *elton.Context) error {
 	params := userLoginListParams{}
-	err := validate.Do(&params, c.Query())
+	err := validate.Query(&params, c.Query())
 	if err != nil {
 		return err
 	}

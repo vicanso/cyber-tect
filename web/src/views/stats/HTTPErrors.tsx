@@ -1,18 +1,18 @@
 import { useMessage } from "naive-ui";
 import { defineComponent, onMounted, onUnmounted } from "vue";
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
-import ExTable from "../components/ExTable";
-import { showError } from "../helpers/util";
+import ExTable from "../../components/ExTable";
+import { showError } from "../../helpers/util";
 import useFluxState, {
   fluxListHTTPCategory,
   fluxListHTTPError,
   fluxListHTTPErrorClear,
   measurementHttpError,
-} from "../states/flux";
-import { today } from "../helpers/util";
-import ExLoading from "../components/ExLoading";
-import { FormItemTypes } from "../components/ExForm";
-import ExFluxDetail from "../components/ExFluxDetail";
+} from "../../states/flux";
+import { today } from "../../helpers/util";
+import ExLoading from "../../components/ExLoading";
+import { FormItemTypes } from "../../components/ExForm";
+import ExFluxDetail from "../../components/ExFluxDetail";
 
 function getColumns(): TableColumn[] {
   return [

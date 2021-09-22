@@ -6,16 +6,13 @@ import { defineComponent, PropType, ref } from "vue";
 import { padding } from "../constants/style";
 import ExConfigEditor, { getDefaultFormItems } from "./ExConfigEditor";
 import ExConfigTable from "./ExConfigTable";
-import { FormItem } from "./ExForm";
+import { FormItem } from "./ExFormInterface";
+import { Mode } from "../states/common";
 
 const addButtonClass = css`
   width: 100%;
   margin-top: ${2 * padding}px;
 `;
-
-const listMode = "list";
-const addMode = "add";
-const updateMode = "update";
 
 export default defineComponent({
   name: "ExConfigEditorList",
@@ -42,9 +39,9 @@ export default defineComponent({
     },
   },
   setup() {
-    const mode = ref(listMode);
+    const mode = ref(Mode.List);
     const updatedID = ref(0);
-    const toggle = (value: string) => {
+    const toggle = (value: Mode) => {
       mode.value = value;
     };
     return {
@@ -62,14 +59,14 @@ export default defineComponent({
       extraFormItems,
     } = this.$props;
     const { mode, toggle, updatedID } = this;
-    if (mode === listMode) {
+    if (mode === Mode.List) {
       return (
         <NCard title={listTitle}>
           <ExConfigTable
             category={category}
             onUpdate={(id: number) => {
               this.updatedID = id;
-              toggle(updateMode);
+              toggle(Mode.Update);
             }}
           />
           <NButton
@@ -77,7 +74,7 @@ export default defineComponent({
             class={addButtonClass}
             onClick={() => {
               this.updatedID = 0;
-              toggle(addMode);
+              toggle(Mode.Add);
             }}
           >
             增加配置
@@ -101,10 +98,10 @@ export default defineComponent({
         id={updatedID}
         formItems={formItems}
         onSubmitDone={() => {
-          toggle(listMode);
+          toggle(Mode.List);
         }}
         onBack={() => {
-          toggle(listMode);
+          toggle(Mode.List);
         }}
       ></ExConfigEditor>
     );

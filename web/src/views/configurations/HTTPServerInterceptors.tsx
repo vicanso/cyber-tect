@@ -1,12 +1,12 @@
 import { useMessage } from "naive-ui";
 import { defineComponent, onMounted } from "vue";
 
-import useCommonState, { commonListRouter } from "../states/common";
-import { showError } from "../helpers/util";
-import ExLoading from "../components/ExLoading";
-import { FormItemTypes, FormItem } from "../components/ExForm";
-import ExConfigEditorList from "../components/ExConfigEditorList";
-import { ConfigCategory } from "../states/configs";
+import useCommonState, { commonListRouter } from "../../states/common";
+import { showError } from "../../helpers/util";
+import ExLoading from "../../components/ExLoading";
+import { FormItemTypes, FormItem } from "../../components/ExFormInterface";
+import ExConfigEditorList from "../../components/ExConfigEditorList";
+import { ConfigCategory } from "../../states/configs";
 
 export default defineComponent({
   name: "HTTPServerInterceptors",

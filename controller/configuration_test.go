@@ -85,7 +85,7 @@ func TestConfigurationParams(t *testing.T) {
 			Category: category,
 		}
 		params.listParams.Order = "-created_at"
-		params.listParams.Limit = "1"
+		params.listParams.Limit = 1
 		configs, err := params.queryAll(context.Background())
 		assert.Nil(err)
 		assert.Equal(1, len(configs))

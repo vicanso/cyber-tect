@@ -44,3 +44,8 @@ export const CONFIGS_CURRENT_VALID = "/configurations/v1/current-valid";
 
 // 管理员相关接口
 export const ADMINS_CACHE_ID = "/@admin/v1/caches/:key";
+
+export const DETECTOR_LIST_USER = "/detectors/users/v1";
+// http检测
+export const HTTP_DETECTORS = "/http-detectors/v1";
+export const HTTP_DETECTORS_ID = "/http-detectors/v1/:id";

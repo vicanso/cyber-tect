@@ -18,11 +18,12 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/schema"
+	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
 	se "github.com/vicanso/elton-session"
 	session "github.com/vicanso/elton-session"
-	"github.com/vicanso/cybertect/cs"
-	"github.com/vicanso/cybertect/util"
 )
 
 const (
@@ -94,6 +95,15 @@ func (us *UserSession) IsLogin() bool {
 		return false
 	}
 	return info.Account != ""
+}
+func (us *UserSession) IsAdmin() bool {
+	if !us.IsLogin() {
+		return false
+	}
+	return util.ContainsAny([]string{
+		schema.UserRoleSu,
+		schema.UserRoleAdmin,
+	}, us.info.Roles)
 }
 
 // SetInfo 设置用户信息

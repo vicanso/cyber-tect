@@ -2,10 +2,10 @@ import { useMessage } from "naive-ui";
 import { defineComponent, ref } from "vue";
 import ExConfigEditor, {
   getDefaultFormItems,
-} from "../components/ExConfigEditor";
-import ExLoading from "../components/ExLoading";
-import { showError } from "../helpers/util";
-import { ConfigCategory, configGetMockTime } from "../states/configs";
+} from "../../components/ExConfigEditor";
+import ExLoading from "../../components/ExLoading";
+import { showError } from "../../helpers/util";
+import { ConfigCategory, configGetMockTime } from "../../states/configs";
 
 export default defineComponent({
   name: "MockTime",

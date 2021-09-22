@@ -1,6 +1,6 @@
 import { defineComponent } from "vue";
-import ExConfigEditorList from "../components/ExConfigEditorList";
-import { ConfigCategory } from "../states/configs";
+import ExConfigEditorList from "../../components/ExConfigEditorList";
+import { ConfigCategory } from "../../states/configs";
 
 export default defineComponent({
   name: "Configs",

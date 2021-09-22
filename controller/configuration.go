@@ -20,7 +20,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/configuration"
@@ -29,6 +28,7 @@ import (
 	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/validate"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )
 
@@ -234,7 +234,7 @@ func (*configurationCtrl) add(c *elton.Context) error {
 // list 查询配置列表
 func (*configurationCtrl) list(c *elton.Context) error {
 	params := configurationListParmas{}
-	err := validate.Do(&params, c.Query())
+	err := validate.Query(&params, c.Query())
 	if err != nil {
 		return err
 	}

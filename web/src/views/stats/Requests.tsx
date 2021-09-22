@@ -2,19 +2,19 @@ import { useMessage, NPopover } from "naive-ui";
 import { defineComponent, onMounted, onUnmounted, VNode } from "vue";
 import { css } from "@linaria/core";
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
-import ExLoading from "../components/ExLoading";
-import { showError } from "../helpers/util";
+import ExLoading from "../../components/ExLoading";
+import { showError } from "../../helpers/util";
 import useFluxState, {
   fluxListRequest,
   fluxListRequestClear,
   fluxListRequestRoute,
   fluxListRequestService,
   measurementHttpRequest,
-} from "../states/flux";
-import ExTable from "../components/ExTable";
-import { getHoursAge } from "../helpers/util";
-import { FormItemTypes } from "../components/ExForm";
-import ExFluxDetail from "../components/ExFluxDetail";
+} from "../../states/flux";
+import ExTable from "../../components/ExTable";
+import { getHoursAge } from "../../helpers/util";
+import { FormItemTypes } from "../../components/ExForm";
+import ExFluxDetail from "../../components/ExFluxDetail";
 
 const serviceOptions = [
   {

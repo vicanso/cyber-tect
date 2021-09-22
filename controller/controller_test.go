@@ -19,18 +19,18 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/elton"
-	se "github.com/vicanso/elton-session"
 	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/session"
+	"github.com/vicanso/elton"
+	se "github.com/vicanso/elton-session"
 	"github.com/vicanso/hes"
 )
 
 func TestListParams(t *testing.T) {
 	assert := assert.New(t)
 	params := listParams{
-		Limit:  "10",
-		Offset: "100",
+		Limit:  10,
+		Offset: 100,
 		Order:  "-id,name",
 		Fields: "id,updatedAt",
 	}

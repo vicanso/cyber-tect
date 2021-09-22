@@ -58,10 +58,10 @@ type entProcessingStats struct {
 type EntListParams struct {
 	// 查询limit限制
 	// required: true
-	Limit string `json:"limit" validate:"required,xLimit"`
+	Limit int `json:"limit" validate:"required,xLimit"`
 
 	// 查询的offset偏移
-	Offset string `json:"offset" validate:"omitempty,xOffset"`
+	Offset int `json:"offset" validate:"omitempty,xOffset"`
 
 	// 查询筛选的字段，如果多个字段以,分隔
 	Fields string `json:"fields" validate:"omitempty,xFields"`
@@ -115,7 +115,7 @@ func mustNewEntClient() (*entsql.Driver, *ent.Client) {
 
 // GetLimit 获取limit的值
 func (params *EntListParams) GetLimit() int {
-	limit, _ := strconv.Atoi(params.Limit)
+	limit := params.Limit
 	// 保证limit必须大于0
 	if limit <= 0 {
 		limit = 10
@@ -125,8 +125,7 @@ func (params *EntListParams) GetLimit() int {
 
 // GetOffset 获取offset的值
 func (params *EntListParams) GetOffset() int {
-	offset, _ := strconv.Atoi(params.Offset)
-	return offset
+	return params.Offset
 }
 
 // GetOrders 获取排序的函数列表

@@ -49,3 +49,12 @@ export const DETECTOR_LIST_USER = "/detectors/users/v1";
 // http检测
 export const HTTP_DETECTORS = "/http-detectors/v1";
 export const HTTP_DETECTORS_ID = "/http-detectors/v1/:id";
+// dns检测
+export const DNS_DETECTORS = "/dns-detectors/v1";
+export const DNS_DETECTORS_ID = "/dns-detectors/v1/:id";
+// tcp检测
+export const TCP_DETECTORS = "/tcp-detectors/v1";
+export const TCP_DETECTORS_ID = "/tcp-detectors/v1/:id";
+// ping检测
+export const PING_DETECTORS = "/ping-detectors/v1";
+export const PING_DETECTORS_ID = "/ping-detectors/v1/:id";

@@ -31,7 +31,7 @@ export function getDefaultColumns(): TableColumn[] {
       title: "更新于",
       key: "updatedAt",
       render(row: Record<string, unknown>) {
-        return formatDate(row.startedAt as string);
+        return formatDate(row.updatedAt as string);
       },
     },
     {

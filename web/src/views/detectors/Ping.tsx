@@ -3,40 +3,35 @@ import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 
 import { FormItem, FormItemTypes } from "../../components/ExFormInterface";
 import useDetectorState, {
-  httpDetectorCreate,
-  httpDetectorFindByID,
-  httpDetectorList,
-  httpDetectorUpdateByID,
+  pingDetectorCreate,
+  pingDetectorFindByID,
+  pingDetectorList,
+  pingDetectorUpdateByID,
 } from "../../states/detector";
 import { newListColumn } from "../../components/ExTable";
 import Detector from "./Detector";
 
 export default defineComponent({
-  name: "HTTP",
+  name: "Ping",
   setup() {
-    const httpDetectors = useDetectorState().httpDetectors;
+    const pingDetectors = useDetectorState().pingDetectors;
     const findByID = async (id: number) => {
-      const result = await httpDetectorFindByID(id);
+      const result = await pingDetectorFindByID(id);
       return result as Record<string, unknown>;
     };
     return {
       findByID,
-      httpDetectors,
+      pingDetectors,
     };
   },
   render() {
-    const { httpDetectors, findByID } = this;
+    const { pingDetectors, findByID } = this;
     const columns: TableColumn[] = [
-      {
-        title: "URL",
-        key: "url",
-      },
       newListColumn({
         key: "ips",
         title: "IP列表",
       }),
     ];
-
     const formItems: FormItem[] = [
       {
         type: FormItemTypes.DynamicInput,
@@ -46,24 +41,18 @@ export default defineComponent({
         placeholder: "请输入对应的IP地址",
         min: 1,
       },
-      {
-        name: "检测地址：",
-        key: "url",
-        span: 12,
-        placeholder: "请输入要检测的URL",
-      },
     ];
     return (
       <Detector
         columns={columns}
-        fetch={httpDetectorList}
+        fetch={pingDetectorList}
         findByID={findByID}
-        updateByID={httpDetectorUpdateByID}
-        create={httpDetectorCreate}
-        title={"HTTP检测配置"}
-        description={"指定HTTP检测URL以及IP列表，定时检测该URL是否可正常访问"}
+        updateByID={pingDetectorUpdateByID}
+        create={pingDetectorCreate}
+        title={"Ping检测配置"}
+        description={"指定Ping检测IP列表，定时Ping该IP是否正常"}
         formItems={formItems}
-        data={httpDetectors}
+        data={pingDetectors}
       />
     );
   },

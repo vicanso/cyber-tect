@@ -162,6 +162,7 @@ export default defineComponent({
   setup(props) {
     const message = useMessage();
     const offset = ref(0);
+    const processing = ref(false);
     const filterParams = ref({} as Record<string, unknown>);
     props.filters?.forEach((item) => {
       const filter = item as Filter;
@@ -185,7 +186,11 @@ export default defineComponent({
 
     // 拉取数据
     const fetchData = async () => {
+      if (processing.value) {
+        return;
+      }
       try {
+        processing.value = true;
         await props.fetch(
           Object.assign(
             {
@@ -197,6 +202,8 @@ export default defineComponent({
         );
       } catch (err) {
         showError(message, err);
+      } finally {
+        processing.value = false;
       }
     };
     if (!props.disableAutoFetch) {
@@ -205,13 +212,14 @@ export default defineComponent({
       });
     }
     return {
+      processing,
       fetchData,
       filterParams,
       offset,
     };
   },
   render() {
-    const { offset, fetchData, filterParams, $slots } = this;
+    const { offset, fetchData, filterParams, $slots, processing } = this;
     const { columns, data, limit, filters, title, hidePagination } =
       this.$props;
 
@@ -338,7 +346,7 @@ export default defineComponent({
 
     const table = (
       <div class="clearfix">
-        <NSpin show={tableData.processing}>
+        <NSpin show={processing}>
           {filterGrids.length !== 0 && (
             <NForm labelPlacement="left">
               <NGrid xGap={24}>{filterGrids}</NGrid>

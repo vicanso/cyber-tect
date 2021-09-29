@@ -1,4 +1,4 @@
-// Copyright 2020 tree xie
+// Copyright 2021 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
-	"github.com/vicanso/cybertect/ent/httpdetector"
+	"github.com/vicanso/cybertect/ent/dnsdetector"
 	"github.com/vicanso/cybertect/ent/predicate"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/router"
@@ -29,53 +29,54 @@ import (
 	"github.com/vicanso/elton"
 )
 
-type httpDetectorCtrl struct{}
+type dnsDetectorCtrl struct{}
 
 type (
-	httpDetectorAddParams struct {
+	dnsDetectorAddParams struct {
 		detectorAddParams
 
-		IPS []string `json:"ips" validate:"omitempty,dive,ip"`
-		URL string   `json:"url" validate:"required,xHTTP"`
+		Host    string   `json:"host" validate:"required,hostname"`
+		IPS     []string `json:"ips" validate:"required,dive,ip"`
+		Servers []string `json:"servers" validate:"required,dive,ip"`
 	}
-	httpDetectorListParams struct {
+
+	dnsDetectorListParams struct {
 		listParams
 
 		account string
 	}
-	httpDetectorUpdateParams struct {
+
+	dnsDetectorUpdateParams struct {
 		detectorUpdateParams
 
 		account string
 
-		IPS []string `json:"ips" validate:"omitempty,dive,ip"`
-		URL string   `json:"url" validate:"omitempty,xHTTP"`
+		Host    string   `json:"host" validate:"omitempty,hostname"`
+		IPS     []string `json:"ips" validate:"omitempty,dive,ip"`
+		Servers []string `json:"servers" validate:"omitempty,dive,ip"`
 	}
 )
 
 type (
-	// httpDetectorListResp response of list http
-	httpDetectorListResp struct {
-		HTTPDetectors []*ent.HTTPDetector `json:"httpDetectors"`
-		Count         int                 `json:"count"`
+	dnsDetectorListResp struct {
+		DNSDetectors []*ent.DNSDetector `json:"dnsDetectors"`
+		Count        int                `json:"count"`
 	}
 )
 
 func init() {
 	g := router.NewGroup(
-		"/http-detectors",
+		"/dns-detectors",
 		loadUserSession,
 		shouldBeLogin,
 	)
-	ctrl := httpDetectorCtrl{}
+	ctrl := dnsDetectorCtrl{}
 
-	// 添加配置
 	g.POST(
 		"/v1",
-		newTrackerMiddleware(cs.ActionDetectorHTTPAdd),
+		newTrackerMiddleware(cs.ActionDetectorDNSAdd),
 		ctrl.add,
 	)
-	// 查询配置
 	g.GET(
 		"/v1",
 		ctrl.list,
@@ -86,45 +87,45 @@ func init() {
 	)
 	g.PATCH(
 		"/v1/{id}",
-		newTrackerMiddleware(cs.ActionDetectorHTTPUpdate),
+		newTrackerMiddleware(cs.ActionDetectorDNSUpdate),
 		ctrl.updateByID,
 	)
 }
 
-func getHTTPDetectorClient() *ent.HTTPDetectorClient {
-	return helper.EntGetClient().HTTPDetector
+func getDNSDetectorClient() *ent.DNSDetectorClient {
+	return helper.EntGetClient().DNSDetector
 }
 
-func (addParams *httpDetectorAddParams) save(ctx context.Context) (*ent.HTTPDetector, error) {
-	return getHTTPDetectorClient().Create().
+func (addParams *dnsDetectorAddParams) save(ctx context.Context) (*ent.DNSDetector, error) {
+	return getDNSDetectorClient().Create().
 		SetStatus(addParams.Status).
 		SetName(addParams.Name).
 		SetOwners(addParams.Owners).
 		SetReceivers(addParams.Receivers).
 		SetTimeout(addParams.Timeout).
 		SetDescription(addParams.Description).
+		SetHost(addParams.Host).
 		SetIps(addParams.IPS).
-		SetURL(addParams.URL).
+		SetServers(addParams.Servers).
 		Save(ctx)
 }
 
-func (listParams *httpDetectorListParams) where(query *ent.HTTPDetectorQuery) {
-	account := listParams.account
-	if account != "" {
-		query.Where(predicate.HTTPDetector(func(s *sql.Selector) {
-			s.Where(sqljson.ValueContains(httpdetector.FieldOwners, account))
+func (listParams *dnsDetectorListParams) where(query *ent.DNSDetectorQuery) {
+	if listParams.account != "" {
+		query.Where(predicate.DNSDetector(func(s *sql.Selector) {
+			s.Where(sqljson.ValueContains(dnsdetector.FieldOwners, listParams.account))
 		}))
 	}
 }
 
-func (listParams *httpDetectorListParams) count(ctx context.Context) (int, error) {
-	query := getHTTPDetectorClient().Query()
+func (listParams *dnsDetectorListParams) count(ctx context.Context) (int, error) {
+	query := getDNSDetectorClient().Query()
 	listParams.where(query)
 	return query.Count(ctx)
 }
 
-func (listParams *httpDetectorListParams) queryAll(ctx context.Context) ([]*ent.HTTPDetector, error) {
-	query := getHTTPDetectorClient().Query()
+func (listParams *dnsDetectorListParams) queryAll(ctx context.Context) ([]*ent.DNSDetector, error) {
+	query := getDNSDetectorClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -132,11 +133,10 @@ func (listParams *httpDetectorListParams) queryAll(ctx context.Context) ([]*ent.
 	return query.All(ctx)
 }
 
-func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id int) (*ent.HTTPDetector, error) {
-	// 指定账号则判断是否是该配置的owner
+func (updateParams *dnsDetectorUpdateParams) updateByID(ctx context.Context, id int) (*ent.DNSDetector, error) {
 	account := updateParams.account
 	if account != "" {
-		result, err := getHTTPDetectorClient().Get(ctx, id)
+		result, err := getDNSDetectorClient().Get(ctx, id)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +144,7 @@ func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id
 			return nil, errInvalidUser
 		}
 	}
-	updateOne := getHTTPDetectorClient().UpdateOneID(id)
+	updateOne := getDNSDetectorClient().UpdateOneID(id)
 	if updateParams.Name != "" {
 		updateOne.SetName(updateParams.Name)
 	}
@@ -160,24 +160,23 @@ func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id
 	if updateParams.Timeout != "" {
 		updateOne.SetTimeout(updateParams.Timeout)
 	}
-	// 允许直接修改owner
-	if len(updateParams.Owners) != 0 {
-		updateOne.SetOwners(updateParams.Owners)
-	}
 
+	if updateParams.Host != "" {
+		updateOne.SetHost(updateParams.Host)
+	}
 	if len(updateParams.IPS) != 0 {
 		updateOne.SetIps(updateParams.IPS)
 	}
-	if updateParams.URL != "" {
-		updateOne.SetURL(updateParams.URL)
+	if len(updateParams.Servers) != 0 {
+		updateOne.SetServers(updateParams.Servers)
 	}
 
 	return updateOne.Save(ctx)
 }
 
-// 添加http检测
-func (*httpDetectorCtrl) add(c *elton.Context) error {
-	params := httpDetectorAddParams{}
+// 添加dns检测
+func (*dnsDetectorCtrl) add(c *elton.Context) error {
+	params := dnsDetectorAddParams{}
 	err := validateBody(c, &params)
 	if err != nil {
 		return err
@@ -190,18 +189,18 @@ func (*httpDetectorCtrl) add(c *elton.Context) error {
 	return nil
 }
 
-func (*httpDetectorCtrl) list(c *elton.Context) error {
-	params := httpDetectorListParams{}
+func (*dnsDetectorCtrl) list(c *elton.Context) error {
+	params := dnsDetectorListParams{}
 	err := validateQuery(c, &params)
 	if err != nil {
 		return err
 	}
 	us := getUserSession(c)
-	// 如果非管理员，则指定当前账号
+	// 非管理员，则指定当前账号
 	if !us.IsAdmin() {
 		params.account = us.MustGetInfo().Account
 	}
-	resp := httpDetectorListResp{
+	resp := dnsDetectorListResp{
 		Count: -1,
 	}
 	if params.ShouldCount() {
@@ -211,21 +210,24 @@ func (*httpDetectorCtrl) list(c *elton.Context) error {
 		}
 		resp.Count = count
 	}
+
 	result, err := params.queryAll(c.Context())
 	if err != nil {
 		return err
 	}
-	resp.HTTPDetectors = result
+	resp.DNSDetectors = result
 	c.Body = &resp
+
 	return nil
 }
 
-func (*httpDetectorCtrl) updateByID(c *elton.Context) error {
+func (*dnsDetectorCtrl) updateByID(c *elton.Context) error {
 	id, err := getIDFromParams(c)
 	if err != nil {
 		return err
 	}
-	params := httpDetectorUpdateParams{}
+
+	params := dnsDetectorUpdateParams{}
 	err = validateBody(c, &params)
 	if err != nil {
 		return err
@@ -243,12 +245,12 @@ func (*httpDetectorCtrl) updateByID(c *elton.Context) error {
 	return nil
 }
 
-func (*httpDetectorCtrl) findByID(c *elton.Context) error {
+func (*dnsDetectorCtrl) findByID(c *elton.Context) error {
 	id, err := getIDFromParams(c)
 	if err != nil {
 		return err
 	}
-	result, err := getHTTPDetectorClient().Get(c.Context(), id)
+	result, err := getDNSDetectorClient().Get(c.Context(), id)
 	if err != nil {
 		return err
 	}

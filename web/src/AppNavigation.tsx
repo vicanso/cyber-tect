@@ -27,6 +27,18 @@ const navigationOptions = [
         label: "HTTP",
         key: names.detectorHTTP,
       },
+      {
+        label: "TCP",
+        key: names.detectorTCP,
+      },
+      {
+        label: "Ping",
+        key: names.detectorPing,
+      },
+      {
+        label: "DNS",
+        key: names.detectorDNS,
+      },
     ],
   },
   {

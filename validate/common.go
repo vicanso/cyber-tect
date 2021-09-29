@@ -53,6 +53,7 @@ func init() {
 		}
 		return urlInfo.Host != "" && urlInfo.Path != ""
 	})
+	AddAlias("xHostPort", "hostname_port")
 	// duration配置
 	durationReg := regexp.MustCompile(`^\d+(ms|s|m)$`)
 	Add("xDuration", func(fl validator.FieldLevel) bool {

@@ -21,7 +21,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqljson"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
-	"github.com/vicanso/cybertect/ent/httpdetector"
+	"github.com/vicanso/cybertect/ent/dnsdetector"
 	"github.com/vicanso/cybertect/ent/predicate"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/router"
@@ -29,53 +29,48 @@ import (
 	"github.com/vicanso/elton"
 )
 
-type httpDetectorCtrl struct{}
+type tcpDetectorCtrl struct{}
 
 type (
-	httpDetectorAddParams struct {
+	tcpDetectorAddParams struct {
 		detectorAddParams
 
-		IPS []string `json:"ips" validate:"omitempty,dive,ip"`
-		URL string   `json:"url" validate:"required,xHTTP"`
+		Addrs []string `json:"addrs" validate:"required,dive,xHostPort"`
 	}
-	httpDetectorListParams struct {
+	tcpDetectorListParams struct {
 		listParams
 
 		account string
 	}
-	httpDetectorUpdateParams struct {
+	tcpDetectorUpdateParams struct {
 		detectorUpdateParams
 
 		account string
-
-		IPS []string `json:"ips" validate:"omitempty,dive,ip"`
-		URL string   `json:"url" validate:"omitempty,xHTTP"`
+		Addrs   []string `json:"addrs" validate:"omitempty,dive,xHostPort"`
 	}
 )
 
 type (
-	// httpDetectorListResp response of list http
-	httpDetectorListResp struct {
-		HTTPDetectors []*ent.HTTPDetector `json:"httpDetectors"`
-		Count         int                 `json:"count"`
+	tcpDetectorListResp struct {
+		TCPDetectors []*ent.TCPDetector `json:"tcpDetectors"`
+		Count        int                `json:"count"`
 	}
 )
 
 func init() {
 	g := router.NewGroup(
-		"/http-detectors",
+		"/tcp-detectors",
 		loadUserSession,
 		shouldBeLogin,
 	)
-	ctrl := httpDetectorCtrl{}
+	ctrl := tcpDetectorCtrl{}
 
 	// 添加配置
 	g.POST(
 		"/v1",
-		newTrackerMiddleware(cs.ActionDetectorHTTPAdd),
+		newTrackerMiddleware(cs.ActionDetectorTCPAdd),
 		ctrl.add,
 	)
-	// 查询配置
 	g.GET(
 		"/v1",
 		ctrl.list,
@@ -86,45 +81,44 @@ func init() {
 	)
 	g.PATCH(
 		"/v1/{id}",
-		newTrackerMiddleware(cs.ActionDetectorHTTPUpdate),
+		newTrackerMiddleware(cs.ActionDetectorTCPUpdate),
 		ctrl.updateByID,
 	)
 }
 
-func getHTTPDetectorClient() *ent.HTTPDetectorClient {
-	return helper.EntGetClient().HTTPDetector
+func getTCPDetectorClient() *ent.TCPDetectorClient {
+	return helper.EntGetClient().TCPDetector
 }
 
-func (addParams *httpDetectorAddParams) save(ctx context.Context) (*ent.HTTPDetector, error) {
-	return getHTTPDetectorClient().Create().
+func (addParams *tcpDetectorAddParams) save(ctx context.Context) (*ent.TCPDetector, error) {
+	return getTCPDetectorClient().Create().
 		SetStatus(addParams.Status).
 		SetName(addParams.Name).
 		SetOwners(addParams.Owners).
 		SetReceivers(addParams.Receivers).
 		SetTimeout(addParams.Timeout).
 		SetDescription(addParams.Description).
-		SetIps(addParams.IPS).
-		SetURL(addParams.URL).
+		SetAddrs(addParams.Addrs).
 		Save(ctx)
 }
 
-func (listParams *httpDetectorListParams) where(query *ent.HTTPDetectorQuery) {
+func (listParams *tcpDetectorListParams) where(query *ent.TCPDetectorQuery) {
 	account := listParams.account
 	if account != "" {
-		query.Where(predicate.HTTPDetector(func(s *sql.Selector) {
-			s.Where(sqljson.ValueContains(httpdetector.FieldOwners, account))
+		query.Where(predicate.TCPDetector(func(s *sql.Selector) {
+			s.Where(sqljson.ValueContains(dnsdetector.FieldOwners, account))
 		}))
 	}
 }
 
-func (listParams *httpDetectorListParams) count(ctx context.Context) (int, error) {
-	query := getHTTPDetectorClient().Query()
+func (listParams *tcpDetectorListParams) count(ctx context.Context) (int, error) {
+	query := getTCPDetectorClient().Query()
 	listParams.where(query)
 	return query.Count(ctx)
 }
 
-func (listParams *httpDetectorListParams) queryAll(ctx context.Context) ([]*ent.HTTPDetector, error) {
-	query := getHTTPDetectorClient().Query()
+func (listParams *tcpDetectorListParams) queryAll(ctx context.Context) ([]*ent.TCPDetector, error) {
+	query := getTCPDetectorClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -132,11 +126,10 @@ func (listParams *httpDetectorListParams) queryAll(ctx context.Context) ([]*ent.
 	return query.All(ctx)
 }
 
-func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id int) (*ent.HTTPDetector, error) {
-	// 指定账号则判断是否是该配置的owner
+func (updateParams *tcpDetectorUpdateParams) updateByID(ctx context.Context, id int) (*ent.TCPDetector, error) {
 	account := updateParams.account
 	if account != "" {
-		result, err := getHTTPDetectorClient().Get(ctx, id)
+		result, err := getTCPDetectorClient().Get(ctx, id)
 		if err != nil {
 			return nil, err
 		}
@@ -144,7 +137,7 @@ func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id
 			return nil, errInvalidUser
 		}
 	}
-	updateOne := getHTTPDetectorClient().UpdateOneID(id)
+	updateOne := getTCPDetectorClient().UpdateOneID(id)
 	if updateParams.Name != "" {
 		updateOne.SetName(updateParams.Name)
 	}
@@ -165,19 +158,14 @@ func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id
 		updateOne.SetOwners(updateParams.Owners)
 	}
 
-	if len(updateParams.IPS) != 0 {
-		updateOne.SetIps(updateParams.IPS)
+	if len(updateParams.Addrs) != 0 {
+		updateOne.SetAddrs(updateParams.Addrs)
 	}
-	if updateParams.URL != "" {
-		updateOne.SetURL(updateParams.URL)
-	}
-
 	return updateOne.Save(ctx)
 }
 
-// 添加http检测
-func (*httpDetectorCtrl) add(c *elton.Context) error {
-	params := httpDetectorAddParams{}
+func (*tcpDetectorCtrl) add(c *elton.Context) error {
+	params := tcpDetectorAddParams{}
 	err := validateBody(c, &params)
 	if err != nil {
 		return err
@@ -190,18 +178,18 @@ func (*httpDetectorCtrl) add(c *elton.Context) error {
 	return nil
 }
 
-func (*httpDetectorCtrl) list(c *elton.Context) error {
-	params := httpDetectorListParams{}
+func (*tcpDetectorCtrl) list(c *elton.Context) error {
+	params := tcpDetectorListParams{}
 	err := validateQuery(c, &params)
 	if err != nil {
 		return err
 	}
 	us := getUserSession(c)
-	// 如果非管理员，则指定当前账号
+	// 非管理员，只能查询所拥有的配置
 	if !us.IsAdmin() {
 		params.account = us.MustGetInfo().Account
 	}
-	resp := httpDetectorListResp{
+	resp := tcpDetectorListResp{
 		Count: -1,
 	}
 	if params.ShouldCount() {
@@ -215,23 +203,22 @@ func (*httpDetectorCtrl) list(c *elton.Context) error {
 	if err != nil {
 		return err
 	}
-	resp.HTTPDetectors = result
+	resp.TCPDetectors = result
 	c.Body = &resp
 	return nil
 }
 
-func (*httpDetectorCtrl) updateByID(c *elton.Context) error {
+func (*tcpDetectorCtrl) updateByID(c *elton.Context) error {
 	id, err := getIDFromParams(c)
 	if err != nil {
 		return err
 	}
-	params := httpDetectorUpdateParams{}
+	params := tcpDetectorUpdateParams{}
 	err = validateBody(c, &params)
 	if err != nil {
 		return err
 	}
 	us := getUserSession(c)
-	// 如果非管理员，则指定当前账号
 	if !us.IsAdmin() {
 		params.account = us.MustGetInfo().Account
 	}
@@ -243,12 +230,12 @@ func (*httpDetectorCtrl) updateByID(c *elton.Context) error {
 	return nil
 }
 
-func (*httpDetectorCtrl) findByID(c *elton.Context) error {
+func (*tcpDetectorCtrl) findByID(c *elton.Context) error {
 	id, err := getIDFromParams(c)
 	if err != nil {
 		return err
 	}
-	result, err := getHTTPDetectorClient().Get(c.Context(), id)
+	result, err := getTCPDetectorClient().Get(c.Context(), id)
 	if err != nil {
 		return err
 	}

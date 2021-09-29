@@ -26,6 +26,9 @@ export const names = {
   emails: "emails",
   httpServerInterceptors: "httpServerInterceptors",
   detectorHTTP: "detectorHTTP",
+  detectorDNS: "detectorDNS",
+  detectorTCP: "detectorTCP",
+  detectorPing: "detectorPing",
 };
 
 export const routes: Router[] = [
@@ -123,5 +126,20 @@ export const routes: Router[] = [
     path: "/detectors/http",
     name: names.detectorHTTP,
     component: () => import("../views/detectors/HTTP"),
+  },
+  {
+    path: "/detectors/dns",
+    name: names.detectorDNS,
+    component: () => import("../views/detectors/DNS"),
+  },
+  {
+    path: "/detectors/tcp",
+    name: names.detectorTCP,
+    component: () => import("../views/detectors/TCP"),
+  },
+  {
+    path: "/detectors/ping",
+    name: names.detectorPing,
+    component: () => import("../views/detectors/Ping"),
   },
 ];

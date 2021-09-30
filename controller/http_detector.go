@@ -19,12 +19,15 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
+	"github.com/thoas/go-funk"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/httpdetector"
+	"github.com/vicanso/cybertect/ent/httpdetectorresult"
 	"github.com/vicanso/cybertect/ent/predicate"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
 )
@@ -51,6 +54,10 @@ type (
 		IPS []string `json:"ips" validate:"omitempty,dive,ip"`
 		URL string   `json:"url" validate:"omitempty,xHTTP"`
 	}
+
+	httpDetectorResultListParams struct {
+		detectorListResultParams
+	}
 )
 
 type (
@@ -59,11 +66,16 @@ type (
 		HTTPDetectors []*ent.HTTPDetector `json:"httpDetectors"`
 		Count         int                 `json:"count"`
 	}
+	httpDetectorResultListResp struct {
+		HTTPDetectorResults []*ent.HTTPDetectorResult `json:"httpDetectorResults"`
+		Count               int                       `json:"count"`
+	}
 )
 
 func init() {
+	prefix := "/http-detectors"
 	g := router.NewGroup(
-		"/http-detectors",
+		prefix,
 		loadUserSession,
 		shouldBeLogin,
 	)
@@ -89,10 +101,17 @@ func init() {
 		newTrackerMiddleware(cs.ActionDetectorHTTPUpdate),
 		ctrl.updateByID,
 	)
+	router.NewGroup(prefix).GET(
+		"/results/v1",
+		ctrl.listResult,
+	)
 }
 
 func getHTTPDetectorClient() *ent.HTTPDetectorClient {
 	return helper.EntGetClient().HTTPDetector
+}
+func getHTTPDetectorResultClient() *ent.HTTPDetectorResultClient {
+	return helper.EntGetClient().HTTPDetectorResult
 }
 
 func (addParams *httpDetectorAddParams) save(ctx context.Context) (*ent.HTTPDetector, error) {
@@ -125,6 +144,45 @@ func (listParams *httpDetectorListParams) count(ctx context.Context) (int, error
 
 func (listParams *httpDetectorListParams) queryAll(ctx context.Context) ([]*ent.HTTPDetector, error) {
 	query := getHTTPDetectorClient().Query()
+	query = query.Limit(listParams.GetLimit()).
+		Offset(listParams.GetOffset()).
+		Order(listParams.GetOrders()...)
+	listParams.where(query)
+	return query.All(ctx)
+}
+
+// where http detector result where
+func (listParams *httpDetectorResultListParams) where(query *ent.HTTPDetectorResultQuery) {
+	task := listParams.Task
+	if task != 0 {
+		query.Where(httpdetectorresult.Task(task))
+	}
+	result := listParams.Result
+	if result != 0 {
+		query.Where(httpdetectorresult.Result(schema.DetectorResult(result)))
+	}
+	ms := listParams.GetDurationMillSecond()
+	if ms > 0 {
+		query.Where(httpdetectorresult.MaxDurationGTE(ms))
+	}
+	startedAt := listParams.StartedAt
+	if !startedAt.IsZero() {
+		query.Where(httpdetectorresult.CreatedAtGTE(startedAt))
+	}
+	endedAt := listParams.EndedAt
+	if !endedAt.IsZero() {
+		query.Where(httpdetectorresult.CreatedAtLTE(endedAt))
+	}
+}
+
+func (listParams *httpDetectorResultListParams) count(ctx context.Context) (int, error) {
+	query := getHTTPDetectorResultClient().Query()
+	listParams.where(query)
+	return query.Count(ctx)
+}
+
+func (listParams *httpDetectorResultListParams) queryAll(ctx context.Context) ([]*ent.HTTPDetectorResult, error) {
+	query := getHTTPDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -253,5 +311,54 @@ func (*httpDetectorCtrl) findByID(c *elton.Context) error {
 		return err
 	}
 	c.Body = result
+	return nil
+}
+
+func (*httpDetectorCtrl) listResult(c *elton.Context) error {
+	params := httpDetectorResultListParams{}
+	err := validateQuery(c, &params)
+	if err != nil {
+		return err
+	}
+	resp := httpDetectorResultListResp{}
+	if params.ShouldCount() {
+		count, err := params.count(c.Context())
+		if err != nil {
+			return err
+		}
+		resp.Count = count
+	}
+	result, err := params.queryAll(c.Context())
+	if err != nil {
+		return err
+	}
+
+	// 填充检测任务名称
+	idList := make([]int, 0)
+	for _, item := range result {
+		if funk.ContainsInt(idList, item.Task) {
+			continue
+		}
+		idList = append(idList, item.Task)
+	}
+	detectors, err := getHTTPDetectorClient().Query().
+		Where(
+			httpdetector.IDIn(idList...),
+		).
+		Select("id", "name").
+		All(c.Context())
+	if err != nil {
+		return err
+	}
+	for _, item := range result {
+		for _, d := range detectors {
+			if item.Task == d.ID {
+				item.TaskName = d.Name
+			}
+		}
+	}
+
+	resp.HTTPDetectorResults = result
+	c.Body = &resp
 	return nil
 }

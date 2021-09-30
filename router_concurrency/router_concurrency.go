@@ -9,9 +9,9 @@ import (
 	syncAtomic "sync/atomic"
 	"unsafe"
 
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/email"
 	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/elton"
 	"go.uber.org/atomic"
 	"go.uber.org/ratelimit"
 )
@@ -153,7 +153,7 @@ func Update(arr []string) {
 			log.Error(context.Background()).
 				Err(err).
 				Msg("router concurrency config is invalid")
-			email.AlarmError("router concurrency config is invalid:" + err.Error())
+			email.AlarmError(context.Background(), "router concurrency config is invalid:"+err.Error())
 			continue
 		}
 		concurrencyConfigList = append(concurrencyConfigList, v)

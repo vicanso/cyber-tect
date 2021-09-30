@@ -38,7 +38,7 @@ func Update(configs []string) {
 			log.Error(context.Background()).
 				Err(err).
 				Msg("router config is invalid")
-			email.AlarmError("router config is invalid:" + err.Error())
+			email.AlarmError(context.Background(), "router config is invalid:"+err.Error())
 			continue
 		}
 		arr := strings.Split(v.Router, " ")

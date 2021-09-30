@@ -12,10 +12,11 @@ import {
   PING_DETECTORS,
   TCP_DETECTORS_ID,
   PING_DETECTORS_ID,
+  HTTP_DETECTOR_RESULTS,
 } from "../constants/url";
 
 // http检测配置
-export interface HTTPDetector {
+interface HTTPDetector {
   [key: string]: unknown;
   id: number;
   createdAt: string;
@@ -32,7 +33,7 @@ export interface HTTPDetector {
 }
 
 // dns 检测配置
-export interface DNSDetector {
+interface DNSDetector {
   [key: string]: unknown;
   id: number;
   createdAt: string;
@@ -50,7 +51,7 @@ export interface DNSDetector {
 }
 
 // tcp 检测配置
-export interface TCPDetector {
+interface TCPDetector {
   [key: string]: unknown;
   id: number;
   createdAt: string;
@@ -66,7 +67,7 @@ export interface TCPDetector {
 }
 
 // ping 检测配置
-export interface PingDetector {
+interface PingDetector {
   [key: string]: unknown;
   id: number;
   createdAt: string;
@@ -81,35 +82,90 @@ export interface PingDetector {
   ips: string[];
 }
 
-interface Detectors<T> {
+interface HTTPDetectorSubResult {
+  result: number;
+  addrs: string[];
+  addr: string;
+  protocol: string;
+  tlsVersion: string;
+  tlsCipherSuite: string;
+  certificateDNSNames: string[];
+  certificateExpirationDates: string[];
+  dnsLookup: number;
+  tcpConnection: number;
+  tlsHandshake: number;
+  serverProcessing: number;
+  contentTransfer: number;
+  duration: number;
+  message: string;
+  timeline: string[];
+}
+interface HTTPDetectorResult {
+  [key: string]: unknown;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  task: number;
+  result: number;
+  maxDuration: number;
+  message: string;
+  // 检测url
+  url: string;
+  results: HTTPDetectorSubResult[];
+}
+
+interface List<T> {
   processing: boolean;
   items: T[];
   count: -1;
 }
 
-const httpDetectors: Detectors<HTTPDetector> = reactive({
+const httpDetectors: List<HTTPDetector> = reactive({
   processing: false,
   items: [],
   count: -1,
 });
 
-const dnsDetectors: Detectors<DNSDetector> = reactive({
+const dnsDetectors: List<DNSDetector> = reactive({
   processing: false,
   items: [],
   count: -1,
 });
 
-const tcpDetectors: Detectors<TCPDetector> = reactive({
+const tcpDetectors: List<TCPDetector> = reactive({
   processing: false,
   items: [],
   count: -1,
 });
 
-const pingDetectors: Detectors<PingDetector> = reactive({
+const pingDetectors: List<PingDetector> = reactive({
   processing: false,
   items: [],
   count: -1,
 });
+
+const httpDetectorResults: List<HTTPDetectorResult> = reactive({
+  processing: false,
+  items: [],
+  count: -1,
+});
+
+function fillCount(
+  params: Record<string, unknown>,
+  data: Record<string, unknown>,
+  key: string
+) {
+  const offset = Number(params.offset);
+  const limit = Number(params.limit);
+  data.count = offset + limit;
+  if (!data[key] || !(data[key] as []).length) {
+    return;
+  }
+  // 如果刚好满一页，设置多一条
+  if ((data[key] as []).length % limit === 0) {
+    data.count = (data.count as number) + 1;
+  }
+}
 
 export async function detectorListUser(keyword: string): Promise<string[]> {
   const { data } = await request.get(DETECTOR_LIST_USER, {
@@ -329,11 +385,55 @@ export async function pingDetectorCreate(
   return data as PingDetector;
 }
 
+export async function httpDetectorResultList(
+  params: Record<string, unknown>
+): Promise<void> {
+  if (httpDetectorResults.processing) {
+    return;
+  }
+  httpDetectorResults.processing = true;
+  try {
+    const { data } = await request.get(HTTP_DETECTOR_RESULTS, {
+      params,
+    });
+    fillCount(params, data, "httpDetectorResults");
+    httpDetectorResults.items = data.httpDetectorResults || [];
+    httpDetectorResults.items.forEach((item) => {
+      if (!item.results) {
+        return;
+      }
+      item.results.forEach((subItem) => {
+        const dates = subItem.certificateExpirationDates;
+        if (!dates || dates.length !== 2) {
+          return;
+        }
+        const size = 10;
+        subItem.certificateExpirationDates = [
+          dates[0].substring(0, size),
+          dates[1].substring(0, size),
+        ];
+        subItem.timeline = [
+          `TOTAL: ${subItem.duration}`,
+          `DNS: ${subItem.dnsLookup}`,
+          `TCP: ${subItem.tcpConnection}`,
+          `TLS: ${subItem.tlsHandshake}`,
+          `PROCESSING: ${subItem.serverProcessing}`,
+          `TRANSFER: ${subItem.contentTransfer}`,
+        ];
+      });
+    });
+    httpDetectorResults.count = data.count;
+  } finally {
+    httpDetectorResults.processing = false;
+  }
+}
+
 interface ReadonlyDetectorState {
-  httpDetectors: DeepReadonly<Detectors<HTTPDetector>>;
-  dnsDetectors: DeepReadonly<Detectors<DNSDetector>>;
-  tcpDetectors: DeepReadonly<Detectors<TCPDetector>>;
-  pingDetectors: DeepReadonly<Detectors<PingDetector>>;
+  httpDetectors: DeepReadonly<List<HTTPDetector>>;
+  dnsDetectors: DeepReadonly<List<DNSDetector>>;
+  tcpDetectors: DeepReadonly<List<TCPDetector>>;
+  pingDetectors: DeepReadonly<List<PingDetector>>;
+  httpDetectorResults: DeepReadonly<List<HTTPDetectorResult>>;
 }
 
 const state = {
@@ -341,6 +441,7 @@ const state = {
   dnsDetectors: readonly(dnsDetectors),
   tcpDetectors: readonly(tcpDetectors),
   pingDetectors: readonly(pingDetectors),
+  httpDetectorResults: readonly(httpDetectorResults),
 };
 
 export default function useDetectorState(): ReadonlyDetectorState {

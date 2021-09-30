@@ -5,5 +5,16 @@
 		// 状态描述
 		StatusDesc string `json:"statusDesc,omitempty"`
 	{{- end }}
+	
+	{{- if eq $f.Name "task" }}
+		// 状态描述
+		TaskName string `json:"taskName,omitempty"`
+	{{- end }}
+
+	{{- if eq $f.Name "result" }}
+		// 状态描述
+		ResultDesc string `json:"resultDesc,omitempty"`
+	{{- end }}
+
 	{{- end }}
 {{ end }}

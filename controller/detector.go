@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"time"
 
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/user"
@@ -66,6 +67,17 @@ type (
 		// pattern: xKeyword
 		Keyword string `json:"keyword" validate:"omitempty,xKeyword"`
 	}
+
+	// detectorListHTTPResultParams params of list http result
+	detectorListResultParams struct {
+		listParams `json:"listParams"`
+
+		Task      int       `json:"task" validate:"omitempty,xDetectorTaskID"`
+		Result    int8      `json:"result" validate:"omitempty,xDetectorResult"`
+		Duration  string    `json:"duration" validate:"omitempty,xDuration"`
+		StartedAt time.Time `json:"startedAt"`
+		EndedAt   time.Time `json:"endedAt"`
+	}
 )
 
 func init() {
@@ -78,6 +90,15 @@ func init() {
 
 	// 用户查询
 	g.GET("/users/v1", ctrl.listUser)
+}
+
+// GetDurationMs
+func (params *detectorListResultParams) GetDurationMillSecond() int {
+	if params.Duration == "" {
+		return 0
+	}
+	d, _ := time.ParseDuration(params.Duration)
+	return int(d.Milliseconds())
 }
 
 func (listUserParams *detectorListUserParams) queryAll(ctx context.Context) ([]*ent.User, error) {

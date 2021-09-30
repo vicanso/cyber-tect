@@ -49,6 +49,7 @@ export const DETECTOR_LIST_USER = "/detectors/users/v1";
 // http检测
 export const HTTP_DETECTORS = "/http-detectors/v1";
 export const HTTP_DETECTORS_ID = "/http-detectors/v1/:id";
+export const HTTP_DETECTOR_RESULTS = "/http-detectors/results/v1";
 // dns检测
 export const DNS_DETECTORS = "/dns-detectors/v1";
 export const DNS_DETECTORS_ID = "/dns-detectors/v1/:id";

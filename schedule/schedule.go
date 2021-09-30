@@ -16,13 +16,16 @@ package schedule
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
 	"github.com/shirou/gopsutil/v3/process"
+	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
+	"github.com/vicanso/cybertect/detector"
 	"github.com/vicanso/cybertect/email"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
@@ -40,6 +43,7 @@ type (
 const logCategory = "schedule"
 
 func init() {
+	detectorConfig := config.MustGetDetectorConfig()
 	c := cron.New()
 	_, _ = c.AddFunc("@every 1m", redisPing)
 	_, _ = c.AddFunc("@every 1m", entPing)
@@ -51,6 +55,15 @@ func init() {
 	_, _ = c.AddFunc("@every 1m", performanceStats)
 	_, _ = c.AddFunc("@every 1m", httpInstanceStats)
 	_, _ = c.AddFunc("@every 1m", routerConcurrencyStats)
+	_, _ = c.AddFunc("@every 24h", removeExpiredDetectorResult)
+
+	// 检测任务
+	spec := fmt.Sprintf("@every %s", detectorConfig.Interval)
+	_, _ = c.AddFunc(spec, doHTTPDetect)
+	_, _ = c.AddFunc(spec, doDNSDetect)
+	_, _ = c.AddFunc(spec, doTCPDetect)
+	_, _ = c.AddFunc(spec, doPingDetect)
+
 	// 如果是开发环境，则不执行定时任务
 	if util.IsDevelopment() {
 		return
@@ -68,7 +81,7 @@ func doTask(desc string, fn taskFn) {
 			Dur("use", use).
 			Err(err).
 			Msg(desc + " fail")
-		email.AlarmError(desc + " fail, " + err.Error())
+		email.AlarmError(context.Background(), desc+" fail, "+err.Error())
 	} else {
 		log.Info(context.Background()).
 			Str("category", logCategory).
@@ -318,4 +331,36 @@ func routerConcurrencyStats() {
 		}
 		return fields
 	})
+}
+
+func doHTTPDetect() {
+	srv := detector.HTTPSrv{}
+	doTask("http detect", func() error {
+		return srv.Detect(context.Background())
+	})
+}
+
+func doDNSDetect() {
+	srv := detector.DNSSrv{}
+	doTask("dns detect", func() error {
+		return srv.Detect(context.Background())
+	})
+}
+
+func doTCPDetect() {
+	srv := detector.TCPSrv{}
+	doTask("tcp detect", func() error {
+		return srv.Detect(context.Background())
+	})
+}
+
+func doPingDetect() {
+	srv := detector.PingSrv{}
+	doTask("ping detect", func() error {
+		return srv.Detect(context.Background())
+	})
+}
+
+func removeExpiredDetectorResult() {
+	doTask("remove expired detector result", detector.RemoveExpiredDetectorResult)
 }

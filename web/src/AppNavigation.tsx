@@ -1,4 +1,4 @@
-import { Desktop, User } from "@vicons/fa";
+import { Desktop, User, ListUl } from "@vicons/fa";
 import { css } from "@linaria/core";
 import { NButton, NIcon, NMenu } from "naive-ui";
 import { Component, defineComponent, h } from "vue";
@@ -38,6 +38,17 @@ const navigationOptions = [
       {
         label: "DNS",
         key: names.detectorDNS,
+      },
+    ],
+  },
+  {
+    label: "检测结果",
+    key: "detectorResult",
+    icon: renderIcon(ListUl),
+    children: [
+      {
+        label: "HTTP",
+        key: names.detectorHTTPResult,
       },
     ],
   },

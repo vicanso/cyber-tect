@@ -188,7 +188,7 @@ func newOnErrorHandler(e *elton.Elton) {
 	// exception的warner只有一个key，因此无需定时清除
 	exceptionWarner := warner.NewWarner(5*time.Minute, 5)
 	exceptionWarner.On(func(_ string, _ int) {
-		email.AlarmError("too many uncaught exception")
+		email.AlarmError(context.Background(), "too many uncaught exception")
 	})
 	// 只有未被处理的error才会触发此回调
 	e.OnError(func(c *elton.Context, err error) {
@@ -229,7 +229,7 @@ func newOnErrorHandler(e *elton.Elton) {
 		// panic类的异常都graceful close
 		if he.Category == M.ErrRecoverCategory {
 
-			email.AlarmError("panic recover:" + string(he.ToJSON()))
+			email.AlarmError(c.Context(), "panic recover:"+string(he.ToJSON()))
 			// 由于此处的error由请求触发的，因为要另外启动一个goroutine重启，避免影响当前处理
 			go gracefulClose(e)
 		}
@@ -253,7 +253,7 @@ func main() {
 				Str("category", "panic").
 				Err(err).
 				Msg("")
-			email.AlarmError(fmt.Sprintf("panic recover:%v", r))
+			email.AlarmError(context.Background(), fmt.Sprintf("panic recover:%v", r))
 			// panic类的异常都graceful close
 			gracefulClose(e)
 		}
@@ -378,7 +378,7 @@ func main() {
 
 	err := dependServiceCheck()
 	if err != nil {
-		email.AlarmError("check depend service fail, " + err.Error())
+		email.AlarmError(context.Background(), "check depend service fail, "+err.Error())
 		log.Error(context.Background()).
 			Str("category", "depFail").
 			Err(err).
@@ -397,7 +397,7 @@ func main() {
 	err = e.ListenAndServe(basicConfig.Listen)
 	// 如果出错而且非主动关闭，则发送告警
 	if err != nil && !closedByUser {
-		email.AlarmError("listen and serve fail, " + err.Error())
+		email.AlarmError(context.Background(), "listen and serve fail, "+err.Error())
 		log.Error(context.Background()).
 			Err(err).
 			Msg("")

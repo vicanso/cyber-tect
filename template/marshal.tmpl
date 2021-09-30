@@ -19,6 +19,15 @@ import "encoding/json"
 		return json.Marshal(tmp)
 	}
 	{{- end }}
+
+	{{- if eq $f.Name "result" }}
+	type Marshal{{ $n.Name }} {{ $n.Name }}
+	func (t *{{ $n.Name }}) MarshalJSON() ([]byte, error) {
+		tmp := (*Marshal{{ $n.Name }})(t)
+		tmp.ResultDesc = tmp.Result.String()
+		return json.Marshal(tmp)
+	}
+	{{- end }}
 {{- end }}
 
 {{ end }}

@@ -9,6 +9,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/felixge/fgprof v0.9.1
 	github.com/fogleman/gg v1.3.0
+	github.com/go-ping/ping v0.0.0-20210911151512-381826476871
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/go-redis/redis/v8 v8.11.3
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
@@ -32,6 +33,7 @@ require (
 	github.com/shirou/gopsutil/v3 v3.21.8
 	github.com/spf13/cast v1.4.1
 	github.com/stretchr/testify v1.7.0
+	github.com/thoas/go-funk v0.9.1
 	github.com/tidwall/gjson v1.9.0
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/vicanso/count-warner v1.2.0
@@ -42,8 +44,10 @@ require (
 	github.com/vicanso/go-cache v1.2.0
 	github.com/vicanso/go-gauge v0.0.1
 	github.com/vicanso/go-mask v0.1.0
+	github.com/vicanso/go-parallel v0.4.1
 	github.com/vicanso/go-performance v0.4.0
 	github.com/vicanso/hes v0.3.9
+	github.com/vicanso/http-trace v1.0.5
 	github.com/vicanso/ips v1.2.1
 	github.com/vicanso/lru-ttl v1.3.0
 	github.com/vicanso/viperx v0.1.4

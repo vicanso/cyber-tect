@@ -29,6 +29,7 @@ export const names = {
   detectorDNS: "detectorDNS",
   detectorTCP: "detectorTCP",
   detectorPing: "detectorPing",
+  detectorHTTPResult: "detectorHTTPResult",
 };
 
 export const routes: Router[] = [
@@ -141,5 +142,10 @@ export const routes: Router[] = [
     path: "/detectors/ping",
     name: names.detectorPing,
     component: () => import("../views/detectors/Ping"),
+  },
+  {
+    path: "/detectors/http/results",
+    name: names.detectorHTTPResult,
+    component: () => import("../views/detectors/HTTPResult"),
   },
 ];

@@ -74,3 +74,8 @@ minio:
 pyroscope:
   addr: http://127.0.0.1:4040
   # token: ""
+
+detector:
+  expired: DETECTOR_RESULT_EXPIRED
+  interval: DETECTOR_INTERVAL
+  concurrency: 5

@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"encoding/json"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 )
@@ -12,21 +14,29 @@ type HTTPDetectorResult struct {
 
 // HTTPDetectorSubResult http detector result
 type HTTPDetectorSubResult struct {
-	Result                     DetectorResult `json:"result,omitempty"`
-	Addrs                      []string       `json:"addrs,omitempty"`
-	Addr                       string         `json:"addr,omitempty"`
-	Protocol                   string         `json:"protocol,omitempty"`
-	TLSVersion                 string         `json:"tlsVersion,omitempty"`
-	TLSCipherSuite             string         `json:"tlsCipherSuite,omitempty"`
-	CertificateDNSNames        []string       `json:"certificateDNSNames,omitempty"`
-	CertificateExpirationDates []string       `json:"certificateExpirationDates,omitempty"`
-	DNSLookup                  int            `json:"dnsLookup,omitempty"`
-	TCPConnection              int            `json:"tcpConnection,omitempty"`
-	TLSHandshake               int            `json:"tlsHandshake,omitempty"`
-	ServerProcessing           int            `json:"serverProcessing,omitempty"`
-	ContentTransfer            int            `json:"contentTransfer,omitempty"`
-	Duration                   int            `json:"duration,omitempty"`
-	Message                    string         `json:"message,omitempty"`
+	Result                     DetectorResult `json:"result"`
+	ResultDesc                 string         `json:"resultDesc"`
+	Addrs                      []string       `json:"addrs"`
+	Addr                       string         `json:"addr"`
+	Protocol                   string         `json:"protocol"`
+	TLSVersion                 string         `json:"tlsVersion"`
+	TLSCipherSuite             string         `json:"tlsCipherSuite"`
+	CertificateDNSNames        []string       `json:"certificateDNSNames"`
+	CertificateExpirationDates []string       `json:"certificateExpirationDates"`
+	DNSLookup                  int            `json:"dnsLookup"`
+	TCPConnection              int            `json:"tcpConnection"`
+	TLSHandshake               int            `json:"tlsHandshake"`
+	ServerProcessing           int            `json:"serverProcessing"`
+	ContentTransfer            int            `json:"contentTransfer"`
+	Duration                   int            `json:"duration"`
+	Message                    string         `json:"message"`
+}
+type MarshalHTTPDetectorSubResult HTTPDetectorSubResult
+
+func (sr *HTTPDetectorSubResult) MarshalJSON() ([]byte, error) {
+	tmp := (*MarshalHTTPDetectorSubResult)(sr)
+	tmp.ResultDesc = tmp.Result.String()
+	return json.Marshal(tmp)
 }
 
 type HTTPDetectorSubResults []*HTTPDetectorSubResult

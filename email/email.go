@@ -76,19 +76,14 @@ func newMailDialer() *gomail.Dialer {
 }
 
 // AlarmError 发送出错警告
-func AlarmError(message string) {
-	log.Error(context.Background()).
-		Str("app", basicInfo.Name).
-		Str("category", "alarmError").
-		Msg(message)
+func Send(ctx context.Context, title, message string, receivers ...string) {
 	d := newMailDialer()
-	receivers := List("alarmReceivers")
 
 	if d != nil && len(receivers) != 0 {
 		m := gomail.NewMessage()
 		m.SetHeader("From", mailConfig.User)
 		m.SetHeader("To", receivers...)
-		m.SetHeader("Subject", "Alarm-"+basicInfo.Name)
+		m.SetHeader("Subject", title)
 		m.SetBody("text/plain", message)
 		// 避免发送邮件时太慢影响现有流程
 		go func() {
@@ -97,10 +92,20 @@ func AlarmError(message string) {
 			defer sendingMailMutex.Unlock()
 			err := d.DialAndSend(m)
 			if err != nil {
-				log.Error(context.Background()).
+				log.Error(ctx).
 					Err(err).
 					Msg("send mail fail")
 			}
 		}()
 	}
+}
+
+// AlarmError 发送出错警告
+func AlarmError(ctx context.Context, message string) {
+	log.Error(ctx).
+		Str("app", basicInfo.Name).
+		Str("category", "alarmError").
+		Msg(message)
+	receivers := List("alarmReceivers")
+	Send(ctx, "Alarm-"+basicInfo.Name, message, receivers...)
 }

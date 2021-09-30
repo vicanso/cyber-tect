@@ -31,6 +31,17 @@ const (
 	DetectorResultFail
 )
 
+func (result DetectorResult) String() string {
+	switch result {
+	case DetectorResultSuccess:
+		return "成功"
+	case DetectorResultFail:
+		return "失败"
+	default:
+		return "未知"
+	}
+}
+
 // DetectorMixin mixin of detector
 type DetectorMixin struct {
 	mixin.Schema
@@ -72,6 +83,7 @@ func (DetectorResultMixin) Fields() []ent.Field {
 			Comment("任务ID"),
 		field.Int8("result").
 			Range(int8(DetectorResultSuccess), int8(DetectorResultFail)).
+			GoType(DetectorResultFail).
 			Comment("检测结果"),
 		field.Int("maxDuration").
 			StructTag(`json:"maxDuration,omitempty" sql:"max_duration"`).

@@ -155,6 +155,12 @@ type (
 		Addr  string `validate:"omitempty,url"`
 		Token string
 	}
+	// DetectorConfig 检测配置
+	DetectorConfig struct {
+		Expired     time.Duration `validate:"required"`
+		Interval    string        `validate:"required,xDuration"`
+		Concurrency int           `validate:"required,numeric,min=1,max=20"`
+	}
 )
 
 // mustLoadConfig 加载配置，出错是则抛出panic
@@ -374,4 +380,26 @@ func MustGetPyroscopeConfig() *PyroscopeConfig {
 		Token: defaultViperX.GetString(prefix + "token"),
 	}
 	return pyroscopeConfig
+}
+
+// MustGetDetectorConfig 获取检测配置
+func MustGetDetectorConfig() *DetectorConfig {
+	prefix := "detector."
+	expired := defaultViperX.GetStringFromENVDefault(prefix+"expired", "30d")
+	if strings.HasSuffix(expired, "d") {
+		d, _ := strconv.Atoi(expired[0 : len(expired)-1])
+		expired = fmt.Sprintf("%dh", 24*d)
+	}
+	expiredTime, err := time.ParseDuration(expired)
+	if err != nil {
+		panic(err)
+	}
+
+	detectorConfig := &DetectorConfig{
+		Interval:    defaultViperX.GetStringFromENVDefault(prefix+"interval", "1m"),
+		Concurrency: defaultViperX.GetInt(prefix + "concurrency"),
+		Expired:     expiredTime,
+	}
+	mustValidate(detectorConfig)
+	return detectorConfig
 }

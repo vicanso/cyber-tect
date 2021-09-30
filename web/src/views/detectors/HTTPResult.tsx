@@ -1,5 +1,7 @@
-import { defineComponent, ref, PropType } from "vue";
-import { NButton, NCard, useMessage, NDataTable } from "naive-ui";
+import { defineComponent } from "vue";
+import { css } from "@linaria/core";
+import { EyeRegular } from "@vicons/fa";
+import { NCard, useMessage, NDataTable, NPopover, NIcon } from "naive-ui";
 import { RowData, TableColumn } from "naive-ui/lib/data-table/src/interface";
 
 import useDetectorState, {
@@ -8,6 +10,11 @@ import useDetectorState, {
 import { showError } from "../../helpers/util";
 import ExTable, { newListColumn } from "../../components/ExTable";
 import { formatDate } from "../../helpers/util";
+
+const popupClass = css`
+  max-width: 980px;
+  white-space: nowrap;
+`;
 
 export default defineComponent({
   name: "HTTPResult",
@@ -33,55 +40,6 @@ export default defineComponent({
         key: "taskName",
       },
       {
-        type: "expand",
-        expandable: (data: Record<string, unknown>) => true,
-        renderExpand: (data: Record<string, unknown>) => {
-          const columns: TableColumn[] = [
-            {
-              title: "地址",
-              key: "addr",
-            },
-            {
-              title: "结果",
-              key: "resultDesc",
-            },
-            {
-              title: "失败信息",
-              key: "message",
-            },
-            newListColumn({
-              key: "timeline",
-              title: "耗时",
-            }),
-            {
-              title: "HTTP协议",
-              key: "protocol",
-            },
-            {
-              title: "TLS",
-              key: "tlsVersion",
-            },
-            {
-              title: "TLS加密套件",
-              key: "tlsCipherSuite",
-              ellipsis: true,
-              width: 50,
-            },
-            newListColumn({
-              key: "certificateDNSNames",
-              title: "证书域名",
-            }),
-            newListColumn({
-              key: "certificateExpirationDates",
-              title: "证书有效期",
-            }),
-          ];
-          return (
-            <NDataTable columns={columns} data={data.results as RowData[]} />
-          );
-        },
-      },
-      {
         title: "结果",
         key: "resultDesc",
       },
@@ -102,6 +60,75 @@ export default defineComponent({
         key: "updatedAt",
         render(row: Record<string, unknown>) {
           return formatDate(row.updatedAt as string);
+        },
+      },
+      {
+        title: "更多",
+        key: "",
+        render(data: Record<string, unknown>) {
+          const columns: TableColumn[] = [
+            {
+              title: "地址",
+              key: "addr",
+              fixed: "left",
+              width: 200,
+            },
+            {
+              title: "结果",
+              key: "resultDesc",
+            },
+            {
+              title: "失败信息",
+              key: "message",
+            },
+            newListColumn({
+              key: "timeline",
+              title: "耗时",
+              width: 180,
+            }),
+            {
+              title: "HTTP协议",
+              key: "protocol",
+            },
+            {
+              title: "TLS",
+              key: "tlsVersion",
+            },
+            {
+              title: "TLS加密",
+              key: "tlsCipherSuite",
+              ellipsis: {
+                tooltip: true,
+              },
+              width: 100,
+            },
+            newListColumn({
+              key: "certificateDNSNames",
+              title: "证书域名",
+            }),
+            newListColumn({
+              key: "certificateExpirationDates",
+              title: "证书有效期",
+            }),
+          ];
+          const slots = {
+            trigger: () => (
+              <NIcon>
+                <EyeRegular />
+              </NIcon>
+            ),
+          };
+          return (
+            <NPopover v-slots={slots} placement="left-end">
+              <div class={popupClass}>
+                <NDataTable
+                  scrollX={1300}
+                  columns={columns}
+                  data={data.results as RowData[]}
+                />
+              </div>
+            </NPopover>
+          );
         },
       },
     ];

@@ -412,14 +412,23 @@ export async function httpDetectorResultList(
           dates[0].substring(0, size),
           dates[1].substring(0, size),
         ];
-        subItem.timeline = [
-          `TOTAL: ${subItem.duration}`,
-          `DNS: ${subItem.dnsLookup}`,
-          `TCP: ${subItem.tcpConnection}`,
-          `TLS: ${subItem.tlsHandshake}`,
-          `PROCESSING: ${subItem.serverProcessing}`,
-          `TRANSFER: ${subItem.contentTransfer}`,
-        ];
+        const values: Record<string, number> = {
+          TOTAL: subItem.duration,
+          DNS: subItem.dnsLookup,
+          TCP: subItem.tcpConnection,
+          TLS: subItem.tlsHandshake,
+          PROCESSING: subItem.serverProcessing,
+          TRANSFER: subItem.contentTransfer,
+        };
+        const timeline: string[] = [];
+        Object.keys(values).forEach((key) => {
+          const v = values[key];
+          if (!v) {
+            return;
+          }
+          timeline.push(`${key}: ${v}`);
+        });
+        subItem.timeline = timeline;
       });
     });
     httpDetectorResults.count = data.count;

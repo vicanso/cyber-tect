@@ -45,6 +45,7 @@ const paginationClass = css`
 `;
 const ulClass = css`
   padding: 0;
+  margin: 0;
   list-style: inside;
 `;
 
@@ -52,10 +53,12 @@ const ulClass = css`
 export function newListColumn(params: {
   key: string;
   title: string;
+  width?: number;
 }): TableColumn {
   return {
     title: params.title,
     key: params.key,
+    width: params.width,
     render: (row: Record<string, unknown>) => {
       const values = row[params.key] as unknown[];
       if (!values || values.length === 0) {

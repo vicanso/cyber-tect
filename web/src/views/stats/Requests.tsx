@@ -13,7 +13,7 @@ import useFluxState, {
 } from "../../states/flux";
 import ExTable from "../../components/ExTable";
 import { getHoursAge } from "../../helpers/util";
-import { FormItemTypes } from "../../components/ExForm";
+import { FormItemTypes } from "../../components/ExFormInterface";
 import ExFluxDetail from "../../components/ExFluxDetail";
 
 const serviceOptions = [

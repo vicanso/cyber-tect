@@ -11,7 +11,7 @@ import useFluxState, {
 } from "../../states/flux";
 import { today } from "../../helpers/util";
 import ExLoading from "../../components/ExLoading";
-import { FormItemTypes } from "../../components/ExForm";
+import { FormItemTypes } from "../../components/ExFormInterface";
 import ExFluxDetail from "../../components/ExFluxDetail";
 
 function getColumns(): TableColumn[] {

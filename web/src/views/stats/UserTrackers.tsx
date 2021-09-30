@@ -2,7 +2,7 @@ import { NEllipsis, useMessage } from "naive-ui";
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 import { defineComponent, onMounted, onUnmounted } from "vue";
 import ExFluxDetail from "../../components/ExFluxDetail";
-import { FormItemTypes } from "../../components/ExForm";
+import { FormItemTypes } from "../../components/ExFormInterface";
 import ExLoading from "../../components/ExLoading";
 import ExTable from "../../components/ExTable";
 import { formatJSON, showError, today } from "../../helpers/util";

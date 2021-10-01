@@ -19,12 +19,15 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
+	"github.com/thoas/go-funk"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/pingdetector"
+	"github.com/vicanso/cybertect/ent/pingdetectorresult"
 	"github.com/vicanso/cybertect/ent/predicate"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
 )
@@ -48,6 +51,10 @@ type (
 		account string
 		IPS     []string `json:"ips" validate:"omitempty,dive,ip"`
 	}
+
+	pingDetectorResultListParams struct {
+		detectorListResultParams
+	}
 )
 
 type (
@@ -55,11 +62,16 @@ type (
 		PingDetectors []*ent.PingDetector `json:"pingDetectors"`
 		Count         int                 `json:"count"`
 	}
+	pingDetectorResultListResp struct {
+		PingDetectorResults []*ent.PingDetectorResult `json:"pingDetectorResults"`
+		Count               int                       `json:"count"`
+	}
 )
 
 func init() {
+	prefix := "/ping-detectors"
 	g := router.NewGroup(
-		"/ping-detectors",
+		prefix,
 		loadUserSession,
 		shouldBeLogin,
 	)
@@ -83,10 +95,19 @@ func init() {
 		newTrackerMiddleware(cs.ActionDetectorPingUpdate),
 		ctrl.updateByID,
 	)
+
+	router.NewGroup(prefix).GET(
+		"/results/v1",
+		ctrl.listResult,
+	)
 }
 
 func getPingDetectorClient() *ent.PingDetectorClient {
 	return helper.EntGetClient().PingDetector
+}
+
+func getPingDetectorResultClient() *ent.PingDetectorResultClient {
+	return helper.EntGetClient().PingDetectorResult
 }
 
 func (addParams *pingDetectorAddParams) save(ctx context.Context) (*ent.PingDetector, error) {
@@ -118,6 +139,44 @@ func (listParams *pingDetectorListParams) count(ctx context.Context) (int, error
 
 func (listParams *pingDetectorListParams) queryAll(ctx context.Context) ([]*ent.PingDetector, error) {
 	query := getPingDetectorClient().Query()
+	query = query.Limit(listParams.GetLimit()).
+		Offset(listParams.GetOffset()).
+		Order(listParams.GetOrders()...)
+	listParams.where(query)
+	return query.All(ctx)
+}
+
+func (listParams *pingDetectorResultListParams) where(query *ent.PingDetectorResultQuery) {
+	task := listParams.Task
+	if task != 0 {
+		query.Where(pingdetectorresult.Task(task))
+	}
+	result := listParams.Result
+	if result != 0 {
+		query.Where(pingdetectorresult.Result(schema.DetectorResult(result)))
+	}
+	ms := listParams.GetDurationMillSecond()
+	if ms > 0 {
+		query.Where(pingdetectorresult.MaxDurationGTE(ms))
+	}
+	startedAt := listParams.StartedAt
+	if !startedAt.IsZero() {
+		query.Where(pingdetectorresult.CreatedAtGTE(startedAt))
+	}
+	endedAt := listParams.EndedAt
+	if !endedAt.IsZero() {
+		query.Where(pingdetectorresult.CreatedAtLTE(endedAt))
+	}
+}
+
+func (listParams *pingDetectorResultListParams) count(ctx context.Context) (int, error) {
+	query := getPingDetectorResultClient().Query()
+	listParams.where(query)
+	return query.Count(ctx)
+}
+
+func (listParams *pingDetectorResultListParams) queryAll(ctx context.Context) ([]*ent.PingDetectorResult, error) {
+	query := getPingDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -239,5 +298,54 @@ func (*pingDetectorCtrl) findByID(c *elton.Context) error {
 		return err
 	}
 	c.Body = result
+	return nil
+}
+
+func (*pingDetectorCtrl) listResult(c *elton.Context) error {
+	params := pingDetectorResultListParams{}
+	err := validateQuery(c, &params)
+	if err != nil {
+		return err
+	}
+	resp := pingDetectorResultListResp{}
+	if params.ShouldCount() {
+		count, err := params.count(c.Context())
+		if err != nil {
+			return err
+		}
+		resp.Count = count
+	}
+	result, err := params.queryAll(c.Context())
+	if err != nil {
+		return err
+	}
+
+	// 填充检测任务名称
+	idList := make([]int, 0)
+	for _, item := range result {
+		if funk.ContainsInt(idList, item.Task) {
+			continue
+		}
+		idList = append(idList, item.Task)
+	}
+	detectors, err := getPingDetectorClient().Query().
+		Where(
+			pingdetector.IDIn(idList...),
+		).
+		Select("id", "name").
+		All(c.Context())
+	if err != nil {
+		return err
+	}
+	for _, item := range result {
+		for _, d := range detectors {
+			if item.Task == d.ID {
+				item.TaskName = d.Name
+			}
+		}
+	}
+	resp.PingDetectorResults = result
+	c.Body = &resp
+
 	return nil
 }

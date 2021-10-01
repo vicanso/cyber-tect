@@ -54,6 +54,10 @@ const navigationOptions = [
         label: "TCP",
         key: names.detectorTCPResult,
       },
+      {
+        label: "Ping",
+        key: names.detectorPingResult,
+      },
     ],
   },
   {

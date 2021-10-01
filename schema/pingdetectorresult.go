@@ -11,10 +11,10 @@ type PingDetectorResult struct {
 }
 
 type PingDetectorSubResult struct {
-	Result   DetectorResult `json:"result,omitempty"`
-	IP       string         `json:"ip,omitempty"`
-	Duration int            `json:"duration,omitempty"`
-	Message  string         `json:"message,omitempty"`
+	Result   DetectorResult `json:"result"`
+	IP       string         `json:"ip"`
+	Duration int            `json:"duration"`
+	Message  string         `json:"message"`
 }
 
 type PingDetectorSubResults []*PingDetectorSubResult
@@ -22,7 +22,7 @@ type PingDetectorSubResults []*PingDetectorSubResult
 // Fields of the PingDetectorResult.
 func (PingDetectorResult) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("ips").
+		field.Strings("ips").
 			Comment("检测IP"),
 		field.JSON("results", PingDetectorSubResults{}).
 			Comment("检测结果列表"),

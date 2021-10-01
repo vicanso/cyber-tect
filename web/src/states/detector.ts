@@ -14,6 +14,7 @@ import {
   PING_DETECTORS_ID,
   HTTP_DETECTOR_RESULTS,
   TCP_DETECTOR_RESULTS,
+  PING_DETECTOR_RESULTS,
 } from "../constants/url";
 
 // http检测配置
@@ -83,10 +84,13 @@ interface PingDetector {
   ips: string[];
 }
 
+interface DetectorResult {
+  desc: string;
+  value: number;
+}
 interface HTTPDetectorSubResult {
   [key: string]: unknown;
-  result: number;
-  resultDesc: string;
+  result: DetectorResult;
   addrs: string[];
   addr: string;
   protocol: string;
@@ -109,9 +113,9 @@ interface HTTPDetectorResult {
   createdAt: string;
   updatedAt: string;
   task: number;
-  result: number;
+  result: DetectorResult;
   maxDuration: number;
-  message: string;
+  messages: string[];
   // 检测url
   url: string;
   results: HTTPDetectorSubResult[];
@@ -119,8 +123,7 @@ interface HTTPDetectorResult {
 
 interface TCPDetectorSubResult {
   [key: string]: unknown;
-  result: number;
-  resultDesc: string;
+  result: DetectorResult;
   addr: string;
   duration: number;
   message: string;
@@ -131,12 +134,33 @@ interface TCPDetectorResult {
   createdAt: string;
   updatedAt: string;
   task: number;
-  result: number;
+  result: DetectorResult;
   maxDuration: number;
-  message: string;
+  messages: string[];
   // 检测地址
   addrs: string[];
   results: TCPDetectorSubResult[];
+}
+
+interface PingDetectorSubResult {
+  [key: string]: unknown;
+  result: DetectorResult;
+  ip: string;
+  duration: number;
+  message: string;
+}
+interface PingDetectorResult {
+  [key: string]: unknown;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  task: number;
+  result: DetectorResult;
+  maxDuration: number;
+  messages: string[];
+  // 检测IP
+  ips: string[];
+  results: PingDetectorSubResult[];
 }
 
 interface List<T> {
@@ -181,6 +205,12 @@ const tcpDetectorResults: List<TCPDetectorResult> = reactive({
   count: -1,
 });
 
+const pingDetectorResults: List<PingDetectorResult> = reactive({
+  processing: false,
+  items: [],
+  count: -1,
+});
+
 function fillCount(
   params: Record<string, unknown>,
   data: Record<string, unknown>,
@@ -213,6 +243,7 @@ const defaultDetectorQueryParams = {
 };
 const defaultDetectorResultQueryParams = {
   order: "-updatedAt",
+  ignoreCount: "true",
 };
 
 // 查询http检测配置
@@ -490,6 +521,25 @@ export async function tcpDetectorResultList(
   }
 }
 
+export async function pingDetectorResultList(
+  params: Record<string, unknown>
+): Promise<void> {
+  if (pingDetectorResults.processing) {
+    return;
+  }
+  pingDetectorResults.processing = true;
+  try {
+    const { data } = await request.get(PING_DETECTOR_RESULTS, {
+      params: Object.assign(defaultDetectorResultQueryParams, params),
+    });
+    fillCount(params, data, "pingDetectorResults");
+    pingDetectorResults.items = data.pingDetectorResults || [];
+    pingDetectorResults.count = data.count;
+  } finally {
+    pingDetectorResults.processing = false;
+  }
+}
+
 interface ReadonlyDetectorState {
   httpDetectors: DeepReadonly<List<HTTPDetector>>;
   dnsDetectors: DeepReadonly<List<DNSDetector>>;
@@ -497,6 +547,7 @@ interface ReadonlyDetectorState {
   pingDetectors: DeepReadonly<List<PingDetector>>;
   httpDetectorResults: DeepReadonly<List<HTTPDetectorResult>>;
   tcpDetectorResults: DeepReadonly<List<TCPDetectorResult>>;
+  pingDetectorResults: DeepReadonly<List<PingDetectorResult>>;
 }
 
 const state = {
@@ -506,6 +557,7 @@ const state = {
   pingDetectors: readonly(pingDetectors),
   httpDetectorResults: readonly(httpDetectorResults),
   tcpDetectorResults: readonly(tcpDetectorResults),
+  pingDetectorResults: readonly(pingDetectorResults),
 };
 
 export default function useDetectorState(): ReadonlyDetectorState {

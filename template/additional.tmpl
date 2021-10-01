@@ -11,10 +11,5 @@
 		TaskName string `json:"taskName,omitempty"`
 	{{- end }}
 
-	{{- if eq $f.Name "result" }}
-		// 状态描述
-		ResultDesc string `json:"resultDesc,omitempty"`
-	{{- end }}
-
 	{{- end }}
 {{ end }}

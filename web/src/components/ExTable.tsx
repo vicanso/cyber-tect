@@ -70,6 +70,25 @@ export function newListColumn(params: {
   };
 }
 
+export function newLevelValueColumn(params: {
+  key: string;
+  title: string;
+  width?: number;
+}): TableColumn {
+  return {
+    title: params.title,
+    width: params.width,
+    key: params.key,
+    render: (row: Record<string, unknown>) => {
+      const keys = params.key.split(".");
+      const lastKey = keys.pop() || "";
+      let data = row;
+      keys.forEach((key) => (data = data[key] as Record<string, unknown>));
+      return <span>{data[lastKey]}</span>;
+    },
+  };
+}
+
 // 操作相关
 export function newOPColumn(
   fn: (params: Record<string, unknown>) => void

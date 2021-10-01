@@ -15,10 +15,16 @@
 package schema
 
 import (
+	"encoding/json"
+	"reflect"
+	"regexp"
+	"strconv"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"entgo.io/ent/schema/mixin"
+	"github.com/tidwall/gjson"
 )
 
 // 检测结果
@@ -30,6 +36,30 @@ const (
 	// DetectorResultFail 失败
 	DetectorResultFail
 )
+
+func (result DetectorResult) MarshalJSON() ([]byte, error) {
+	str := result.String()
+	return json.Marshal(map[string]interface{}{
+		"value": int(result),
+		"desc":  str,
+	})
+}
+
+func (result *DetectorResult) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+	var value int64
+	// 兼容两种方式
+	if regexp.MustCompile(`^\d+$`).Match(data) {
+		v, _ := strconv.Atoi(string(data))
+		value = int64(v)
+	} else {
+		value = gjson.GetBytes(data, "value").Int()
+	}
+	reflect.ValueOf(result).Elem().SetInt(value)
+	return nil
+}
 
 func (result DetectorResult) String() string {
 	switch result {

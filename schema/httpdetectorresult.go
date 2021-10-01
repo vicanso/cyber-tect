@@ -1,8 +1,6 @@
 package schema
 
 import (
-	"encoding/json"
-
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 )
@@ -15,7 +13,6 @@ type HTTPDetectorResult struct {
 // HTTPDetectorSubResult http detector result
 type HTTPDetectorSubResult struct {
 	Result                     DetectorResult `json:"result"`
-	ResultDesc                 string         `json:"resultDesc"`
 	Addrs                      []string       `json:"addrs"`
 	Addr                       string         `json:"addr"`
 	Protocol                   string         `json:"protocol"`
@@ -30,13 +27,6 @@ type HTTPDetectorSubResult struct {
 	ContentTransfer            int            `json:"contentTransfer"`
 	Duration                   int            `json:"duration"`
 	Message                    string         `json:"message"`
-}
-type MarshalHTTPDetectorSubResult HTTPDetectorSubResult
-
-func (sr *HTTPDetectorSubResult) MarshalJSON() ([]byte, error) {
-	tmp := (*MarshalHTTPDetectorSubResult)(sr)
-	tmp.ResultDesc = tmp.Result.String()
-	return json.Marshal(tmp)
 }
 
 type HTTPDetectorSubResults []*HTTPDetectorSubResult

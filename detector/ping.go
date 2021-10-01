@@ -18,7 +18,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/go-ping/ping"
@@ -92,7 +91,7 @@ func (srv *PingSrv) detect(ctx context.Context, config *ent.PingDetector) (pingD
 	return getEntClient().PingDetectorResult.Create().
 		SetTask(config.ID).
 		SetResult(schema.DetectorResult(result)).
-		SetIps(strings.Join(config.Ips, ",")).
+		SetIps(config.Ips).
 		SetMaxDuration(maxDuration).
 		SetResults(subResults).
 		SetMessages(messages).

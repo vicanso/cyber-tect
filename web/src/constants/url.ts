@@ -60,3 +60,4 @@ export const TCP_DETECTOR_RESULTS = "/tcp-detectors/results/v1";
 // ping检测
 export const PING_DETECTORS = "/ping-detectors/v1";
 export const PING_DETECTORS_ID = "/ping-detectors/v1/:id";
+export const PING_DETECTOR_RESULTS = "/ping-detectors/results/v1";

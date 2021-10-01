@@ -5,11 +5,14 @@ import { NCard, NDataTable, NPopover, NIcon } from "naive-ui";
 import { RowData, TableColumn } from "naive-ui/lib/data-table/src/interface";
 
 import useDetectorState, { tcpDetectorResultList } from "../../states/detector";
-import ExTable, { newListColumn } from "../../components/ExTable";
+import ExTable, {
+  newListColumn,
+  newLevelValueColumn,
+} from "../../components/ExTable";
 import { formatDate } from "../../helpers/util";
 
 const popupClass = css`
-  max-width: 980px;
+  max-width: 800px;
   white-space: nowrap;
 `;
 
@@ -31,10 +34,10 @@ export default defineComponent({
         title: "名称",
         key: "taskName",
       },
-      {
+      newLevelValueColumn({
         title: "结果",
-        key: "resultDesc",
-      },
+        key: "result.desc",
+      }),
       newListColumn({
         title: "检测地址",
         key: "addrs",
@@ -43,10 +46,10 @@ export default defineComponent({
         title: "最大耗时(ms)",
         key: "maxDuration",
       },
-      {
+      newListColumn({
         title: "失败信息",
-        key: "message",
-      },
+        key: "messages",
+      }),
       {
         title: "更新于",
         key: "updatedAt",
@@ -65,10 +68,10 @@ export default defineComponent({
               fixed: "left",
               width: 200,
             },
-            {
+            newLevelValueColumn({
               title: "结果",
-              key: "resultDesc",
-            },
+              key: "result.desc",
+            }),
             {
               title: "耗时(ms)",
               key: "duration",
@@ -77,35 +80,6 @@ export default defineComponent({
               title: "失败信息",
               key: "message",
             },
-            // newListColumn({
-            //   key: "timeline",
-            //   title: "耗时",
-            //   width: 180,
-            // }),
-            // {
-            //   title: "HTTP协议",
-            //   key: "protocol",
-            // },
-            // {
-            //   title: "TLS",
-            //   key: "tlsVersion",
-            // },
-            // {
-            //   title: "TLS加密",
-            //   key: "tlsCipherSuite",
-            //   ellipsis: {
-            //     tooltip: true,
-            //   },
-            //   width: 100,
-            // },
-            // newListColumn({
-            //   key: "certificateDNSNames",
-            //   title: "证书域名",
-            // }),
-            // newListColumn({
-            //   key: "certificateExpirationDates",
-            //   title: "证书有效期",
-            // }),
           ];
           const slots = {
             trigger: () => (
@@ -118,7 +92,6 @@ export default defineComponent({
             <NPopover v-slots={slots} placement="left-end">
               <div class={popupClass}>
                 <NDataTable
-                  scrollX={1300}
                   columns={columns}
                   data={data.results as RowData[]}
                 />

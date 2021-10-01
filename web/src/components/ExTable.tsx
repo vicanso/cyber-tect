@@ -77,6 +77,7 @@ export function newOPColumn(
   return {
     title: "操作",
     key: "op",
+    width: 80,
     render(row: Record<string, unknown>) {
       return (
         <NButton

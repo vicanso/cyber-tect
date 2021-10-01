@@ -13,6 +13,7 @@ import {
   TCP_DETECTORS_ID,
   PING_DETECTORS_ID,
   HTTP_DETECTOR_RESULTS,
+  TCP_DETECTOR_RESULTS,
 } from "../constants/url";
 
 // http检测配置
@@ -83,7 +84,9 @@ interface PingDetector {
 }
 
 interface HTTPDetectorSubResult {
+  [key: string]: unknown;
   result: number;
+  resultDesc: string;
   addrs: string[];
   addr: string;
   protocol: string;
@@ -112,6 +115,28 @@ interface HTTPDetectorResult {
   // 检测url
   url: string;
   results: HTTPDetectorSubResult[];
+}
+
+interface TCPDetectorSubResult {
+  [key: string]: unknown;
+  result: number;
+  resultDesc: string;
+  addr: string;
+  duration: number;
+  message: string;
+}
+interface TCPDetectorResult {
+  [key: string]: unknown;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  task: number;
+  result: number;
+  maxDuration: number;
+  message: string;
+  // 检测地址
+  addrs: string[];
+  results: TCPDetectorSubResult[];
 }
 
 interface List<T> {
@@ -150,6 +175,12 @@ const httpDetectorResults: List<HTTPDetectorResult> = reactive({
   count: -1,
 });
 
+const tcpDetectorResults: List<TCPDetectorResult> = reactive({
+  processing: false,
+  items: [],
+  count: -1,
+});
+
 function fillCount(
   params: Record<string, unknown>,
   data: Record<string, unknown>,
@@ -178,6 +209,9 @@ export async function detectorListUser(keyword: string): Promise<string[]> {
 }
 
 const defaultDetectorQueryParams = {
+  order: "-updatedAt",
+};
+const defaultDetectorResultQueryParams = {
   order: "-updatedAt",
 };
 
@@ -394,7 +428,7 @@ export async function httpDetectorResultList(
   httpDetectorResults.processing = true;
   try {
     const { data } = await request.get(HTTP_DETECTOR_RESULTS, {
-      params,
+      params: Object.assign(defaultDetectorResultQueryParams, params),
     });
     fillCount(params, data, "httpDetectorResults");
     httpDetectorResults.items = data.httpDetectorResults || [];
@@ -437,12 +471,32 @@ export async function httpDetectorResultList(
   }
 }
 
+export async function tcpDetectorResultList(
+  params: Record<string, unknown>
+): Promise<void> {
+  if (tcpDetectorResults.processing) {
+    return;
+  }
+  tcpDetectorResults.processing = true;
+  try {
+    const { data } = await request.get(TCP_DETECTOR_RESULTS, {
+      params: Object.assign(defaultDetectorResultQueryParams, params),
+    });
+    fillCount(params, data, "tcpDetectorResults");
+    tcpDetectorResults.items = data.tcpDetectorResults || [];
+    tcpDetectorResults.count = data.count;
+  } finally {
+    tcpDetectorResults.processing = false;
+  }
+}
+
 interface ReadonlyDetectorState {
   httpDetectors: DeepReadonly<List<HTTPDetector>>;
   dnsDetectors: DeepReadonly<List<DNSDetector>>;
   tcpDetectors: DeepReadonly<List<TCPDetector>>;
   pingDetectors: DeepReadonly<List<PingDetector>>;
   httpDetectorResults: DeepReadonly<List<HTTPDetectorResult>>;
+  tcpDetectorResults: DeepReadonly<List<TCPDetectorResult>>;
 }
 
 const state = {
@@ -451,6 +505,7 @@ const state = {
   tcpDetectors: readonly(tcpDetectors),
   pingDetectors: readonly(pingDetectors),
   httpDetectorResults: readonly(httpDetectorResults),
+  tcpDetectorResults: readonly(tcpDetectorResults),
 };
 
 export default function useDetectorState(): ReadonlyDetectorState {

@@ -181,3 +181,13 @@ func RemoveExpiredDetectorResult() (err error) {
 	}
 	return
 }
+func ceilToMs(d time.Duration) int {
+	if d == 0 {
+		return 0
+	}
+	offset := 0
+	if d%time.Millisecond != 0 {
+		offset++
+	}
+	return int(d.Milliseconds()) + offset
+}

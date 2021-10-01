@@ -4,9 +4,7 @@ import { EyeRegular } from "@vicons/fa";
 import { NCard, NDataTable, NPopover, NIcon } from "naive-ui";
 import { RowData, TableColumn } from "naive-ui/lib/data-table/src/interface";
 
-import useDetectorState, {
-  httpDetectorResultList,
-} from "../../states/detector";
+import useDetectorState, { tcpDetectorResultList } from "../../states/detector";
 import ExTable, { newListColumn } from "../../components/ExTable";
 import { formatDate } from "../../helpers/util";
 
@@ -16,18 +14,18 @@ const popupClass = css`
 `;
 
 export default defineComponent({
-  name: "HTTPResult",
+  name: "TCPResult",
   setup() {
     const fetch = async (params: Record<string, unknown>) => {
-      await httpDetectorResultList(params);
+      await tcpDetectorResultList(params);
     };
     return {
-      httpDetectorResults: useDetectorState().httpDetectorResults,
+      tcpDetectorResults: useDetectorState().tcpDetectorResults,
       fetch,
     };
   },
   render() {
-    const { httpDetectorResults, fetch } = this;
+    const { tcpDetectorResults, fetch } = this;
     const columns: TableColumn[] = [
       {
         title: "名称",
@@ -37,10 +35,10 @@ export default defineComponent({
         title: "结果",
         key: "resultDesc",
       },
-      {
-        title: "检测URL",
-        key: "url",
-      },
+      newListColumn({
+        title: "检测地址",
+        key: "addrs",
+      }),
       {
         title: "最大耗时(ms)",
         key: "maxDuration",
@@ -72,38 +70,42 @@ export default defineComponent({
               key: "resultDesc",
             },
             {
+              title: "耗时(ms)",
+              key: "duration",
+            },
+            {
               title: "失败信息",
               key: "message",
             },
-            newListColumn({
-              key: "timeline",
-              title: "耗时(ms)",
-              width: 180,
-            }),
-            {
-              title: "HTTP协议",
-              key: "protocol",
-            },
-            {
-              title: "TLS",
-              key: "tlsVersion",
-            },
-            {
-              title: "TLS加密",
-              key: "tlsCipherSuite",
-              ellipsis: {
-                tooltip: true,
-              },
-              width: 100,
-            },
-            newListColumn({
-              key: "certificateDNSNames",
-              title: "证书域名",
-            }),
-            newListColumn({
-              key: "certificateExpirationDates",
-              title: "证书有效期",
-            }),
+            // newListColumn({
+            //   key: "timeline",
+            //   title: "耗时",
+            //   width: 180,
+            // }),
+            // {
+            //   title: "HTTP协议",
+            //   key: "protocol",
+            // },
+            // {
+            //   title: "TLS",
+            //   key: "tlsVersion",
+            // },
+            // {
+            //   title: "TLS加密",
+            //   key: "tlsCipherSuite",
+            //   ellipsis: {
+            //     tooltip: true,
+            //   },
+            //   width: 100,
+            // },
+            // newListColumn({
+            //   key: "certificateDNSNames",
+            //   title: "证书域名",
+            // }),
+            // newListColumn({
+            //   key: "certificateExpirationDates",
+            //   title: "证书有效期",
+            // }),
           ];
           const slots = {
             trigger: () => (
@@ -127,8 +129,8 @@ export default defineComponent({
       },
     ];
     return (
-      <NCard title={"HTTP检测结果"}>
-        <ExTable columns={columns} data={httpDetectorResults} fetch={fetch} />
+      <NCard title={"TCP检测结果"}>
+        <ExTable columns={columns} data={tcpDetectorResults} fetch={fetch} />
       </NCard>
     );
   },

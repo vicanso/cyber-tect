@@ -71,7 +71,7 @@ func (srv *PingSrv) detect(ctx context.Context, config *ent.PingDetector) (pingD
 		err = srv.check(ctx, ip, timeout)
 		subResult := schema.PingDetectorSubResult{
 			IP:       ip,
-			Duration: int(time.Since(startedAt).Milliseconds()),
+			Duration: ceilToMs(time.Since(startedAt)),
 		}
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail

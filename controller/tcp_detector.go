@@ -19,12 +19,16 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
+	"github.com/thoas/go-funk"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/dnsdetector"
 	"github.com/vicanso/cybertect/ent/predicate"
+	"github.com/vicanso/cybertect/ent/tcpdetector"
+	"github.com/vicanso/cybertect/ent/tcpdetectorresult"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
 )
@@ -48,6 +52,10 @@ type (
 		account string
 		Addrs   []string `json:"addrs" validate:"omitempty,dive,xHostPort"`
 	}
+
+	tcpDetectorResultListParams struct {
+		detectorListResultParams
+	}
 )
 
 type (
@@ -55,11 +63,16 @@ type (
 		TCPDetectors []*ent.TCPDetector `json:"tcpDetectors"`
 		Count        int                `json:"count"`
 	}
+	tcpDetectorResultListResp struct {
+		TCPDetectorResults []*ent.TCPDetectorResult `json:"tcpDetectorResults"`
+		Count              int                      `json:"count"`
+	}
 )
 
 func init() {
+	prefix := "/tcp-detectors"
 	g := router.NewGroup(
-		"/tcp-detectors",
+		prefix,
 		loadUserSession,
 		shouldBeLogin,
 	)
@@ -84,10 +97,18 @@ func init() {
 		newTrackerMiddleware(cs.ActionDetectorTCPUpdate),
 		ctrl.updateByID,
 	)
+	router.NewGroup(prefix).GET(
+		"/results/v1",
+		ctrl.listResult,
+	)
 }
 
 func getTCPDetectorClient() *ent.TCPDetectorClient {
 	return helper.EntGetClient().TCPDetector
+}
+
+func getTCPDetectorResultClient() *ent.TCPDetectorResultClient {
+	return helper.EntGetClient().TCPDetectorResult
 }
 
 func (addParams *tcpDetectorAddParams) save(ctx context.Context) (*ent.TCPDetector, error) {
@@ -119,6 +140,44 @@ func (listParams *tcpDetectorListParams) count(ctx context.Context) (int, error)
 
 func (listParams *tcpDetectorListParams) queryAll(ctx context.Context) ([]*ent.TCPDetector, error) {
 	query := getTCPDetectorClient().Query()
+	query = query.Limit(listParams.GetLimit()).
+		Offset(listParams.GetOffset()).
+		Order(listParams.GetOrders()...)
+	listParams.where(query)
+	return query.All(ctx)
+}
+
+func (listParams *tcpDetectorResultListParams) where(query *ent.TCPDetectorResultQuery) {
+	task := listParams.Task
+	if task != 0 {
+		query.Where(tcpdetectorresult.Task(task))
+	}
+	result := listParams.Result
+	if result != 0 {
+		query.Where(tcpdetectorresult.Result(schema.DetectorResult(result)))
+	}
+	ms := listParams.GetDurationMillSecond()
+	if ms > 0 {
+		query.Where(tcpdetectorresult.MaxDurationGTE(ms))
+	}
+	startedAt := listParams.StartedAt
+	if !startedAt.IsZero() {
+		query.Where(tcpdetectorresult.CreatedAtGTE(startedAt))
+	}
+	endedAt := listParams.EndedAt
+	if !endedAt.IsZero() {
+		query.Where(tcpdetectorresult.CreatedAtLTE(endedAt))
+	}
+}
+
+func (listParams *tcpDetectorResultListParams) count(ctx context.Context) (int, error) {
+	query := getTCPDetectorResultClient().Query()
+	listParams.where(query)
+	return query.Count(ctx)
+}
+
+func (listParams *tcpDetectorResultListParams) queryAll(ctx context.Context) ([]*ent.TCPDetectorResult, error) {
+	query := getTCPDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -240,5 +299,55 @@ func (*tcpDetectorCtrl) findByID(c *elton.Context) error {
 		return err
 	}
 	c.Body = result
+	return nil
+}
+
+func (*tcpDetectorCtrl) listResult(c *elton.Context) error {
+	params := tcpDetectorResultListParams{}
+	err := validateQuery(c, &params)
+	if err != nil {
+		return err
+	}
+	resp := tcpDetectorResultListResp{}
+	if params.ShouldCount() {
+		count, err := params.count(c.Context())
+		if err != nil {
+			return err
+		}
+		resp.Count = count
+	}
+	result, err := params.queryAll(c.Context())
+	if err != nil {
+		return err
+	}
+
+	// 填充检测任务名称
+	idList := make([]int, 0)
+	for _, item := range result {
+		if funk.ContainsInt(idList, item.Task) {
+			continue
+		}
+		idList = append(idList, item.Task)
+	}
+	detectors, err := getTCPDetectorClient().Query().
+		Where(
+			tcpdetector.IDIn(idList...),
+		).
+		Select("id", "name").
+		All(c.Context())
+	if err != nil {
+		return err
+	}
+	for _, item := range result {
+		for _, d := range detectors {
+			if item.Task == d.ID {
+				item.TaskName = d.Name
+			}
+		}
+	}
+
+	resp.TCPDetectorResults = result
+	c.Body = &resp
+
 	return nil
 }

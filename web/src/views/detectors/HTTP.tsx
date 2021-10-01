@@ -30,6 +30,10 @@ export default defineComponent({
       {
         title: "URL",
         key: "url",
+        width: 100,
+        ellipsis: {
+          tooltip: true,
+        },
       },
       newListColumn({
         key: "ips",

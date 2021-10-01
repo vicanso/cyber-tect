@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"encoding/json"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 )
@@ -11,10 +13,19 @@ type TCPDetectorResult struct {
 }
 
 type TCPDetectorSubResult struct {
-	Result   DetectorResult `json:"result,omitempty"`
-	Addr     string         `json:"addr,omitempty"`
-	Duration int            `json:"duration,omitempty"`
-	Message  string         `json:"message,omitempty"`
+	Result     DetectorResult `json:"result"`
+	ResultDesc string         `json:"resultDesc"`
+	Addr       string         `json:"addr"`
+	Duration   int            `json:"duration"`
+	Message    string         `json:"message"`
+}
+
+type MarshalTCPDetectorSubResult TCPDetectorSubResult
+
+func (sr *TCPDetectorSubResult) MarshalJSON() ([]byte, error) {
+	tmp := (*MarshalTCPDetectorSubResult)(sr)
+	tmp.ResultDesc = tmp.Result.String()
+	return json.Marshal(tmp)
 }
 
 type TCPDetectorSubResults []*TCPDetectorSubResult
@@ -22,7 +33,7 @@ type TCPDetectorSubResults []*TCPDetectorSubResult
 // Fields of the TCPDetectorResult.
 func (TCPDetectorResult) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("addrs").
+		field.Strings("addrs").
 			Comment("检测地址"),
 		field.JSON("results", TCPDetectorSubResults{}).
 			Comment("检测结果列表"),

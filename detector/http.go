@@ -111,16 +111,6 @@ func (srv *HTTPSrv) check(ctx context.Context, url, ip string, timeout time.Dura
 	}
 	return
 }
-func ceilToMs(d time.Duration) int {
-	if d == 0 {
-		return 0
-	}
-	offset := 0
-	if d%time.Millisecond != 0 {
-		offset++
-	}
-	return int(d.Milliseconds()) + offset
-}
 
 // fillSubResult 填充相关检测结果
 func (srv *HTTPSrv) fillSubResult(ht *HT.HTTPTrace, subResult *schema.HTTPDetectorSubResult) {

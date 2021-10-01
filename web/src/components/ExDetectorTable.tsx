@@ -7,6 +7,7 @@ export function getDefaultColumns(): TableColumn[] {
     {
       title: "名称",
       key: "name",
+      width: 100,
     },
     {
       title: "状态",
@@ -14,18 +15,22 @@ export function getDefaultColumns(): TableColumn[] {
       render(row: Record<string, unknown>) {
         return row.statusDesc as string;
       },
+      width: 60,
     },
     {
       title: "超时设置",
       key: "timeout",
+      width: 80,
     },
     newListColumn({
       key: "owners",
       title: "所有人",
+      width: 120,
     }),
     newListColumn({
       key: "receivers",
       title: "告警接收人",
+      width: 120,
     }),
     {
       title: "更新于",

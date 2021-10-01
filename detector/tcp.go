@@ -17,7 +17,6 @@ package detector
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/vicanso/cybertect/ent"
@@ -51,7 +50,7 @@ func (srv *TCPSrv) detect(ctx context.Context, config *ent.TCPDetector) (tcpDete
 		err = srv.check(addr, timeout)
 		subResult := schema.TCPDetectorSubResult{
 			Addr:     addr,
-			Duration: int(time.Since(startedAt).Milliseconds()),
+			Duration: ceilToMs(time.Since(startedAt)),
 		}
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail
@@ -71,7 +70,7 @@ func (srv *TCPSrv) detect(ctx context.Context, config *ent.TCPDetector) (tcpDete
 	return getEntClient().TCPDetectorResult.Create().
 		SetTask(config.ID).
 		SetResult(schema.DetectorResult(result)).
-		SetAddrs(strings.Join(config.Addrs, ",")).
+		SetAddrs(config.Addrs).
 		SetMaxDuration(maxDuration).
 		SetResults(subResults).
 		SetMessages(messages).

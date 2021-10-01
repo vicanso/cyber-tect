@@ -40,9 +40,9 @@ func (srv *DNSSrv) check(ctx context.Context, host, server string, timeout time.
 	}
 	r := net.Resolver{
 		PreferGo: true,
-		Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+		Dial: func(ctx context.Context, network, _ string) (net.Conn, error) {
 			dia := net.Dialer{}
-			return dia.DialContext(ctx, "udp", server)
+			return dia.DialContext(ctx, network, server)
 		},
 	}
 	ctx, cancel := context.WithTimeout(ctx, timeout)
@@ -66,7 +66,7 @@ func (srv *DNSSrv) detect(ctx context.Context, config *ent.DNSDetector) (dnsDete
 		addrs, err := srv.check(ctx, config.Host, server, timeout)
 		subResult := schema.DNSDetectorSubResult{
 			Server:   server,
-			Duration: int(time.Since(startedAt).Milliseconds()),
+			Duration: ceilToMs(time.Since(startedAt)),
 		}
 		// 如果检测成功
 		if err == nil {

@@ -16,6 +16,7 @@ package detector
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"strings"
@@ -26,7 +27,6 @@ import (
 	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	parallel "github.com/vicanso/go-parallel"
-	"github.com/vicanso/hes"
 )
 
 type (
@@ -77,12 +77,12 @@ func (srv *DNSSrv) detect(ctx context.Context, config *ent.DNSDetector) (dnsDete
 				}
 				subResult.IPS = ipList
 			} else {
-				err = hes.New("no ip for the host")
+				err = errors.New("no ip for the host")
 			}
 			// 检测IP是否均在预期列表中
 			for _, ip := range subResult.IPS {
 				if !util.ContainsString(config.Ips, ip) {
-					err = hes.New(fmt.Sprintf("ip(%s) is not matched", ip))
+					err = fmt.Errorf("ip(%s) is not matched", ip)
 				}
 			}
 		}

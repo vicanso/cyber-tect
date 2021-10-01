@@ -53,6 +53,7 @@ export const HTTP_DETECTOR_RESULTS = "/http-detectors/results/v1";
 // dns检测
 export const DNS_DETECTORS = "/dns-detectors/v1";
 export const DNS_DETECTORS_ID = "/dns-detectors/v1/:id";
+export const DNS_DETECTOR_RESULTS = "/dns-detectors/results/v1";
 // tcp检测
 export const TCP_DETECTORS = "/tcp-detectors/v1";
 export const TCP_DETECTORS_ID = "/tcp-detectors/v1/:id";

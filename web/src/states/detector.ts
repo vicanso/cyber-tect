@@ -15,6 +15,7 @@ import {
   HTTP_DETECTOR_RESULTS,
   TCP_DETECTOR_RESULTS,
   PING_DETECTOR_RESULTS,
+  DNS_DETECTOR_RESULTS,
 } from "../constants/url";
 
 // http检测配置
@@ -163,6 +164,29 @@ interface PingDetectorResult {
   results: PingDetectorSubResult[];
 }
 
+interface DNSDetectorSubResult {
+  [key: string]: unknown;
+  result: DetectorResult;
+  ips: string[];
+  server: string;
+  duration: number;
+  message: string;
+}
+
+interface DNSDetectorResult {
+  [key: string]: unknown;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  task: number;
+  result: DetectorResult;
+  maxDuration: number;
+  messages: string[];
+  // 检测IP
+  host: string;
+  results: DNSDetectorSubResult[];
+}
+
 interface List<T> {
   processing: boolean;
   items: T[];
@@ -206,6 +230,12 @@ const tcpDetectorResults: List<TCPDetectorResult> = reactive({
 });
 
 const pingDetectorResults: List<PingDetectorResult> = reactive({
+  processing: false,
+  items: [],
+  count: -1,
+});
+
+const dnsDetectorResults: List<DNSDetectorResult> = reactive({
   processing: false,
   items: [],
   count: -1,
@@ -540,6 +570,25 @@ export async function pingDetectorResultList(
   }
 }
 
+export async function dnsDetectorResultList(
+  params: Record<string, unknown>
+): Promise<void> {
+  if (dnsDetectorResults.processing) {
+    return;
+  }
+  dnsDetectorResults.processing = true;
+  try {
+    const { data } = await request.get(DNS_DETECTOR_RESULTS, {
+      params: Object.assign(defaultDetectorResultQueryParams, params),
+    });
+    fillCount(params, data, "dnsDetectorResults");
+    dnsDetectorResults.items = data.dnsDetectorResults || [];
+    dnsDetectorResults.count = data.count;
+  } finally {
+    dnsDetectorResults.processing = false;
+  }
+}
+
 interface ReadonlyDetectorState {
   httpDetectors: DeepReadonly<List<HTTPDetector>>;
   dnsDetectors: DeepReadonly<List<DNSDetector>>;
@@ -548,6 +597,7 @@ interface ReadonlyDetectorState {
   httpDetectorResults: DeepReadonly<List<HTTPDetectorResult>>;
   tcpDetectorResults: DeepReadonly<List<TCPDetectorResult>>;
   pingDetectorResults: DeepReadonly<List<PingDetectorResult>>;
+  dnsDetectorResults: DeepReadonly<List<DNSDetectorResult>>;
 }
 
 const state = {
@@ -558,6 +608,7 @@ const state = {
   httpDetectorResults: readonly(httpDetectorResults),
   tcpDetectorResults: readonly(tcpDetectorResults),
   pingDetectorResults: readonly(pingDetectorResults),
+  dnsDetectorResults: readonly(dnsDetectorResults),
 };
 
 export default function useDetectorState(): ReadonlyDetectorState {

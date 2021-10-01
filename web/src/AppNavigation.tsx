@@ -58,6 +58,10 @@ const navigationOptions = [
         label: "Ping",
         key: names.detectorPingResult,
       },
+      {
+        label: "DNS",
+        key: names.detectorDNSResult,
+      },
     ],
   },
   {

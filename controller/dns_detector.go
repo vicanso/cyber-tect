@@ -19,12 +19,15 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
+	"github.com/thoas/go-funk"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/dnsdetector"
+	"github.com/vicanso/cybertect/ent/dnsdetectorresult"
 	"github.com/vicanso/cybertect/ent/predicate"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
 )
@@ -55,6 +58,10 @@ type (
 		IPS     []string `json:"ips" validate:"omitempty,dive,ip"`
 		Servers []string `json:"servers" validate:"omitempty,dive,ip"`
 	}
+
+	dnsDetectorResultListParams struct {
+		detectorListResultParams
+	}
 )
 
 type (
@@ -62,11 +69,16 @@ type (
 		DNSDetectors []*ent.DNSDetector `json:"dnsDetectors"`
 		Count        int                `json:"count"`
 	}
+	dnsDetectorResultListResp struct {
+		DNSDetectorResults []*ent.DNSDetectorResult `json:"dnsDetectorResults"`
+		Count              int                      `json:"count"`
+	}
 )
 
 func init() {
+	prefix := "/dns-detectors"
 	g := router.NewGroup(
-		"/dns-detectors",
+		prefix,
 		loadUserSession,
 		shouldBeLogin,
 	)
@@ -90,10 +102,18 @@ func init() {
 		newTrackerMiddleware(cs.ActionDetectorDNSUpdate),
 		ctrl.updateByID,
 	)
+	router.NewGroup(prefix).GET(
+		"/results/v1",
+		ctrl.listResult,
+	)
 }
 
 func getDNSDetectorClient() *ent.DNSDetectorClient {
 	return helper.EntGetClient().DNSDetector
+}
+
+func getDNSDetectorResultClient() *ent.DNSDetectorResultClient {
+	return helper.EntGetClient().DNSDetectorResult
 }
 
 func (addParams *dnsDetectorAddParams) save(ctx context.Context) (*ent.DNSDetector, error) {
@@ -126,6 +146,44 @@ func (listParams *dnsDetectorListParams) count(ctx context.Context) (int, error)
 
 func (listParams *dnsDetectorListParams) queryAll(ctx context.Context) ([]*ent.DNSDetector, error) {
 	query := getDNSDetectorClient().Query()
+	query = query.Limit(listParams.GetLimit()).
+		Offset(listParams.GetOffset()).
+		Order(listParams.GetOrders()...)
+	listParams.where(query)
+	return query.All(ctx)
+}
+
+func (listParams *dnsDetectorResultListParams) where(query *ent.DNSDetectorResultQuery) {
+	task := listParams.Task
+	if task != 0 {
+		query.Where(dnsdetectorresult.Task(task))
+	}
+	result := listParams.Result
+	if result != 0 {
+		query.Where(dnsdetectorresult.Result(schema.DetectorResult(result)))
+	}
+	ms := listParams.GetDurationMillSecond()
+	if ms > 0 {
+		query.Where(dnsdetectorresult.MaxDurationGTE(ms))
+	}
+	startedAt := listParams.StartedAt
+	if !startedAt.IsZero() {
+		query.Where(dnsdetectorresult.CreatedAtGTE(startedAt))
+	}
+	endedAt := listParams.EndedAt
+	if !endedAt.IsZero() {
+		query.Where(dnsdetectorresult.CreatedAtLTE(endedAt))
+	}
+}
+
+func (listParams *dnsDetectorResultListParams) count(ctx context.Context) (int, error) {
+	query := getDNSDetectorResultClient().Query()
+	listParams.where(query)
+	return query.Count(ctx)
+}
+
+func (listParams *dnsDetectorResultListParams) queryAll(ctx context.Context) ([]*ent.DNSDetectorResult, error) {
+	query := getDNSDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -255,5 +313,55 @@ func (*dnsDetectorCtrl) findByID(c *elton.Context) error {
 		return err
 	}
 	c.Body = result
+	return nil
+}
+
+func (*dnsDetectorCtrl) listResult(c *elton.Context) error {
+	params := dnsDetectorResultListParams{}
+	err := validateQuery(c, &params)
+	if err != nil {
+		return err
+	}
+	resp := dnsDetectorResultListResp{}
+	if params.ShouldCount() {
+		count, err := params.count(c.Context())
+		if err != nil {
+			return err
+		}
+		resp.Count = count
+	}
+
+	result, err := params.queryAll(c.Context())
+	if err != nil {
+		return err
+	}
+
+	// 填充检测任务名称
+	idList := make([]int, 0)
+	for _, item := range result {
+		if funk.ContainsInt(idList, item.Task) {
+			continue
+		}
+		idList = append(idList, item.Task)
+	}
+	detectors, err := getDNSDetectorClient().Query().
+		Where(
+			dnsdetector.IDIn(idList...),
+		).
+		Select("id", "name").
+		All(c.Context())
+	if err != nil {
+		return err
+	}
+	for _, item := range result {
+		for _, d := range detectors {
+			if item.Task == d.ID {
+				item.TaskName = d.Name
+			}
+		}
+	}
+
+	resp.DNSDetectorResults = result
+	c.Body = &resp
 	return nil
 }

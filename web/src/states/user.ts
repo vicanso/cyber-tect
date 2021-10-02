@@ -6,6 +6,7 @@ import {
   USERS,
   USERS_LOGINS,
   USERS_ID,
+  USERS_ME_DETAIL,
 } from "../constants/url";
 // eslint-disable-next-line
 // @ts-ignore
@@ -33,6 +34,17 @@ const info: UserInfo = reactive({
   groups: [],
   roles: [],
 });
+
+export interface UserDetailInfo {
+  createdAt: string;
+  updatedAt: string;
+  status: number;
+  account: string;
+  name: string;
+  roles: string[];
+  groups: string[];
+  email: string;
+}
 
 // 用户账户信息
 interface UserAccount {
@@ -279,6 +291,17 @@ export async function userUpdateByID(params: {
   data: Record<string, unknown>;
 }): Promise<void> {
   await request.patch(USERS_ID.replace(":id", `${params.id}`), params.data);
+}
+
+export async function userMeDetail(): Promise<UserDetailInfo> {
+  const { data } = await request.get(USERS_ME_DETAIL);
+  return data as UserDetailInfo;
+}
+
+export async function userUpdateMe(
+  params: Record<string, unknown>
+): Promise<void> {
+  await request.patch(USERS_ME, params);
 }
 
 // 仅读用户state

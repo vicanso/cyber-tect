@@ -30,3 +30,9 @@ export function goToHome(replace?: boolean): void {
     replace: replace ?? false,
   });
 }
+
+export function goToProfile(replace?: boolean): void {
+  goTo(names.profile, {
+    replace: replace ?? false,
+  });
+}

@@ -12,7 +12,7 @@ import { css } from "@linaria/core";
 import { defineComponent, onBeforeMount } from "vue";
 import { mainHeaderHeight, padding } from "./constants/style";
 import { showError } from "./helpers/util";
-import { goToHome, goToLogin, goToRegister } from "./routes";
+import { goToHome, goToLogin, goToRegister, goToProfile } from "./routes";
 import useUserState, { userFetchInfo, userLogout } from "./states/user";
 import useCommonState, {
   commonGetSettings,
@@ -85,12 +85,12 @@ export default defineComponent({
     // 用户信息
     const renderUserInfo = () => (
       <>
-        <div>
+        <NButton bordered={false} onClick={() => goToProfile()}>
           <NIcon class={userInfoClass}>
             <User />
           </NIcon>
           {info.account}
-        </div>
+        </NButton>
         <NButton bordered={false} onClick={logout}>
           退出登录
         </NButton>

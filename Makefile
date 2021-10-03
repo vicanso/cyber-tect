@@ -11,12 +11,10 @@ doc:
 test:
 	go test -race -cover ./...
 
-install:
-	go get -d entgo.io/ent/cmd/entc
 
 generate: 
 	rm -rf ./ent
-	entc generate ./schema --template ./template --target ./ent
+	go run entgo.io/ent/cmd/ent generate ./schema --template ./template --target ./ent
 
 describe:
 	entc describe ./schema

@@ -237,6 +237,7 @@ func newOnErrorHandler(e *elton.Elton) {
 }
 
 func main() {
+	defer config.RedisServerClose()
 	profiler.MustStartPyroscope()
 	e := elton.New()
 	// 记录server中连接的状态变化

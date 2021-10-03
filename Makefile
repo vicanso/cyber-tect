@@ -12,7 +12,7 @@ test:
 	go test -race -cover ./...
 
 install:
-	go install entgo.io/ent/cmd/entc
+	go get -d entgo.io/ent/cmd/entc
 
 generate: 
 	rm -rf ./ent

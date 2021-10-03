@@ -26,7 +26,7 @@ redis:
   # 可以配置为下面的形式，则从env中获取REDIS_URI对应的字符串来当redis连接串
   # uri: REDIS_URI
   # uri: redis://:pass@127.0.0.1:6379/?slow=200ms&maxProcessing=1000
-  uri: redis://127.0.0.1:6379/?slow=200ms&maxProcessing=1000
+  uri: redis://miniredis/?slow=200ms&maxProcessing=1000
 
 # postgres postgres配置
 postgres:

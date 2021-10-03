@@ -29,12 +29,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/vicanso/cybertect/validate"
 	"github.com/vicanso/viperx"
 )
 
 //go:embed *.yml
 var configFS embed.FS
+
+// 初始化本地的redis服务
+var redisServer = mustNewRedisServer()
 
 var (
 	env = os.Getenv("GO_ENV")
@@ -163,6 +167,19 @@ type (
 	}
 )
 
+func mustNewRedisServer() *miniredis.Miniredis {
+	s, err := miniredis.Run()
+	if err != nil {
+		panic(err)
+	}
+	return s
+}
+
+func RedisServerClose() error {
+	redisServer.Close()
+	return nil
+}
+
 // mustLoadConfig 加载配置，出错是则抛出panic
 func mustLoadConfig() *viperx.ViperX {
 	configType := "yml"
@@ -272,6 +289,10 @@ func MustGetRedisConfig() *RedisConfig {
 
 	// 转换失败则为0
 	poolSize, _ := strconv.Atoi(query.Get("poolSize"))
+	// 替换miniredis连接地址
+	if uriInfo.Host == "miniredis" {
+		uriInfo.Host = redisServer.Addr()
+	}
 
 	redisConfig := &RedisConfig{
 		Addrs:         strings.Split(uriInfo.Host, ","),

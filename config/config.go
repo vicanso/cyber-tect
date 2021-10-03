@@ -342,11 +342,20 @@ func MustGetPostgresConfig() *PostgresConfig {
 // MustGetMailConfig 获取邮件配置
 func MustGetMailConfig() *MailConfig {
 	prefix := "mail."
+	urlInfo, err := url.Parse(defaultViperX.GetStringFromENV(prefix + "url"))
+	if err != nil {
+		panic(err)
+	}
+	pass, _ := urlInfo.User.Password()
+	port, err := strconv.Atoi(urlInfo.Port())
+	if err != nil {
+		panic(err)
+	}
 	mailConfig := &MailConfig{
-		Host:     defaultViperX.GetString(prefix + "host"),
-		Port:     defaultViperX.GetInt(prefix + "port"),
-		User:     defaultViperX.GetStringFromENV(prefix + "user"),
-		Password: defaultViperX.GetStringFromENV(prefix + "password"),
+		Host:     urlInfo.Hostname(),
+		Port:     port,
+		User:     urlInfo.User.Username(),
+		Password: pass,
 	}
 	mustValidate(mailConfig)
 	return mailConfig

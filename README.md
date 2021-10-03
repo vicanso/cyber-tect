@@ -4,12 +4,39 @@
 
 提供常用的HTTP接口、TCP端口、DNS域名解析以及Ping的定时检测告警。
 
+## postgres
+
+用户信息及检测配置、结果等数据保存在postgres中，若无现成的postgres可使用以下脚本启动实例：
+
+```
+docker pull postgres:14-alpine
+
+docker run -d --restart=always \
+  -v $PWD/data:/var/lib/postgresql/data \
+  -e POSTGRES_PASSWORD=A123456 \
+  -p 5432:5432 \
+  --name=postgres \
+  postgres:14-alpine
+
+docker exec -it postgres sh
+
+psql -c "CREATE DATABASE cybertect;" -U postgres
+psql -c "CREATE USER vicanso WITH PASSWORD 'A123456';" -U postgres
+psql -c "GRANT ALL PRIVILEGES ON DATABASE cybertect to vicanso;" -U postgres
+```
+
 ## 项目启动
 
 项目连接数据库使用ent框架，相关代码动态生成，因此使用前需要先执行：
 
 ```bash
 make install && make generate
+```
+
+启动程序：
+
+```bash
+go run main.go 
 ```
 
 ## HTTP检测
@@ -98,38 +125,17 @@ Ping检测用于检测网络的连通性，主要用于测试简单的网络连�
 
 ![](./images/main-setting.jpg)
 
-## postgres
-
-用户信息及检测配置、结果等数据保存在postgres中，若无现成的postgres则可使用以下脚本启动实例：
-
-```
-docker pull postgres:13-alpine
-
-docker run -d --restart=always \
-  -v $PWD/data:/var/lib/postgresql/data \
-  -e POSTGRES_PASSWORD=A123456 \
-  -p 5432:5432 \
-  --name=cybertect-data \
-  postgres:13-alpine
-
-docker exec -it cybertect-data sh
-
-psql -c "CREATE DATABASE cybertect;" -U postgres
-psql -c "CREATE USER vicanso WITH PASSWORD 'A123456';" -U postgres
-psql -c "GRANT ALL PRIVILEGES ON DATABASE cybertect to vicanso;" -U postgres
-```
 
 ## 启动程序
+
+建议直接使用已打包好的docker镜像启动项目，启动脚本如下：
 
 ```bash
 docker run -d --restart=always \
   -p 7001:7001 \
   -e GO_ENV=production \
   -e POSTGRES_URI=postgresql://vicanso:A123456@127.0.0.1:5432/cybertect \
-  -e MAIL_HOST=smtp.office365.com \
-  -e MAIL_PORT=587 \
-  -e MAIL_USER=tree.xie@outlook.com \
-  -e MAIL_PASS=pass \
+  -e MAIL_SMTP=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
   -e DETECTOR_INTERVAL=1m \
   -e DETECTOR_RESULT_EXPIRED=30d \
   --name=cybertect \
@@ -138,9 +144,6 @@ docker run -d --restart=always \
 
 - `GO_ENV` 设置为正式环境
 - `POSTGRES_URI` 数据库连接地址
-- `MAIL_HOST` 告警发送邮箱域名
-- `MAIL_PORT` SMTP端口
-- `MAIL_USER` 邮箱账号
-- `MAIL_PASS` 邮箱密码
+- `MAIL_SMTP` 用于发送告警邮件的SMTP设置 
 - `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
 - `DETECTOR_RESULT_EXPIRED` 检测结果过期时间，默认为30天(30d)

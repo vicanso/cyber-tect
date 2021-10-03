@@ -1,2 +1,7 @@
 # 仅需要添加与default不相同的配置
 # 生产环境配置
+
+# mail相关配置
+mail:
+  # url: smtp://tree.xie@outlook.com:pass@smtp.office365.com:587
+  url: MAIL_SMTP

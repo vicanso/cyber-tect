@@ -25,7 +25,6 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
-	"github.com/tidwall/gjson"
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
@@ -218,8 +217,6 @@ func init() {
 		middleware.WaitFor(time.Second),
 		newTrackerMiddleware(cs.ActionRegister),
 		captchaValidate,
-		// 限制相同IP在60秒之内只能调用5次
-		newIPLimit(5, 60*time.Second, cs.ActionRegister),
 		shouldBeAnonymous,
 		ctrl.register,
 	)
@@ -232,16 +229,6 @@ func init() {
 		newTrackerMiddleware(cs.ActionLogin),
 		captchaValidate,
 		shouldBeAnonymous,
-		// 同一个账号限制3秒只能登录一次（无论成功还是失败）
-		newConcurrentLimit([]string{
-			"account",
-		}, 3*time.Second, cs.ActionLogin),
-		// 限制相同IP在60秒之内只能调用10次
-		newIPLimit(10, 60*time.Second, cs.ActionLogin),
-		// 限制10分钟内，相同的账号只允许出错5次
-		newErrorLimit(5, 10*time.Minute, func(c *elton.Context) string {
-			return gjson.GetBytes(c.RequestBody, "account").String()
-		}),
 		ctrl.login,
 	)
 	// 内部登录

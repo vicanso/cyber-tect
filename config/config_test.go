@@ -56,7 +56,7 @@ func TestRedisConfig(t *testing.T) {
 	assert := assert.New(t)
 
 	redisConfig := MustGetRedisConfig()
-	assert.Equal([]string{"127.0.0.1:6379"}, redisConfig.Addrs)
+	assert.NotEmpty(redisConfig.Addrs)
 	assert.Equal("", redisConfig.Password)
 	assert.Equal(200*time.Millisecond, redisConfig.Slow)
 	assert.Equal(uint32(1000), redisConfig.MaxProcessing)
@@ -69,7 +69,7 @@ func TestMailConfig(t *testing.T) {
 	assert.Equal("smtp.office365.com", mailConfig.Host)
 	assert.Equal(587, mailConfig.Port)
 	assert.Equal("tree.xie@outlook.com", mailConfig.User)
-	assert.Equal("EMAIL_PASS", mailConfig.Password)
+	assert.Equal("pass", mailConfig.Password)
 }
 
 func TestInfluxdbConfig(t *testing.T) {

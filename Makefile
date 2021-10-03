@@ -11,6 +11,8 @@ doc:
 test:
 	go test -race -cover ./...
 
+install:
+	go get -d entgo.io/ent/cmd/entc
 
 generate: 
 	rm -rf ./ent

@@ -22,6 +22,7 @@ const navigationOptions = [
     label: "检测配置",
     key: "detector",
     icon: renderIcon(Desktop),
+    disabled: false,
     children: [
       {
         label: "HTTP",
@@ -45,6 +46,7 @@ const navigationOptions = [
     label: "检测结果",
     key: "detectorResult",
     icon: renderIcon(ChartBar),
+    disabled: false,
     children: [
       {
         label: "HTTP",
@@ -68,6 +70,7 @@ const navigationOptions = [
     label: "用户",
     key: "user",
     icon: renderIcon(User),
+    disabled: true,
     children: [
       {
         label: "用户列表",

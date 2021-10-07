@@ -2,7 +2,6 @@ import { DeepReadonly, reactive, readonly } from "vue";
 import {
   USERS_ME,
   USERS_LOGIN,
-  USERS_INNER_LOGIN,
   USERS,
   USERS_LOGINS,
   USERS_ID,
@@ -200,7 +199,7 @@ export async function userLogin(params: {
     const resp = await request.get(USERS_LOGIN);
     const { token } = resp.data;
     const { data } = await request.post(
-      USERS_INNER_LOGIN,
+      USERS_LOGIN,
       {
         account: params.account,
         password: sha256(generatePassword(params.password) + token),

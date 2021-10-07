@@ -47,7 +47,7 @@ export default defineComponent({
         name: "IP列表：",
         key: "ips",
         span: 12,
-        placeholder: "请输入对应的IP地址",
+        placeholder: "请输入对应的IP地址，若不指定则输入0.0.0.0",
         min: 1,
       },
       {

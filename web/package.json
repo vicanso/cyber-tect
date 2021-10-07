@@ -4,7 +4,7 @@
     "format": "prettier --write src/*.ts src/*.tsx src/**/*.ts src/**/*.tsx src/**/**/*.ts src/**/**/*.tsx",
     "lint": "eslint . --ext .js,.tsx,.ts --fix",
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && STATIC=/static vite build",
     "serve": "vite preview"
   },
   "dependencies": {

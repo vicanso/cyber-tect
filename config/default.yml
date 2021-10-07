@@ -45,7 +45,7 @@ influxdb:
   # flushInterval: 10s
   # 如果与influxdb非同一内网，建议设置为true
   gzip: false
-  disabled: false 
+  disabled: true 
 
 # mail相关配置
 mail:

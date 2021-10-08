@@ -7,10 +7,8 @@ import { RowData, TableColumn } from "naive-ui/lib/data-table/src/interface";
 import useDetectorState, {
   httpDetectorResultList,
 } from "../../states/detector";
-import ExTable, {
-  newListColumn,
-  newLevelValueColumn,
-} from "../../components/ExTable";
+import { newListColumn, newLevelValueColumn } from "../../components/ExTable";
+import ExDetectorResultTable from "../../components/ExDetectorResultTable";
 import { formatDate } from "../../helpers/util";
 
 const popupClass = css`
@@ -77,6 +75,10 @@ export default defineComponent({
             {
               title: "失败信息",
               key: "message",
+              ellipsis: {
+                tooltip: true,
+              },
+              width: 200,
             },
             newListColumn({
               key: "timeline",
@@ -131,7 +133,11 @@ export default defineComponent({
     ];
     return (
       <NCard title={"HTTP检测结果"}>
-        <ExTable columns={columns} data={httpDetectorResults} fetch={fetch} />
+        <ExDetectorResultTable
+          columns={columns}
+          data={httpDetectorResults}
+          fetch={fetch}
+        />
       </NCard>
     );
   },

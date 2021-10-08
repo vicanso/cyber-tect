@@ -17,20 +17,7 @@ import { Component, defineComponent, PropType, ref } from "vue";
 
 import ExUserSelect from "./ExUserSelect";
 import { FormItem, FormItemTypes } from "./ExFormInterface";
-
-function durationToSeconds(d: string) {
-  if (!d || d.length < 2) {
-    return null;
-  }
-  const units = ["s", "m", "h"];
-  const seconds = [1, 60, 3600];
-  const index = units.indexOf(d[d.length - 1]);
-  if (index === -1) {
-    return 0;
-  }
-
-  return Number.parseInt(d) * seconds[index];
-}
+import { durationToSeconds } from "../helpers/util";
 
 export default defineComponent({
   name: "ExForm",

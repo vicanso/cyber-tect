@@ -15,8 +15,10 @@
 package detector
 
 import (
+	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -100,7 +102,13 @@ func (srv *HTTPSrv) check(ctx context.Context, url, ip string, timeout time.Dura
 		return
 	}
 	defer resp.Body.Close()
-	buf, _ := ioutil.ReadAll(resp.Body)
+	var r io.Reader
+	if resp.Header.Get("Content-Encoding") == "gzip" {
+		r, _ = gzip.NewReader(resp.Body)
+	} else {
+		r = resp.Body
+	}
+	buf, _ := ioutil.ReadAll(r)
 	// < 200 或者 >= 400 均认为失败
 	if resp.StatusCode >= http.StatusBadRequest || resp.StatusCode < http.StatusOK {
 		err = &hes.Error{
@@ -167,9 +175,9 @@ func (srv *HTTPSrv) detect(ctx context.Context, config *ent.HTTPDetector) (httpD
 			if ip == "" && len(ht.Addrs) != 0 {
 				ip = ht.Addrs[0]
 			}
-			subResult.Message = fmt.Sprintf("%s(%s), %s", config.URL, ip, err.Error())
+			subResult.Message = fmt.Sprintf("%s, %s(%s)", err.Error(), config.URL, ip)
 			if ht != nil {
-				subResult.Message += fmt.Sprintf("(%s)", ht.Stats().String())
+				subResult.Message += fmt.Sprintf(" stats=%s", ht.Stats().String())
 			}
 			result = schema.DetectorResultFail
 			messages = append(messages, subResult.Message)

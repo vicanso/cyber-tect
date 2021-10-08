@@ -5,11 +5,9 @@ import { NCard, NDataTable, NPopover, NIcon } from "naive-ui";
 import { RowData, TableColumn } from "naive-ui/lib/data-table/src/interface";
 
 import useDetectorState, { tcpDetectorResultList } from "../../states/detector";
-import ExTable, {
-  newListColumn,
-  newLevelValueColumn,
-} from "../../components/ExTable";
+import { newListColumn, newLevelValueColumn } from "../../components/ExTable";
 import { formatDate } from "../../helpers/util";
+import ExDetectorResultTable from "../../components/ExDetectorResultTable";
 
 const popupClass = css`
   max-width: 800px;
@@ -103,7 +101,11 @@ export default defineComponent({
     ];
     return (
       <NCard title={"TCP检测结果"}>
-        <ExTable columns={columns} data={tcpDetectorResults} fetch={fetch} />
+        <ExDetectorResultTable
+          columns={columns}
+          data={tcpDetectorResults}
+          fetch={fetch}
+        />
       </NCard>
     );
   },

@@ -1,4 +1,4 @@
-import { Desktop, User, ChartBar } from "@vicons/fa";
+import { Cogs, User, Tasks } from "@vicons/fa";
 import { css } from "@linaria/core";
 import { NButton, NIcon, NMenu } from "naive-ui";
 import { Component, defineComponent, h } from "vue";
@@ -21,7 +21,7 @@ const navigationOptions = [
   {
     label: "检测配置",
     key: "detector",
-    icon: renderIcon(Desktop),
+    icon: renderIcon(Cogs),
     disabled: false,
     children: [
       {
@@ -45,7 +45,7 @@ const navigationOptions = [
   {
     label: "检测结果",
     key: "detectorResult",
-    icon: renderIcon(ChartBar),
+    icon: renderIcon(Tasks),
     disabled: false,
     children: [
       {

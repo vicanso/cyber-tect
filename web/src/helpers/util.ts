@@ -177,3 +177,17 @@ export function omitNil(
   });
   return result;
 }
+
+export function durationToSeconds(d: string): number | null {
+  if (!d || d.length < 2) {
+    return null;
+  }
+  const units = ["s", "m", "h"];
+  const seconds = [1, 60, 3600];
+  const index = units.indexOf(d[d.length - 1]);
+  if (index === -1) {
+    return 0;
+  }
+
+  return Number.parseInt(d) * seconds[index];
+}

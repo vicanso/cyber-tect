@@ -13,6 +13,8 @@ import {
   NSelect,
   NSpin,
   NIcon,
+  NInputGroup,
+  NInputGroupLabel,
   useMessage,
 } from "naive-ui";
 import { EditRegular } from "@vicons/fa";
@@ -20,7 +22,13 @@ import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 import { Component, defineComponent, onMounted, ref, PropType } from "vue";
 import { css } from "@linaria/core";
 import { padding } from "../constants/style";
-import { getDaysAgo, showError, today, yesterday } from "../helpers/util";
+import {
+  getDaysAgo,
+  showError,
+  today,
+  yesterday,
+  durationToSeconds,
+} from "../helpers/util";
 import { FormItemTypes } from "./ExFormInterface";
 
 interface Filter {
@@ -167,7 +175,7 @@ export default defineComponent({
     },
     limit: {
       type: Number,
-      default: 10,
+      default: 15,
     },
     filters: {
       type: Array,
@@ -295,6 +303,27 @@ export default defineComponent({
               }}
             />
           );
+          break;
+        case FormItemTypes.InputDuration:
+          {
+            component = (
+              <NInputGroup>
+                <NInputNumber
+                  class="widthFull"
+                  size={size}
+                  placeholder={filterItem.placeholder}
+                  defaultValue={
+                    (durationToSeconds(filterItem.defaultValue as string) ||
+                      null) as number
+                  }
+                  onUpdate:value={(value) => {
+                    filterParams[filterItem.key] = `${value}s`;
+                  }}
+                />
+                <NInputGroupLabel size={size}>秒</NInputGroupLabel>
+              </NInputGroup>
+            );
+          }
           break;
         case FormItemTypes.DateRange: {
           let defaultValue: [number, number] | null = null;

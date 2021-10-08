@@ -84,9 +84,13 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 		return
 	}
 
-	// 如果非前几次失败，而且失败数量不是10的整数位，则忽略（不连续告警）
+	// 如果非前几次失败，则后续的告警不再每次发送
 	// 由于使用邮件告警，容易忽略，因此前几次均发送
-	if newCount > 3 && newCount%10 != 0 {
+	if newCount > 3 &&
+		// <=60时，每10次发送一次
+		((newCount <= 60 && newCount%10 != 0) ||
+			// 大于60则每60发送一次
+			newCount%60 == 0) {
 		return
 	}
 	// 如果状态变化，而且此次是success

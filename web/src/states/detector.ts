@@ -499,14 +499,13 @@ export async function httpDetectorResultList(
       }
       item.results.forEach((subItem) => {
         const dates = subItem.certificateExpirationDates;
-        if (!dates || dates.length !== 2) {
-          return;
+        if (dates && dates.length === 2) {
+          const size = 10;
+          subItem.certificateExpirationDates = [
+            dates[0].substring(0, size),
+            dates[1].substring(0, size),
+          ];
         }
-        const size = 10;
-        subItem.certificateExpirationDates = [
-          dates[0].substring(0, size),
-          dates[1].substring(0, size),
-        ];
         const values: Record<string, number> = {
           TOTAL: subItem.duration,
           DNS: subItem.dnsLookup,

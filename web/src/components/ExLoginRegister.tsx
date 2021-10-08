@@ -94,6 +94,9 @@ export default defineComponent({
         }
       } catch (err) {
         showError(message, err);
+        // 因为图形验证码仅一次有效
+        // 如果出错，自动刷新图形验证码
+        refreshCaptcha();
       } finally {
         processing.value = false;
       }

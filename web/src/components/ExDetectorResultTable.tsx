@@ -24,12 +24,14 @@ function getFilters() {
           value: "2",
         },
       ],
+      span: 8,
     },
     {
       name: "耗时：",
       key: "duration",
       placeholder: "请输入过滤时长（大于等于）",
       type: FormItemTypes.InputDuration,
+      span: 8,
     },
   ];
 }

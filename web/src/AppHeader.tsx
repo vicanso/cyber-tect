@@ -128,7 +128,7 @@ export default defineComponent({
                 goToHome();
               }}
             >
-              cybertect
+              CyberTect
             </a>
           </NH2>
         </NText>

@@ -10,6 +10,7 @@ import { Mode } from "../../states/common";
 import ExTable, { newOPColumn } from "../../components/ExTable";
 import { padding } from "../../constants/style";
 import { getDefaultColumns } from "../../components/ExDetectorTable";
+import useUserState from "../../states/user";
 
 const addButtonClass = css`
   width: 100%;
@@ -65,9 +66,11 @@ export default defineComponent({
   setup() {
     const mode = ref(Mode.List);
     const updatedID = ref(0);
+
     return {
       mode,
       updatedID,
+      userInfo: useUserState().info,
     };
   },
   render() {
@@ -82,6 +85,7 @@ export default defineComponent({
       columns,
       fetch,
     } = this.$props;
+    const { userInfo } = this;
     const columnsClone = getDefaultColumns().slice(0);
     columnsClone.splice(1, 0, ...columns);
     columnsClone.push(
@@ -109,6 +113,11 @@ export default defineComponent({
       );
     }
     const formItemsClone = getDefaultForItems();
+    formItemsClone.forEach((item) => {
+      if (["owners", "receivers"].includes(item.key)) {
+        item.defaultValue = [userInfo.account];
+      }
+    });
     formItemsClone.push(...formItems);
     return (
       <ExDetectorEditor

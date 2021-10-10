@@ -16,86 +16,87 @@ package detector
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"net"
+	"net/url"
 	"strings"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/vicanso/cybertect/ent"
-	"github.com/vicanso/cybertect/ent/dnsdetector"
+	"github.com/vicanso/cybertect/ent/redisdetector"
 	"github.com/vicanso/cybertect/schema"
-	"github.com/vicanso/cybertect/util"
-	parallel "github.com/vicanso/go-parallel"
+	"github.com/vicanso/go-parallel"
 )
 
-type (
-	DNSSrv struct{}
-)
+type RedisSrv struct{}
 
-// check dns check
-func (srv *DNSSrv) check(ctx context.Context, host, server string, timeout time.Duration) ([]net.IPAddr, error) {
-	if !strings.Contains(server, ":") {
-		server += ":53"
+func parseRedisConnectionURI(connectionURI string) (*redis.UniversalOptions, error) {
+	info, err := url.Parse(connectionURI)
+	if err != nil {
+		return nil, err
 	}
-	r := net.Resolver{
-		PreferGo: true,
-		Dial: func(ctx context.Context, network, _ string) (net.Conn, error) {
-			dia := net.Dialer{}
-			return dia.DialContext(ctx, network, server)
-		},
+	addrs := strings.Split(info.Host, ",")
+	username := info.User.Username()
+	password, _ := info.User.Password()
+	master := info.Query().Get("master")
+	sentinelPassword := info.Query().Get("sentinelPassword")
+	if sentinelPassword == "" {
+		sentinelPassword = password
 	}
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-	return r.LookupIPAddr(ctx, host)
+	return &redis.UniversalOptions{
+		Addrs:            addrs,
+		Username:         username,
+		Password:         password,
+		SentinelPassword: sentinelPassword,
+		MasterName:       master,
+	}, nil
 }
 
-// detect dns detect
-func (srv *DNSSrv) detect(ctx context.Context, config *ent.DNSDetector) (*ent.DNSDetectorResult, error) {
+func (srv *RedisSrv) check(ctx context.Context, connectionURI string, timeout time.Duration) (string, error) {
+	options, err := parseRedisConnectionURI(connectionURI)
+	if err != nil {
+		return "", err
+	}
+	options.DialTimeout = timeout
+	c := redis.NewUniversalClient(options)
+	defer c.Close()
+	err = c.Ping(ctx).Err()
+	maskURI := connectionURI
+	if options.Password != "" {
+		maskURI = strings.ReplaceAll(maskURI, options.Password, "***")
+	}
+	if options.SentinelPassword != "" {
+		maskURI = strings.ReplaceAll(maskURI, options.SentinelPassword, "***")
+	}
+	return maskURI, err
+}
+
+func (srv *RedisSrv) detect(ctx context.Context, config *ent.RedisDetector) (*ent.RedisDetectorResult, error) {
 	timeout, _ := time.ParseDuration(config.Timeout)
 	if timeout == 0 {
 		timeout = defaultTimeout
 	}
 	result := schema.DetectorResultSuccess
-	subResults := make(schema.DNSDetectorSubResults, 0)
+	subResults := make(schema.RedisDetectorSubResults, 0)
 	maxDuration := 0
 	messages := make([]string, 0)
-
-	for _, server := range config.Servers {
+	uris := make([]string, len(config.Uris))
+	for index, uri := range config.Uris {
 		startedAt := time.Now()
-		addrs, err := srv.check(ctx, config.Host, server, timeout)
-		subResult := schema.DNSDetectorSubResult{
-			Server:   server,
+		maskURI, err := srv.check(ctx, uri, timeout)
+		subResult := schema.RedisDetectorSubResult{
+			URI:      maskURI,
 			Duration: ceilToMs(time.Since(startedAt)),
 		}
-		// 如果检测成功
-		if err == nil {
-			if len(addrs) != 0 {
-				ipList := make([]string, len(addrs))
-				for index, addr := range addrs {
-					ipList[index] = addr.String()
-				}
-				subResult.IPS = ipList
-			} else {
-				err = errors.New("no ip for the host")
-			}
-			// 检测IP是否均在预期列表中
-			for _, ip := range subResult.IPS {
-				if !util.ContainsString(config.Ips, ip) {
-					err = fmt.Errorf("ip(%s) is not matched", ip)
-				}
-			}
-		}
-
+		uris[index] = maskURI
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail
-			subResult.Message = fmt.Sprintf("%s(%s), %s", config.Host, server, err.Error())
+			subResult.Message = err.Error()
 			result = schema.DetectorResultFail
 			messages = append(messages, subResult.Message)
 		} else {
 			subResult.Result = schema.DetectorResultSuccess
 		}
-
 		if subResult.Duration > maxDuration {
 			maxDuration = subResult.Duration
 		}
@@ -103,41 +104,38 @@ func (srv *DNSSrv) detect(ctx context.Context, config *ent.DNSDetector) (*ent.DN
 	}
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
-	return getEntClient().DNSDetectorResult.Create().
+	return getEntClient().RedisDetectorResult.Create().
 		SetTask(config.ID).
 		SetResult(schema.DetectorResult(result)).
-		SetHost(config.Host).
 		SetResults(subResults).
 		SetMaxDuration(maxDuration).
 		SetMessages(messages).
+		SetUris(uris).
 		Save(ctx)
 }
 
-func (srv *DNSSrv) doAlarm(ctx context.Context, name string, receivers []string, result *ent.DNSDetectorResult) {
-	// 如果无结果，忽略
+func (srv *RedisSrv) doAlarm(ctx context.Context, name string, receivers []string, result *ent.RedisDetectorResult) {
 	if result == nil {
 		return
 	}
 	doAlarm(ctx, alarmDetail{
 		Name:      name,
 		Receivers: receivers,
-		Task:      fmt.Sprintf("dns-%d", result.Task),
+		Task:      fmt.Sprintf("redis-%d", result.Task),
 		IsSuccess: result.Result == schema.DetectorResultSuccess,
 		Messages:  result.Messages,
 	})
 }
 
-// Detect do dns detect
-func (srv *DNSSrv) Detect(ctx context.Context) error {
+func (srv *RedisSrv) Detect(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
-	result, err := getEntClient().DNSDetector.Query().
-		Where(dnsdetector.StatusEQ(schema.StatusEnabled)).
+	result, err := getEntClient().RedisDetector.Query().
+		Where(redisdetector.StatusEQ(schema.StatusEnabled)).
 		All(ctx)
 	if err != nil {
 		return err
 	}
-
 	pErr := parallel.Parallel(func(index int) error {
 		item := result[index]
 		detectResult, err := srv.detect(ctx, item)
@@ -146,7 +144,7 @@ func (srv *DNSSrv) Detect(ctx context.Context) error {
 	}, len(result), detectorConfig.Concurrency)
 	// 如果parallel检测失败，则转换
 	if pErr != nil {
-		err = convertParallelError(pErr, "dns detect fail")
+		err = convertParallelError(pErr, "redis detect fail")
 	}
 	if err != nil {
 		return err

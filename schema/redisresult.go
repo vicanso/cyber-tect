@@ -19,38 +19,32 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-// PingDetectorResult holds the schema definition for the PingDetectorResult entity.
-type PingDetectorResult struct {
+type RedisDetectorResult struct {
 	ent.Schema
 }
 
-type PingDetectorSubResult struct {
+type RedisDetectorSubResult struct {
 	Result   DetectorResult `json:"result"`
-	IP       string         `json:"ip"`
+	URI      string         `json:"uri"`
 	Duration int            `json:"duration"`
 	Message  string         `json:"message"`
 }
 
-type PingDetectorSubResults []*PingDetectorSubResult
+type RedisDetectorSubResults []*RedisDetectorSubResult
 
-// Fields of the PingDetectorResult.
-func (PingDetectorResult) Fields() []ent.Field {
+// Fields of the RedisDetectorResult
+func (RedisDetectorResult) Fields() []ent.Field {
 	return []ent.Field{
-		field.Strings("ips").
-			Comment("检测IP"),
-		field.JSON("results", PingDetectorSubResults{}).
+		field.Strings("uris").
+			Comment("检测的redis连接地址"),
+		field.JSON("results", RedisDetectorSubResults{}).
 			Comment("检测结果列表"),
 	}
 }
 
-func (PingDetectorResult) Mixin() []ent.Mixin {
+func (RedisDetectorResult) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		TimeMixin{},
 		DetectorResultMixin{},
 	}
-}
-
-// Edges of the PingDetectorResult.
-func (PingDetectorResult) Edges() []ent.Edge {
-	return nil
 }

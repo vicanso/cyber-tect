@@ -1,4 +1,4 @@
-// Copyright 2020 tree xie
+// Copyright 2021 tree xie
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import (
 	"github.com/thoas/go-funk"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
-	"github.com/vicanso/cybertect/ent/pingdetector"
-	"github.com/vicanso/cybertect/ent/pingdetectorresult"
 	"github.com/vicanso/cybertect/ent/predicate"
+	"github.com/vicanso/cybertect/ent/redisdetector"
+	"github.com/vicanso/cybertect/ent/redisdetectorresult"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/schema"
@@ -32,54 +32,56 @@ import (
 	"github.com/vicanso/elton"
 )
 
-type pingDetectorCtrl struct{}
+type redisDetectorCtrl struct{}
 
 type (
-	pingDetectorAddParams struct {
+	redisDetectorAddParams struct {
 		detectorAddParams
 
-		IPS []string `json:"ips" validate:"required,dive,ip"`
+		Uris []string `json:"uris" validate:"required,dive,uri"`
 	}
-	pingDetectorListParams struct {
+
+	redisDetectorListParams struct {
 		listParams
 
 		account string
 	}
-	pingDetectorUpdateParams struct {
+
+	redisDetectorUpdateParams struct {
 		detectorUpdateParams
 
 		account string
-		IPS     []string `json:"ips" validate:"omitempty,dive,ip"`
+		Uris    []string `json:"uris" validate:"omitempty,dive,uri"`
 	}
 
-	pingDetectorResultListParams struct {
+	redisDetectorResultListParams struct {
 		detectorListResultParams
 	}
 )
 
 type (
-	pingDetectorListResp struct {
-		PingDetectors []*ent.PingDetector `json:"pingDetectors"`
-		Count         int                 `json:"count"`
+	redisDetectorListResp struct {
+		RedisDetectors ent.RedisDetectors `json:"redisDetectors"`
+		Count          int                `json:"count"`
 	}
-	pingDetectorResultListResp struct {
-		PingDetectorResults []*ent.PingDetectorResult `json:"pingDetectorResults"`
-		Count               int                       `json:"count"`
+	redisDetectorResultListResp struct {
+		RedisDetectorResults ent.RedisDetectorResults `json:"redisDetectorResults"`
+		Count                int                      `json:"count"`
 	}
 )
 
 func init() {
-	prefix := "/ping-detectors"
+	prefix := "/redis-detectors"
 	g := router.NewGroup(
 		prefix,
 		loadUserSession,
 		shouldBeLogin,
 	)
-	ctrl := pingDetectorCtrl{}
+	ctrl := redisDetectorCtrl{}
 
 	g.POST(
 		"/v1",
-		newTrackerMiddleware(cs.ActionDetectorPingAdd),
+		newTrackerMiddleware(cs.ActionDetectorRedisAdd),
 		ctrl.add,
 	)
 	g.GET(
@@ -92,7 +94,7 @@ func init() {
 	)
 	g.PATCH(
 		"/v1/{id}",
-		newTrackerMiddleware(cs.ActionDetectorPingUpdate),
+		newTrackerMiddleware(cs.ActionDetectorRedisUpdate),
 		ctrl.updateByID,
 	)
 
@@ -102,43 +104,43 @@ func init() {
 	)
 }
 
-func getPingDetectorClient() *ent.PingDetectorClient {
-	return helper.EntGetClient().PingDetector
+func getRedisDetectorClient() *ent.RedisDetectorClient {
+	return helper.EntGetClient().RedisDetector
 }
 
-func getPingDetectorResultClient() *ent.PingDetectorResultClient {
-	return helper.EntGetClient().PingDetectorResult
+func getRedisDetectorResultClient() *ent.RedisDetectorResultClient {
+	return helper.EntGetClient().RedisDetectorResult
 }
 
-func (addParams *pingDetectorAddParams) save(ctx context.Context) (*ent.PingDetector, error) {
-	return getPingDetectorClient().Create().
+func (addParams *redisDetectorAddParams) save(ctx context.Context) (*ent.RedisDetector, error) {
+	return getRedisDetectorClient().Create().
 		SetStatus(addParams.Status).
 		SetName(addParams.Name).
 		SetOwners(addParams.Owners).
 		SetReceivers(addParams.Receivers).
 		SetTimeout(addParams.Timeout).
 		SetDescription(addParams.Description).
-		SetIps(addParams.IPS).
+		SetUris(addParams.Uris).
 		Save(ctx)
 }
 
-func (listParams *pingDetectorListParams) where(query *ent.PingDetectorQuery) {
+func (listParams *redisDetectorListParams) where(query *ent.RedisDetectorQuery) {
 	account := listParams.account
 	if account != "" {
-		query.Where(predicate.PingDetector(func(s *sql.Selector) {
-			s.Where(sqljson.ValueContains(pingdetector.FieldOwners, account))
+		query.Where(predicate.RedisDetector(func(s *sql.Selector) {
+			s.Where(sqljson.ValueContains(redisdetector.FieldOwners, account))
 		}))
 	}
 }
 
-func (listParams *pingDetectorListParams) count(ctx context.Context) (int, error) {
-	query := getPingDetectorClient().Query()
+func (listParams *redisDetectorListParams) count(ctx context.Context) (int, error) {
+	query := getRedisDetectorClient().Query()
 	listParams.where(query)
 	return query.Count(ctx)
 }
 
-func (listParams *pingDetectorListParams) queryAll(ctx context.Context) ([]*ent.PingDetector, error) {
-	query := getPingDetectorClient().Query()
+func (listParams *redisDetectorListParams) queryAll(ctx context.Context) (ent.RedisDetectors, error) {
+	query := getRedisDetectorClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -146,37 +148,37 @@ func (listParams *pingDetectorListParams) queryAll(ctx context.Context) ([]*ent.
 	return query.All(ctx)
 }
 
-func (listParams *pingDetectorResultListParams) where(query *ent.PingDetectorResultQuery) {
+func (listParams *redisDetectorResultListParams) where(query *ent.RedisDetectorResultQuery) {
 	task := listParams.Task
 	if task != 0 {
-		query.Where(pingdetectorresult.Task(task))
+		query.Where(redisdetectorresult.Task(task))
 	}
 	result := listParams.Result
 	if result != 0 {
-		query.Where(pingdetectorresult.Result(schema.DetectorResult(result)))
+		query.Where(redisdetectorresult.Result(schema.DetectorResult(result)))
 	}
 	ms := listParams.GetDurationMillSecond()
 	if ms > 0 {
-		query.Where(pingdetectorresult.MaxDurationGTE(ms))
+		query.Where(redisdetectorresult.MaxDurationGTE(ms))
 	}
 	startedAt := listParams.StartedAt
 	if !startedAt.IsZero() {
-		query.Where(pingdetectorresult.CreatedAtGTE(startedAt))
+		query.Where(redisdetectorresult.CreatedAtGTE(startedAt))
 	}
 	endedAt := listParams.EndedAt
 	if !endedAt.IsZero() {
-		query.Where(pingdetectorresult.CreatedAtLTE(endedAt))
+		query.Where(redisdetectorresult.CreatedAtLTE(endedAt))
 	}
 }
 
-func (listParams *pingDetectorResultListParams) count(ctx context.Context) (int, error) {
-	query := getPingDetectorResultClient().Query()
+func (listParams *redisDetectorResultListParams) count(ctx context.Context) (int, error) {
+	query := getRedisDetectorResultClient().Query()
 	listParams.where(query)
 	return query.Count(ctx)
 }
 
-func (listParams *pingDetectorResultListParams) queryAll(ctx context.Context) ([]*ent.PingDetectorResult, error) {
-	query := getPingDetectorResultClient().Query()
+func (listParams *redisDetectorResultListParams) queryAll(ctx context.Context) (ent.RedisDetectorResults, error) {
+	query := getRedisDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -184,10 +186,10 @@ func (listParams *pingDetectorResultListParams) queryAll(ctx context.Context) ([
 	return query.All(ctx)
 }
 
-func (updateParams *pingDetectorUpdateParams) updateByID(ctx context.Context, id int) (*ent.PingDetector, error) {
+func (updateParams *redisDetectorUpdateParams) updateByID(ctx context.Context, id int) (*ent.RedisDetector, error) {
 	account := updateParams.account
 	if account != "" {
-		result, err := getPingDetectorClient().Get(ctx, id)
+		result, err := getRedisDetectorClient().Get(ctx, id)
 		if err != nil {
 			return nil, err
 		}
@@ -195,7 +197,7 @@ func (updateParams *pingDetectorUpdateParams) updateByID(ctx context.Context, id
 			return nil, errInvalidUser
 		}
 	}
-	updateOne := getPingDetectorClient().UpdateOneID(id)
+	updateOne := getRedisDetectorClient().UpdateOneID(id)
 	if updateParams.Name != "" {
 		updateOne.SetName(updateParams.Name)
 	}
@@ -216,15 +218,15 @@ func (updateParams *pingDetectorUpdateParams) updateByID(ctx context.Context, id
 		updateOne.SetOwners(updateParams.Owners)
 	}
 
-	if len(updateParams.IPS) != 0 {
-		updateOne.SetIps(updateParams.IPS)
+	if len(updateParams.Uris) != 0 {
+		updateOne.SetUris(updateParams.Uris)
 	}
 
 	return updateOne.Save(ctx)
 }
 
-func (*pingDetectorCtrl) add(c *elton.Context) error {
-	params := pingDetectorAddParams{}
+func (*redisDetectorCtrl) add(c *elton.Context) error {
+	params := redisDetectorAddParams{}
 	err := validateBody(c, &params)
 	if err != nil {
 		return err
@@ -237,8 +239,8 @@ func (*pingDetectorCtrl) add(c *elton.Context) error {
 	return nil
 }
 
-func (*pingDetectorCtrl) list(c *elton.Context) error {
-	params := pingDetectorListParams{}
+func (*redisDetectorCtrl) list(c *elton.Context) error {
+	params := redisDetectorListParams{}
 	err := validateQuery(c, &params)
 	if err != nil {
 		return err
@@ -247,7 +249,7 @@ func (*pingDetectorCtrl) list(c *elton.Context) error {
 	if !us.IsAdmin() {
 		params.account = us.MustGetInfo().Account
 	}
-	resp := pingDetectorListResp{
+	resp := redisDetectorListResp{
 		Count: -1,
 	}
 	if params.ShouldCount() {
@@ -261,17 +263,17 @@ func (*pingDetectorCtrl) list(c *elton.Context) error {
 	if err != nil {
 		return err
 	}
-	resp.PingDetectors = result
+	resp.RedisDetectors = result
 	c.Body = &resp
 	return nil
 }
 
-func (*pingDetectorCtrl) updateByID(c *elton.Context) error {
+func (*redisDetectorCtrl) updateByID(c *elton.Context) error {
 	id, err := getIDFromParams(c)
 	if err != nil {
 		return err
 	}
-	params := pingDetectorUpdateParams{}
+	params := redisDetectorUpdateParams{}
 	err = validateBody(c, &params)
 	if err != nil {
 		return err
@@ -288,12 +290,12 @@ func (*pingDetectorCtrl) updateByID(c *elton.Context) error {
 	return nil
 }
 
-func (*pingDetectorCtrl) findByID(c *elton.Context) error {
+func (*redisDetectorCtrl) findByID(c *elton.Context) error {
 	id, err := getIDFromParams(c)
 	if err != nil {
 		return err
 	}
-	result, err := getPingDetectorClient().Get(c.Context(), id)
+	result, err := getRedisDetectorClient().Get(c.Context(), id)
 	if err != nil {
 		return err
 	}
@@ -301,13 +303,13 @@ func (*pingDetectorCtrl) findByID(c *elton.Context) error {
 	return nil
 }
 
-func (*pingDetectorCtrl) listResult(c *elton.Context) error {
-	params := pingDetectorResultListParams{}
+func (*redisDetectorCtrl) listResult(c *elton.Context) error {
+	params := redisDetectorResultListParams{}
 	err := validateQuery(c, &params)
 	if err != nil {
 		return err
 	}
-	resp := pingDetectorResultListResp{
+	resp := redisDetectorResultListResp{
 		Count: -1,
 	}
 	if params.ShouldCount() {
@@ -330,9 +332,9 @@ func (*pingDetectorCtrl) listResult(c *elton.Context) error {
 		}
 		idList = append(idList, item.Task)
 	}
-	detectors, err := getPingDetectorClient().Query().
+	detectors, err := getRedisDetectorClient().Query().
 		Where(
-			pingdetector.IDIn(idList...),
+			redisdetector.IDIn(idList...),
 		).
 		Select("id", "name").
 		All(c.Context())
@@ -346,8 +348,7 @@ func (*pingDetectorCtrl) listResult(c *elton.Context) error {
 			}
 		}
 	}
-	resp.PingDetectorResults = result
+	resp.RedisDetectorResults = result
 	c.Body = &resp
-
 	return nil
 }

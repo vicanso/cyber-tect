@@ -63,6 +63,7 @@ func init() {
 	_, _ = c.AddFunc(spec, doDNSDetect)
 	_, _ = c.AddFunc(spec, doTCPDetect)
 	_, _ = c.AddFunc(spec, doPingDetect)
+	_, _ = c.AddFunc(spec, doRedisDetect)
 
 	// 如果是开发环境，则不执行定时任务
 	if util.IsDevelopment() {
@@ -357,6 +358,13 @@ func doTCPDetect() {
 func doPingDetect() {
 	srv := detector.PingSrv{}
 	doTask("ping detect", func() error {
+		return srv.Detect(context.Background())
+	})
+}
+
+func doRedisDetect() {
+	srv := detector.RedisSrv{}
+	doTask("redis detect", func() error {
 		return srv.Detect(context.Background())
 	})
 }

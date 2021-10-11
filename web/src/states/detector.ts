@@ -16,6 +16,9 @@ import {
   TCP_DETECTOR_RESULTS,
   PING_DETECTOR_RESULTS,
   DNS_DETECTOR_RESULTS,
+  REDIS_DETECTORS,
+  REDIS_DETECTORS_ID,
+  REDIS_DETECTOR_RESULTS,
 } from "../constants/url";
 
 // http检测配置
@@ -83,6 +86,21 @@ interface PingDetector {
   timeout: string;
   description: string;
   ips: string[];
+}
+
+interface RedisDetector {
+  [key: string]: unknown;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+  statusDesc: string;
+  name: string;
+  owners: string[];
+  receivers: string[];
+  timeout: string;
+  description: string;
+  uris: string[];
 }
 
 interface DetectorResult {
@@ -187,6 +205,27 @@ interface DNSDetectorResult {
   results: DNSDetectorSubResult[];
 }
 
+interface RedisDetectorSubResult {
+  [key: string]: unknown;
+  result: DetectorResult;
+  uri: string;
+  duration: number;
+  message: string;
+}
+interface RedisDetectorResult {
+  [key: string]: unknown;
+  id: number;
+  createdAt: string;
+  updatedAt: string;
+  task: number;
+  result: DetectorResult;
+  maxDuration: number;
+  messages: string[];
+  // 连接串
+  uris: string[];
+  results: RedisDetectorSubResult[];
+}
+
 interface List<T> {
   processing: boolean;
   items: T[];
@@ -217,6 +256,12 @@ const pingDetectors: List<PingDetector> = reactive({
   count: -1,
 });
 
+const redisDetectors: List<RedisDetector> = reactive({
+  processing: false,
+  items: [],
+  count: -1,
+});
+
 const httpDetectorResults: List<HTTPDetectorResult> = reactive({
   processing: false,
   items: [],
@@ -236,6 +281,12 @@ const pingDetectorResults: List<PingDetectorResult> = reactive({
 });
 
 const dnsDetectorResults: List<DNSDetectorResult> = reactive({
+  processing: false,
+  items: [],
+  count: -1,
+});
+
+const redisDetectorResults: List<RedisDetectorResult> = reactive({
   processing: false,
   items: [],
   count: -1,
@@ -368,6 +419,29 @@ export async function pingDetectorList(params: {
   }
 }
 
+// 查询redis检测配置
+export async function redisDetectorList(params: {
+  limit?: number;
+  offset?: number;
+}): Promise<void> {
+  if (redisDetectors.processing) {
+    return;
+  }
+  redisDetectors.processing = true;
+  try {
+    const { data } = await request.get(REDIS_DETECTORS, {
+      params: Object.assign(defaultDetectorQueryParams, params),
+    });
+    const count = data.count || 0;
+    if (count >= 0) {
+      redisDetectors.count = count;
+    }
+    redisDetectors.items = data.redisDetectors || [];
+  } finally {
+    redisDetectors.processing = false;
+  }
+}
+
 // 通过id查询http检测配置
 export async function httpDetectorFindByID(id: number): Promise<HTTPDetector> {
   const { data } = await request.get(
@@ -398,6 +472,16 @@ export async function pingDetectorFindByID(id: number): Promise<PingDetector> {
     PING_DETECTORS_ID.replace(":id", id.toString())
   );
   return data as PingDetector;
+}
+
+// 通过id查询redis检测配置
+export async function redisDetectorFindByID(
+  id: number
+): Promise<RedisDetector> {
+  const { data } = await request.get(
+    REDIS_DETECTORS_ID.replace(":id", id.toString())
+  );
+  return data as RedisDetector;
 }
 
 // 通过id更新http检测配置
@@ -448,6 +532,18 @@ export async function pingDetectorUpdateByID(
   return data as PingDetector;
 }
 
+// 通过id更新redis检测配置
+export async function redisDetectorUpdateByID(
+  id: number,
+  updateData: Record<string, unknown>
+): Promise<RedisDetector> {
+  const { data } = await request.patch(
+    REDIS_DETECTORS_ID.replace(":id", id.toString()),
+    updateData
+  );
+  return data as RedisDetector;
+}
+
 // 创建http检测配置
 export async function httpDetectorCreate(
   createData: Record<string, unknown>
@@ -478,6 +574,14 @@ export async function pingDetectorCreate(
 ): Promise<PingDetector> {
   const { data } = await request.post(PING_DETECTORS, createData);
   return data as PingDetector;
+}
+
+// 创建redis检测配置
+export async function redisDetectorCreate(
+  createData: Record<string, unknown>
+): Promise<RedisDetector> {
+  const { data } = await request.post(REDIS_DETECTORS, createData);
+  return data as RedisDetector;
 }
 
 export async function httpDetectorResultList(
@@ -588,15 +692,36 @@ export async function dnsDetectorResultList(
   }
 }
 
+export async function redisDetectorResultList(
+  params: Record<string, unknown>
+): Promise<void> {
+  if (redisDetectorResults.processing) {
+    return;
+  }
+  redisDetectorResults.processing = true;
+  try {
+    const { data } = await request.get(REDIS_DETECTOR_RESULTS, {
+      params: Object.assign(defaultDetectorResultQueryParams, params),
+    });
+    fillCount(params, data, "redisDetectorResults");
+    redisDetectorResults.items = data.redisDetectorResults || [];
+    redisDetectorResults.count = data.count;
+  } finally {
+    redisDetectorResults.processing = false;
+  }
+}
+
 interface ReadonlyDetectorState {
   httpDetectors: DeepReadonly<List<HTTPDetector>>;
   dnsDetectors: DeepReadonly<List<DNSDetector>>;
   tcpDetectors: DeepReadonly<List<TCPDetector>>;
   pingDetectors: DeepReadonly<List<PingDetector>>;
+  redisDetectors: DeepReadonly<List<RedisDetector>>;
   httpDetectorResults: DeepReadonly<List<HTTPDetectorResult>>;
   tcpDetectorResults: DeepReadonly<List<TCPDetectorResult>>;
   pingDetectorResults: DeepReadonly<List<PingDetectorResult>>;
   dnsDetectorResults: DeepReadonly<List<DNSDetectorResult>>;
+  redisDetectorResults: DeepReadonly<List<RedisDetectorResult>>;
 }
 
 const state = {
@@ -604,10 +729,12 @@ const state = {
   dnsDetectors: readonly(dnsDetectors),
   tcpDetectors: readonly(tcpDetectors),
   pingDetectors: readonly(pingDetectors),
+  redisDetectors: readonly(redisDetectors),
   httpDetectorResults: readonly(httpDetectorResults),
   tcpDetectorResults: readonly(tcpDetectorResults),
   pingDetectorResults: readonly(pingDetectorResults),
   dnsDetectorResults: readonly(dnsDetectorResults),
+  redisDetectorResults: readonly(redisDetectorResults),
 };
 
 export default function useDetectorState(): ReadonlyDetectorState {

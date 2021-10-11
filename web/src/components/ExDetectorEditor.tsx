@@ -111,6 +111,7 @@ export default defineComponent({
   },
   setup(props) {
     const message = useMessage();
+    const fetching = ref(false);
     const processing = ref(false);
     const items: FormItem[] = [];
     props.formItems.forEach((item) => {
@@ -126,7 +127,10 @@ export default defineComponent({
     });
     let originalData: Record<string, unknown>;
     const fetch = async () => {
-      processing.value = true;
+      if (fetching.value) {
+        return;
+      }
+      fetching.value = true;
       try {
         originalData = await props.findByID(props.id);
 
@@ -135,11 +139,15 @@ export default defineComponent({
         showError(message, err);
         ``;
       } finally {
-        processing.value = false;
+        fetching.value = false;
       }
     };
     const submit = async (data: Record<string, unknown>) => {
+      if (processing.value) {
+        return;
+      }
       try {
+        processing.value = true;
         // 添加数据
         if (!props.id) {
           await props.create(data);
@@ -155,12 +163,15 @@ export default defineComponent({
         props.onBack();
       } catch (err) {
         showError(message, err);
+      } finally {
+        processing.value = false;
       }
     };
     if (props.id) {
       fetch();
     }
     return {
+      fetching,
       processing,
       items,
       submit,
@@ -168,14 +179,14 @@ export default defineComponent({
   },
   render() {
     const { title, description, id, onBack } = this.$props;
-    const { processing, items, submit } = this;
+    const { fetching, processing, items, submit } = this;
     // 如果指定了id，则展示加载中
-    if (processing && id) {
+    if (fetching && id) {
       return <ExLoading />;
     }
 
     return (
-      <NSpin show={processing}>
+      <NSpin show={fetching || processing}>
         <NCard>
           <NPageHeader
             title={title}

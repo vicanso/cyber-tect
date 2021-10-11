@@ -62,3 +62,7 @@ export const TCP_DETECTOR_RESULTS = "/tcp-detectors/results/v1";
 export const PING_DETECTORS = "/ping-detectors/v1";
 export const PING_DETECTORS_ID = "/ping-detectors/v1/:id";
 export const PING_DETECTOR_RESULTS = "/ping-detectors/results/v1";
+// redis检测
+export const REDIS_DETECTORS = "/redis-detectors/v1";
+export const REDIS_DETECTORS_ID = "/redis-detectors/v1/:id";
+export const REDIS_DETECTOR_RESULTS = "/redis-detectors/results/v1";

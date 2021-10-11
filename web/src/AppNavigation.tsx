@@ -40,6 +40,10 @@ const navigationOptions = [
         label: "DNS",
         key: names.detectorDNS,
       },
+      {
+        label: "Redis",
+        key: names.detectorRedis,
+      },
     ],
   },
   {
@@ -63,6 +67,10 @@ const navigationOptions = [
       {
         label: "DNS",
         key: names.detectorDNSResult,
+      },
+      {
+        label: "Redis",
+        key: names.detectorRedisResult,
       },
     ],
   },

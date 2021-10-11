@@ -30,10 +30,12 @@ export const names = {
   detectorDNS: "detectorDNS",
   detectorTCP: "detectorTCP",
   detectorPing: "detectorPing",
+  detectorRedis: "detectorRedis",
   detectorHTTPResult: "detectorHTTPResult",
   detectorTCPResult: "detectorTCPResult",
   detectorPingResult: "detectorPingResult",
   detectorDNSResult: "detectorDNSResult",
+  detectorRedisResult: "detectorRedisResult",
 };
 
 export const routes: Router[] = [
@@ -153,6 +155,11 @@ export const routes: Router[] = [
     component: () => import("../views/detectors/Ping"),
   },
   {
+    path: "/detectors/redis",
+    name: names.detectorRedis,
+    component: () => import("../views/detectors/Redis"),
+  },
+  {
     path: "/detectors/http/results",
     name: names.detectorHTTPResult,
     component: () => import("../views/detectors/HTTPResult"),
@@ -171,5 +178,10 @@ export const routes: Router[] = [
     path: "/detectors/dns/results",
     name: names.detectorDNSResult,
     component: () => import("../views/detectors/DNSResult"),
+  },
+  {
+    path: "/detectors/redis/results",
+    name: names.detectorRedisResult,
+    component: () => import("../views/detectors/RedisResult"),
   },
 ];

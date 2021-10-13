@@ -19,20 +19,20 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-type RedisDetector struct {
+type DatabaseDetector struct {
 	ent.Schema
 }
 
-// Fields of the RedisDetector
-func (RedisDetector) Fields() []ent.Field {
+// Fields of the DatabaseDetector
+func (DatabaseDetector) Fields() []ent.Field {
 	return []ent.Field{
 		field.Strings("uris").
 			Comment("redis连接串列表"),
 	}
 }
 
-// Mixin of the RedisDetector
-func (RedisDetector) Mixin() []ent.Mixin {
+// Mixin of the DatabaseDetector
+func (DatabaseDetector) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		TimeMixin{},
 		StatusMixin{},

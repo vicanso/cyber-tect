@@ -23,12 +23,12 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/vicanso/cybertect/ent"
-	"github.com/vicanso/cybertect/ent/redisdetector"
+	"github.com/vicanso/cybertect/ent/databasedetector"
 	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/go-parallel"
 )
 
-type RedisSrv struct{}
+type DatabaseSrv struct{}
 
 func parseRedisConnectionURI(connectionURI string) (*redis.UniversalOptions, error) {
 	info, err := url.Parse(connectionURI)
@@ -52,7 +52,7 @@ func parseRedisConnectionURI(connectionURI string) (*redis.UniversalOptions, err
 	}, nil
 }
 
-func (srv *RedisSrv) check(ctx context.Context, connectionURI string, timeout time.Duration) (string, error) {
+func (srv *DatabaseSrv) check(ctx context.Context, connectionURI string, timeout time.Duration) (string, error) {
 	options, err := parseRedisConnectionURI(connectionURI)
 	if err != nil {
 		return "", err
@@ -71,20 +71,20 @@ func (srv *RedisSrv) check(ctx context.Context, connectionURI string, timeout ti
 	return maskURI, err
 }
 
-func (srv *RedisSrv) detect(ctx context.Context, config *ent.RedisDetector) (*ent.RedisDetectorResult, error) {
+func (srv *DatabaseSrv) detect(ctx context.Context, config *ent.DatabaseDetector) (*ent.DatabaseDetectorResult, error) {
 	timeout, _ := time.ParseDuration(config.Timeout)
 	if timeout == 0 {
 		timeout = defaultTimeout
 	}
 	result := schema.DetectorResultSuccess
-	subResults := make(schema.RedisDetectorSubResults, 0)
+	subResults := make(schema.DatabaseDetectorSubResults, 0)
 	maxDuration := 0
 	messages := make([]string, 0)
 	uris := make([]string, len(config.Uris))
 	for index, uri := range config.Uris {
 		startedAt := time.Now()
 		maskURI, err := srv.check(ctx, uri, timeout)
-		subResult := schema.RedisDetectorSubResult{
+		subResult := schema.DatabaseDetectorSubResult{
 			URI:      maskURI,
 			Duration: ceilToMs(time.Since(startedAt)),
 		}
@@ -104,7 +104,7 @@ func (srv *RedisSrv) detect(ctx context.Context, config *ent.RedisDetector) (*en
 	}
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
-	return getEntClient().RedisDetectorResult.Create().
+	return getEntClient().DatabaseDetectorResult.Create().
 		SetTask(config.ID).
 		SetResult(schema.DetectorResult(result)).
 		SetResults(subResults).
@@ -114,7 +114,7 @@ func (srv *RedisSrv) detect(ctx context.Context, config *ent.RedisDetector) (*en
 		Save(ctx)
 }
 
-func (srv *RedisSrv) doAlarm(ctx context.Context, name string, receivers []string, result *ent.RedisDetectorResult) {
+func (srv *DatabaseSrv) doAlarm(ctx context.Context, name string, receivers []string, result *ent.DatabaseDetectorResult) {
 	if result == nil {
 		return
 	}
@@ -127,11 +127,11 @@ func (srv *RedisSrv) doAlarm(ctx context.Context, name string, receivers []strin
 	})
 }
 
-func (srv *RedisSrv) Detect(ctx context.Context) error {
+func (srv *DatabaseSrv) Detect(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
-	result, err := getEntClient().RedisDetector.Query().
-		Where(redisdetector.StatusEQ(schema.StatusEnabled)).
+	result, err := getEntClient().DatabaseDetector.Query().
+		Where(databasedetector.StatusEQ(schema.StatusEnabled)).
 		All(ctx)
 	if err != nil {
 		return err

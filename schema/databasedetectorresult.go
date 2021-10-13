@@ -19,30 +19,30 @@ import (
 	"entgo.io/ent/schema/field"
 )
 
-type RedisDetectorResult struct {
+type DatabaseDetectorResult struct {
 	ent.Schema
 }
 
-type RedisDetectorSubResult struct {
+type DatabaseDetectorSubResult struct {
 	Result   DetectorResult `json:"result"`
 	URI      string         `json:"uri"`
 	Duration int            `json:"duration"`
 	Message  string         `json:"message"`
 }
 
-type RedisDetectorSubResults []*RedisDetectorSubResult
+type DatabaseDetectorSubResults []*DatabaseDetectorSubResult
 
-// Fields of the RedisDetectorResult
-func (RedisDetectorResult) Fields() []ent.Field {
+// Fields of the DatabaseDetectorResult
+func (DatabaseDetectorResult) Fields() []ent.Field {
 	return []ent.Field{
 		field.Strings("uris").
 			Comment("检测的redis连接地址"),
-		field.JSON("results", RedisDetectorSubResults{}).
+		field.JSON("results", DatabaseDetectorSubResults{}).
 			Comment("检测结果列表"),
 	}
 }
 
-func (RedisDetectorResult) Mixin() []ent.Mixin {
+func (DatabaseDetectorResult) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		TimeMixin{},
 		DetectorResultMixin{},

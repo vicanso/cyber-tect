@@ -54,8 +54,8 @@ const (
 	// ActionDetectorPingUpdate update ping detector
 	ActionDetectorPingUpdate = "updatePingDetector"
 
-	// ActionDetectorRedisAdd add redis detector
-	ActionDetectorRedisAdd = "addRedisDetector"
-	// ActionDetectorRedisUpdate update redis detector
-	ActionDetectorRedisUpdate = "updateRedisDetector"
+	// ActionDetectorDatabaseAdd add database detector
+	ActionDetectorDatabaseAdd = "addDatabaseDetector"
+	// ActionDetectorDatabaseUpdate update database detector
+	ActionDetectorDatabaseUpdate = "updateDatabaseDetector"
 )

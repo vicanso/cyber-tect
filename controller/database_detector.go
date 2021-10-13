@@ -22,9 +22,9 @@ import (
 	"github.com/thoas/go-funk"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/ent"
+	"github.com/vicanso/cybertect/ent/databasedetector"
+	"github.com/vicanso/cybertect/ent/databasedetectorresult"
 	"github.com/vicanso/cybertect/ent/predicate"
-	"github.com/vicanso/cybertect/ent/redisdetector"
-	"github.com/vicanso/cybertect/ent/redisdetectorresult"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/schema"
@@ -32,56 +32,56 @@ import (
 	"github.com/vicanso/elton"
 )
 
-type redisDetectorCtrl struct{}
+type databaseDetectorCtrl struct{}
 
 type (
-	redisDetectorAddParams struct {
+	databaseDetectorAddParams struct {
 		detectorAddParams
 
 		Uris []string `json:"uris" validate:"required,dive,uri"`
 	}
 
-	redisDetectorListParams struct {
+	databaseDetectorListParams struct {
 		listParams
 
 		account string
 	}
 
-	redisDetectorUpdateParams struct {
+	databaseDetectorUpdateParams struct {
 		detectorUpdateParams
 
 		account string
 		Uris    []string `json:"uris" validate:"omitempty,dive,uri"`
 	}
 
-	redisDetectorResultListParams struct {
+	databaseDetectorResultListParams struct {
 		detectorListResultParams
 	}
 )
 
 type (
 	redisDetectorListResp struct {
-		RedisDetectors ent.RedisDetectors `json:"redisDetectors"`
-		Count          int                `json:"count"`
+		DatabaseDetectors ent.DatabaseDetectors `json:"databaseDetectors"`
+		Count             int                   `json:"count"`
 	}
-	redisDetectorResultListResp struct {
-		RedisDetectorResults ent.RedisDetectorResults `json:"redisDetectorResults"`
-		Count                int                      `json:"count"`
+	databasedetectorresultListResp struct {
+		DatabaseDetectorResults ent.DatabaseDetectorResults `json:"databaseDetectorResults"`
+		Count                   int                         `json:"count"`
 	}
 )
 
 func init() {
-	prefix := "/redis-detectors"
+	prefix := "/database-detectors"
 	g := router.NewGroup(
 		prefix,
 		loadUserSession,
 		shouldBeLogin,
 	)
-	ctrl := redisDetectorCtrl{}
+	ctrl := databaseDetectorCtrl{}
 
 	g.POST(
 		"/v1",
-		newTrackerMiddleware(cs.ActionDetectorRedisAdd),
+		newTrackerMiddleware(cs.ActionDetectorDatabaseAdd),
 		ctrl.add,
 	)
 	g.GET(
@@ -94,7 +94,7 @@ func init() {
 	)
 	g.PATCH(
 		"/v1/{id}",
-		newTrackerMiddleware(cs.ActionDetectorRedisUpdate),
+		newTrackerMiddleware(cs.ActionDetectorDatabaseUpdate),
 		ctrl.updateByID,
 	)
 
@@ -104,16 +104,16 @@ func init() {
 	)
 }
 
-func getRedisDetectorClient() *ent.RedisDetectorClient {
-	return helper.EntGetClient().RedisDetector
+func getDatabaseDetectorClient() *ent.DatabaseDetectorClient {
+	return helper.EntGetClient().DatabaseDetector
 }
 
-func getRedisDetectorResultClient() *ent.RedisDetectorResultClient {
-	return helper.EntGetClient().RedisDetectorResult
+func getDatabaseDetectorResultClient() *ent.DatabaseDetectorResultClient {
+	return helper.EntGetClient().DatabaseDetectorResult
 }
 
-func (addParams *redisDetectorAddParams) save(ctx context.Context) (*ent.RedisDetector, error) {
-	return getRedisDetectorClient().Create().
+func (addParams *databaseDetectorAddParams) save(ctx context.Context) (*ent.DatabaseDetector, error) {
+	return getDatabaseDetectorClient().Create().
 		SetStatus(addParams.Status).
 		SetName(addParams.Name).
 		SetOwners(addParams.Owners).
@@ -124,23 +124,23 @@ func (addParams *redisDetectorAddParams) save(ctx context.Context) (*ent.RedisDe
 		Save(ctx)
 }
 
-func (listParams *redisDetectorListParams) where(query *ent.RedisDetectorQuery) {
+func (listParams *databaseDetectorListParams) where(query *ent.DatabaseDetectorQuery) {
 	account := listParams.account
 	if account != "" {
-		query.Where(predicate.RedisDetector(func(s *sql.Selector) {
-			s.Where(sqljson.ValueContains(redisdetector.FieldOwners, account))
+		query.Where(predicate.DatabaseDetector(func(s *sql.Selector) {
+			s.Where(sqljson.ValueContains(databasedetector.FieldOwners, account))
 		}))
 	}
 }
 
-func (listParams *redisDetectorListParams) count(ctx context.Context) (int, error) {
-	query := getRedisDetectorClient().Query()
+func (listParams *databaseDetectorListParams) count(ctx context.Context) (int, error) {
+	query := getDatabaseDetectorClient().Query()
 	listParams.where(query)
 	return query.Count(ctx)
 }
 
-func (listParams *redisDetectorListParams) queryAll(ctx context.Context) (ent.RedisDetectors, error) {
-	query := getRedisDetectorClient().Query()
+func (listParams *databaseDetectorListParams) queryAll(ctx context.Context) (ent.DatabaseDetectors, error) {
+	query := getDatabaseDetectorClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -148,37 +148,37 @@ func (listParams *redisDetectorListParams) queryAll(ctx context.Context) (ent.Re
 	return query.All(ctx)
 }
 
-func (listParams *redisDetectorResultListParams) where(query *ent.RedisDetectorResultQuery) {
+func (listParams *databaseDetectorResultListParams) where(query *ent.DatabaseDetectorResultQuery) {
 	task := listParams.Task
 	if task != 0 {
-		query.Where(redisdetectorresult.Task(task))
+		query.Where(databasedetectorresult.Task(task))
 	}
 	result := listParams.Result
 	if result != 0 {
-		query.Where(redisdetectorresult.Result(schema.DetectorResult(result)))
+		query.Where(databasedetectorresult.Result(schema.DetectorResult(result)))
 	}
 	ms := listParams.GetDurationMillSecond()
 	if ms > 0 {
-		query.Where(redisdetectorresult.MaxDurationGTE(ms))
+		query.Where(databasedetectorresult.MaxDurationGTE(ms))
 	}
 	startedAt := listParams.StartedAt
 	if !startedAt.IsZero() {
-		query.Where(redisdetectorresult.CreatedAtGTE(startedAt))
+		query.Where(databasedetectorresult.CreatedAtGTE(startedAt))
 	}
 	endedAt := listParams.EndedAt
 	if !endedAt.IsZero() {
-		query.Where(redisdetectorresult.CreatedAtLTE(endedAt))
+		query.Where(databasedetectorresult.CreatedAtLTE(endedAt))
 	}
 }
 
-func (listParams *redisDetectorResultListParams) count(ctx context.Context) (int, error) {
-	query := getRedisDetectorResultClient().Query()
+func (listParams *databaseDetectorResultListParams) count(ctx context.Context) (int, error) {
+	query := getDatabaseDetectorResultClient().Query()
 	listParams.where(query)
 	return query.Count(ctx)
 }
 
-func (listParams *redisDetectorResultListParams) queryAll(ctx context.Context) (ent.RedisDetectorResults, error) {
-	query := getRedisDetectorResultClient().Query()
+func (listParams *databaseDetectorResultListParams) queryAll(ctx context.Context) (ent.DatabaseDetectorResults, error) {
+	query := getDatabaseDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
@@ -186,10 +186,10 @@ func (listParams *redisDetectorResultListParams) queryAll(ctx context.Context) (
 	return query.All(ctx)
 }
 
-func (updateParams *redisDetectorUpdateParams) updateByID(ctx context.Context, id int) (*ent.RedisDetector, error) {
+func (updateParams *databaseDetectorUpdateParams) updateByID(ctx context.Context, id int) (*ent.DatabaseDetector, error) {
 	account := updateParams.account
 	if account != "" {
-		result, err := getRedisDetectorClient().Get(ctx, id)
+		result, err := getDatabaseDetectorClient().Get(ctx, id)
 		if err != nil {
 			return nil, err
 		}
@@ -197,7 +197,7 @@ func (updateParams *redisDetectorUpdateParams) updateByID(ctx context.Context, i
 			return nil, errInvalidUser
 		}
 	}
-	updateOne := getRedisDetectorClient().UpdateOneID(id)
+	updateOne := getDatabaseDetectorClient().UpdateOneID(id)
 	if updateParams.Name != "" {
 		updateOne.SetName(updateParams.Name)
 	}
@@ -225,8 +225,8 @@ func (updateParams *redisDetectorUpdateParams) updateByID(ctx context.Context, i
 	return updateOne.Save(ctx)
 }
 
-func (*redisDetectorCtrl) add(c *elton.Context) error {
-	params := redisDetectorAddParams{}
+func (*databaseDetectorCtrl) add(c *elton.Context) error {
+	params := databaseDetectorAddParams{}
 	err := validateBody(c, &params)
 	if err != nil {
 		return err
@@ -239,8 +239,8 @@ func (*redisDetectorCtrl) add(c *elton.Context) error {
 	return nil
 }
 
-func (*redisDetectorCtrl) list(c *elton.Context) error {
-	params := redisDetectorListParams{}
+func (*databaseDetectorCtrl) list(c *elton.Context) error {
+	params := databaseDetectorListParams{}
 	err := validateQuery(c, &params)
 	if err != nil {
 		return err
@@ -263,17 +263,17 @@ func (*redisDetectorCtrl) list(c *elton.Context) error {
 	if err != nil {
 		return err
 	}
-	resp.RedisDetectors = result
+	resp.DatabaseDetectors = result
 	c.Body = &resp
 	return nil
 }
 
-func (*redisDetectorCtrl) updateByID(c *elton.Context) error {
+func (*databaseDetectorCtrl) updateByID(c *elton.Context) error {
 	id, err := getIDFromParams(c)
 	if err != nil {
 		return err
 	}
-	params := redisDetectorUpdateParams{}
+	params := databaseDetectorUpdateParams{}
 	err = validateBody(c, &params)
 	if err != nil {
 		return err
@@ -290,12 +290,12 @@ func (*redisDetectorCtrl) updateByID(c *elton.Context) error {
 	return nil
 }
 
-func (*redisDetectorCtrl) findByID(c *elton.Context) error {
+func (*databaseDetectorCtrl) findByID(c *elton.Context) error {
 	id, err := getIDFromParams(c)
 	if err != nil {
 		return err
 	}
-	result, err := getRedisDetectorClient().Get(c.Context(), id)
+	result, err := getDatabaseDetectorClient().Get(c.Context(), id)
 	if err != nil {
 		return err
 	}
@@ -303,13 +303,13 @@ func (*redisDetectorCtrl) findByID(c *elton.Context) error {
 	return nil
 }
 
-func (*redisDetectorCtrl) listResult(c *elton.Context) error {
-	params := redisDetectorResultListParams{}
+func (*databaseDetectorCtrl) listResult(c *elton.Context) error {
+	params := databaseDetectorResultListParams{}
 	err := validateQuery(c, &params)
 	if err != nil {
 		return err
 	}
-	resp := redisDetectorResultListResp{
+	resp := databasedetectorresultListResp{
 		Count: -1,
 	}
 	if params.ShouldCount() {
@@ -332,9 +332,9 @@ func (*redisDetectorCtrl) listResult(c *elton.Context) error {
 		}
 		idList = append(idList, item.Task)
 	}
-	detectors, err := getRedisDetectorClient().Query().
+	detectors, err := getDatabaseDetectorClient().Query().
 		Where(
-			redisdetector.IDIn(idList...),
+			databasedetector.IDIn(idList...),
 		).
 		Select("id", "name").
 		All(c.Context())
@@ -348,7 +348,7 @@ func (*redisDetectorCtrl) listResult(c *elton.Context) error {
 			}
 		}
 	}
-	resp.RedisDetectorResults = result
+	resp.DatabaseDetectorResults = result
 	c.Body = &resp
 	return nil
 }

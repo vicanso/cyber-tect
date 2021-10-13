@@ -16,9 +16,9 @@ import {
   TCP_DETECTOR_RESULTS,
   PING_DETECTOR_RESULTS,
   DNS_DETECTOR_RESULTS,
-  REDIS_DETECTORS,
-  REDIS_DETECTORS_ID,
-  REDIS_DETECTOR_RESULTS,
+  DATABASE_DETECTORS,
+  DATABASE_DETECTORS_ID,
+  DATABASE_DETECTOR_RESULTS,
 } from "../constants/url";
 
 // http检测配置
@@ -88,7 +88,7 @@ interface PingDetector {
   ips: string[];
 }
 
-interface RedisDetector {
+interface DatabaseDetector {
   [key: string]: unknown;
   id: number;
   createdAt: string;
@@ -205,14 +205,14 @@ interface DNSDetectorResult {
   results: DNSDetectorSubResult[];
 }
 
-interface RedisDetectorSubResult {
+interface DatabaseDetectorSubResult {
   [key: string]: unknown;
   result: DetectorResult;
   uri: string;
   duration: number;
   message: string;
 }
-interface RedisDetectorResult {
+interface DatabaseDetectorResult {
   [key: string]: unknown;
   id: number;
   createdAt: string;
@@ -223,13 +223,13 @@ interface RedisDetectorResult {
   messages: string[];
   // 连接串
   uris: string[];
-  results: RedisDetectorSubResult[];
+  results: DatabaseDetectorSubResult[];
 }
 
 interface List<T> {
   processing: boolean;
   items: T[];
-  count: -1;
+  count: number;
 }
 
 const httpDetectors: List<HTTPDetector> = reactive({
@@ -256,7 +256,7 @@ const pingDetectors: List<PingDetector> = reactive({
   count: -1,
 });
 
-const redisDetectors: List<RedisDetector> = reactive({
+const databaseDetectors: List<DatabaseDetector> = reactive({
   processing: false,
   items: [],
   count: -1,
@@ -286,7 +286,7 @@ const dnsDetectorResults: List<DNSDetectorResult> = reactive({
   count: -1,
 });
 
-const redisDetectorResults: List<RedisDetectorResult> = reactive({
+const databaseDetectorResults: List<DatabaseDetectorResult> = reactive({
   processing: false,
   items: [],
   count: -1,
@@ -310,13 +310,13 @@ function fillCount(
 }
 
 export async function detectorListUser(keyword: string): Promise<string[]> {
-  const { data } = await request.get(DETECTOR_LIST_USER, {
+  const { data } = await request.get<Record<string,unknown>>(DETECTOR_LIST_USER, {
     params: {
       keyword,
       limit: 20,
     },
   });
-  return data.accounts || [];
+  return (data.accounts as string[]) || [];
 }
 
 const defaultDetectorQueryParams = {
@@ -337,7 +337,10 @@ export async function httpDetectorList(params: {
   }
   httpDetectors.processing = true;
   try {
-    const { data } = await request.get(HTTP_DETECTORS, {
+    const { data } = await request.get<{
+      count: number,
+      httpDetectors: HTTPDetector[], 
+    }>(HTTP_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
     const count = data.count || 0;
@@ -360,7 +363,10 @@ export async function dnsDetectorList(params: {
   }
   dnsDetectors.processing = true;
   try {
-    const { data } = await request.get(DNS_DETECTORS, {
+    const { data } = await request.get<{
+      count: number,
+      dnsDetectors: DNSDetector[],
+    }>(DNS_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
     const count = data.count || 0;
@@ -383,7 +389,10 @@ export async function tcpDetectorList(params: {
   }
   tcpDetectors.processing = true;
   try {
-    const { data } = await request.get(TCP_DETECTORS, {
+    const { data } = await request.get<{
+      count: number,
+      tcpDetectors: TCPDetector[],
+    }>(TCP_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
     const count = data.count || 0;
@@ -406,7 +415,10 @@ export async function pingDetectorList(params: {
   }
   pingDetectors.processing = true;
   try {
-    const { data } = await request.get(PING_DETECTORS, {
+    const { data } = await request.get<{
+      count: number,
+      pingDetectors: PingDetector[],
+    }>(PING_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
     const count = data.count || 0;
@@ -420,25 +432,28 @@ export async function pingDetectorList(params: {
 }
 
 // 查询redis检测配置
-export async function redisDetectorList(params: {
+export async function databaseDetectorList(params: {
   limit?: number;
   offset?: number;
 }): Promise<void> {
-  if (redisDetectors.processing) {
+  if (databaseDetectors.processing) {
     return;
   }
-  redisDetectors.processing = true;
+  databaseDetectors.processing = true;
   try {
-    const { data } = await request.get(REDIS_DETECTORS, {
+    const { data } = await request.get<{
+      count: number,
+      databaseDetectors: DatabaseDetector[],
+    }>(DATABASE_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
     const count = data.count || 0;
     if (count >= 0) {
-      redisDetectors.count = count;
+      databaseDetectors.count = count;
     }
-    redisDetectors.items = data.redisDetectors || [];
+    databaseDetectors.items = data.databaseDetectors || [];
   } finally {
-    redisDetectors.processing = false;
+    databaseDetectors.processing = false;
   }
 }
 
@@ -474,14 +489,14 @@ export async function pingDetectorFindByID(id: number): Promise<PingDetector> {
   return data as PingDetector;
 }
 
-// 通过id查询redis检测配置
-export async function redisDetectorFindByID(
+// 通过id查询database检测配置
+export async function databaseDetectorFindByID(
   id: number
-): Promise<RedisDetector> {
-  const { data } = await request.get(
-    REDIS_DETECTORS_ID.replace(":id", id.toString())
+): Promise<DatabaseDetector> {
+  const { data } = await request.get<DatabaseDetector>(
+    DATABASE_DETECTORS_ID.replace(":id", id.toString())
   );
-  return data as RedisDetector;
+  return data;
 }
 
 // 通过id更新http检测配置
@@ -532,16 +547,16 @@ export async function pingDetectorUpdateByID(
   return data as PingDetector;
 }
 
-// 通过id更新redis检测配置
-export async function redisDetectorUpdateByID(
+// 通过id更新database检测配置
+export async function databaseDetectorUpdateByID(
   id: number,
   updateData: Record<string, unknown>
-): Promise<RedisDetector> {
+): Promise<DatabaseDetector> {
   const { data } = await request.patch(
-    REDIS_DETECTORS_ID.replace(":id", id.toString()),
+    DATABASE_DETECTORS_ID.replace(":id", id.toString()),
     updateData
   );
-  return data as RedisDetector;
+  return data as DatabaseDetector;
 }
 
 // 创建http检测配置
@@ -576,12 +591,12 @@ export async function pingDetectorCreate(
   return data as PingDetector;
 }
 
-// 创建redis检测配置
-export async function redisDetectorCreate(
+// 创建database检测配置
+export async function databaseDetectorCreate(
   createData: Record<string, unknown>
-): Promise<RedisDetector> {
-  const { data } = await request.post(REDIS_DETECTORS, createData);
-  return data as RedisDetector;
+): Promise<DatabaseDetector> {
+  const { data } = await request.post(DATABASE_DETECTORS, createData);
+  return data as DatabaseDetector;
 }
 
 export async function httpDetectorResultList(
@@ -592,7 +607,10 @@ export async function httpDetectorResultList(
   }
   httpDetectorResults.processing = true;
   try {
-    const { data } = await request.get(HTTP_DETECTOR_RESULTS, {
+    const { data } = await request.get<{
+      count: number,
+      httpDetectorResults: HTTPDetectorResult[],
+    }>(HTTP_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });
     fillCount(params, data, "httpDetectorResults");
@@ -643,7 +661,10 @@ export async function tcpDetectorResultList(
   }
   tcpDetectorResults.processing = true;
   try {
-    const { data } = await request.get(TCP_DETECTOR_RESULTS, {
+    const { data } = await request.get<{
+      count: number,
+      tcpDetectorResults: TCPDetectorResult[],
+    }>(TCP_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });
     fillCount(params, data, "tcpDetectorResults");
@@ -662,7 +683,10 @@ export async function pingDetectorResultList(
   }
   pingDetectorResults.processing = true;
   try {
-    const { data } = await request.get(PING_DETECTOR_RESULTS, {
+    const { data } = await request.get<{
+      count: number,
+      pingDetectorResults: PingDetectorResult[],
+    }>(PING_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });
     fillCount(params, data, "pingDetectorResults");
@@ -681,7 +705,10 @@ export async function dnsDetectorResultList(
   }
   dnsDetectorResults.processing = true;
   try {
-    const { data } = await request.get(DNS_DETECTOR_RESULTS, {
+    const { data } = await request.get<{
+      count: number,
+      dnsDetectorResults: DNSDetectorResult[],
+    }>(DNS_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });
     fillCount(params, data, "dnsDetectorResults");
@@ -692,22 +719,26 @@ export async function dnsDetectorResultList(
   }
 }
 
-export async function redisDetectorResultList(
+export async function databaseDetectorResultList(
   params: Record<string, unknown>
 ): Promise<void> {
-  if (redisDetectorResults.processing) {
+  if (databaseDetectorResults.processing) {
     return;
   }
-  redisDetectorResults.processing = true;
+  databaseDetectorResults.processing = true;
   try {
-    const { data } = await request.get(REDIS_DETECTOR_RESULTS, {
+    const { data } = await request.get<
+    {
+      count: number,
+      databaseDetectorResults: DatabaseDetectorResult[],
+    }>(DATABASE_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });
-    fillCount(params, data, "redisDetectorResults");
-    redisDetectorResults.items = data.redisDetectorResults || [];
-    redisDetectorResults.count = data.count;
+    fillCount(params, data, "databaseDetectorResults");
+    databaseDetectorResults.items = data.databaseDetectorResults || [];
+    databaseDetectorResults.count = data.count;
   } finally {
-    redisDetectorResults.processing = false;
+    databaseDetectorResults.processing = false;
   }
 }
 
@@ -716,12 +747,12 @@ interface ReadonlyDetectorState {
   dnsDetectors: DeepReadonly<List<DNSDetector>>;
   tcpDetectors: DeepReadonly<List<TCPDetector>>;
   pingDetectors: DeepReadonly<List<PingDetector>>;
-  redisDetectors: DeepReadonly<List<RedisDetector>>;
+  databaseDetectors: DeepReadonly<List<DatabaseDetector>>;
   httpDetectorResults: DeepReadonly<List<HTTPDetectorResult>>;
   tcpDetectorResults: DeepReadonly<List<TCPDetectorResult>>;
   pingDetectorResults: DeepReadonly<List<PingDetectorResult>>;
   dnsDetectorResults: DeepReadonly<List<DNSDetectorResult>>;
-  redisDetectorResults: DeepReadonly<List<RedisDetectorResult>>;
+  databaseDetectorResults: DeepReadonly<List<DatabaseDetectorResult>>;
 }
 
 const state = {
@@ -729,12 +760,12 @@ const state = {
   dnsDetectors: readonly(dnsDetectors),
   tcpDetectors: readonly(tcpDetectors),
   pingDetectors: readonly(pingDetectors),
-  redisDetectors: readonly(redisDetectors),
+  databaseDetectors: readonly(databaseDetectors),
   httpDetectorResults: readonly(httpDetectorResults),
   tcpDetectorResults: readonly(tcpDetectorResults),
   pingDetectorResults: readonly(pingDetectorResults),
   dnsDetectorResults: readonly(dnsDetectorResults),
-  redisDetectorResults: readonly(redisDetectorResults),
+  databaseDetectorResults: readonly(databaseDetectorResults),
 };
 
 export default function useDetectorState(): ReadonlyDetectorState {

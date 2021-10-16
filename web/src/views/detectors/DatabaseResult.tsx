@@ -5,7 +5,7 @@ import { NCard, NDataTable, NPopover, NIcon } from "naive-ui";
 import { RowData, TableColumn } from "naive-ui/lib/data-table/src/interface";
 
 import useDetectorState, {
-  redisDetectorResultList,
+  databaseDetectorResultList,
 } from "../../states/detector";
 
 import { newListColumn, newLevelValueColumn } from "../../components/ExTable";
@@ -18,18 +18,18 @@ const popupClass = css`
 `;
 
 export default defineComponent({
-  name: "RedisResult",
+  name: "DatabaseResult",
   setup() {
     const fetch = async (params: Record<string, unknown>) => {
-      await redisDetectorResultList(params);
+      await databaseDetectorResultList(params);
     };
     return {
-      redisDetectorResults: useDetectorState().redisDetectorResults,
+      databaseDetectorResults: useDetectorState().databaseDetectorResults,
       fetch,
     };
   },
   render() {
-    const { redisDetectorResults, fetch } = this;
+    const { databaseDetectorResults, fetch } = this;
     const columns: TableColumn[] = [
       {
         title: "名称",
@@ -101,10 +101,10 @@ export default defineComponent({
       },
     ];
     return (
-      <NCard title={"Redis检测结果"}>
+      <NCard title={"Database检测结果"}>
         <ExDetectorResultTable
           columns={columns}
-          data={redisDetectorResults}
+          data={databaseDetectorResults}
           fetch={fetch}
         />
       </NCard>

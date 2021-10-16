@@ -41,8 +41,8 @@ const navigationOptions = [
         key: names.detectorDNS,
       },
       {
-        label: "Redis",
-        key: names.detectorRedis,
+        label: "Database",
+        key: names.detectorDatabase,
       },
     ],
   },
@@ -69,8 +69,8 @@ const navigationOptions = [
         key: names.detectorDNSResult,
       },
       {
-        label: "Redis",
-        key: names.detectorRedisResult,
+        label: "Database",
+        key: names.detectorDatabaseResult,
       },
     ],
   },

@@ -21,4 +21,7 @@ func init() {
 	AddAlias("xDetectorTaskID", "number")
 	// 检测结果
 	AddAlias("xDetectorResult", "oneof=1 2")
+
+	AddAlias("xDetectorDatabaseURI", "min=1,max=500")
+	AddAlias("xDetectorTLSPemData", "ascii,min=1,max=10240")
 }

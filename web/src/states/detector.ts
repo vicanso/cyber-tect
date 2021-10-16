@@ -310,12 +310,15 @@ function fillCount(
 }
 
 export async function detectorListUser(keyword: string): Promise<string[]> {
-  const { data } = await request.get<Record<string,unknown>>(DETECTOR_LIST_USER, {
-    params: {
-      keyword,
-      limit: 20,
-    },
-  });
+  const { data } = await request.get<Record<string, unknown>>(
+    DETECTOR_LIST_USER,
+    {
+      params: {
+        keyword,
+        limit: 20,
+      },
+    }
+  );
   return (data.accounts as string[]) || [];
 }
 
@@ -338,8 +341,8 @@ export async function httpDetectorList(params: {
   httpDetectors.processing = true;
   try {
     const { data } = await request.get<{
-      count: number,
-      httpDetectors: HTTPDetector[], 
+      count: number;
+      httpDetectors: HTTPDetector[];
     }>(HTTP_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
@@ -364,8 +367,8 @@ export async function dnsDetectorList(params: {
   dnsDetectors.processing = true;
   try {
     const { data } = await request.get<{
-      count: number,
-      dnsDetectors: DNSDetector[],
+      count: number;
+      dnsDetectors: DNSDetector[];
     }>(DNS_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
@@ -390,8 +393,8 @@ export async function tcpDetectorList(params: {
   tcpDetectors.processing = true;
   try {
     const { data } = await request.get<{
-      count: number,
-      tcpDetectors: TCPDetector[],
+      count: number;
+      tcpDetectors: TCPDetector[];
     }>(TCP_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
@@ -416,8 +419,8 @@ export async function pingDetectorList(params: {
   pingDetectors.processing = true;
   try {
     const { data } = await request.get<{
-      count: number,
-      pingDetectors: PingDetector[],
+      count: number;
+      pingDetectors: PingDetector[];
     }>(PING_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
@@ -442,8 +445,8 @@ export async function databaseDetectorList(params: {
   databaseDetectors.processing = true;
   try {
     const { data } = await request.get<{
-      count: number,
-      databaseDetectors: DatabaseDetector[],
+      count: number;
+      databaseDetectors: DatabaseDetector[];
     }>(DATABASE_DETECTORS, {
       params: Object.assign(defaultDetectorQueryParams, params),
     });
@@ -608,8 +611,8 @@ export async function httpDetectorResultList(
   httpDetectorResults.processing = true;
   try {
     const { data } = await request.get<{
-      count: number,
-      httpDetectorResults: HTTPDetectorResult[],
+      count: number;
+      httpDetectorResults: HTTPDetectorResult[];
     }>(HTTP_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });
@@ -662,8 +665,8 @@ export async function tcpDetectorResultList(
   tcpDetectorResults.processing = true;
   try {
     const { data } = await request.get<{
-      count: number,
-      tcpDetectorResults: TCPDetectorResult[],
+      count: number;
+      tcpDetectorResults: TCPDetectorResult[];
     }>(TCP_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });
@@ -684,8 +687,8 @@ export async function pingDetectorResultList(
   pingDetectorResults.processing = true;
   try {
     const { data } = await request.get<{
-      count: number,
-      pingDetectorResults: PingDetectorResult[],
+      count: number;
+      pingDetectorResults: PingDetectorResult[];
     }>(PING_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });
@@ -706,8 +709,8 @@ export async function dnsDetectorResultList(
   dnsDetectorResults.processing = true;
   try {
     const { data } = await request.get<{
-      count: number,
-      dnsDetectorResults: DNSDetectorResult[],
+      count: number;
+      dnsDetectorResults: DNSDetectorResult[];
     }>(DNS_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });
@@ -727,10 +730,9 @@ export async function databaseDetectorResultList(
   }
   databaseDetectorResults.processing = true;
   try {
-    const { data } = await request.get<
-    {
-      count: number,
-      databaseDetectorResults: DatabaseDetectorResult[],
+    const { data } = await request.get<{
+      count: number;
+      databaseDetectorResults: DatabaseDetectorResult[];
     }>(DATABASE_DETECTOR_RESULTS, {
       params: Object.assign(defaultDetectorResultQueryParams, params),
     });

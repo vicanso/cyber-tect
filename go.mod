@@ -6,13 +6,14 @@ require (
 	entgo.io/ent v0.9.1
 	github.com/alicebob/miniredis/v2 v2.15.1
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20211006122547-7efcb634c641
+	github.com/dop251/goja v0.0.0-20211011172007-d99e4b8cbf48
 	github.com/dustin/go-humanize v1.0.0
 	github.com/felixge/fgprof v0.9.1
 	github.com/fogleman/gg v1.3.0
 	github.com/go-ping/ping v0.0.0-20210911151512-381826476871
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/snappy v0.0.4
 	github.com/iancoleman/strcase v0.2.0
@@ -30,7 +31,7 @@ require (
 	github.com/spf13/cast v1.4.1
 	github.com/stretchr/testify v1.7.0
 	github.com/thoas/go-funk v0.9.1
-	github.com/tidwall/gjson v1.9.3
+	github.com/tidwall/gjson v1.9.4
 	github.com/vicanso/count-warner v1.2.0
 	github.com/vicanso/elton v1.6.0
 	github.com/vicanso/elton-compress v1.1.1
@@ -38,7 +39,7 @@ require (
 	github.com/vicanso/go-axios v1.3.2
 	github.com/vicanso/go-cache v1.3.0
 	github.com/vicanso/go-gauge v0.0.1
-	github.com/vicanso/go-mask v0.1.0
+	github.com/vicanso/go-mask v0.2.0
 	github.com/vicanso/go-parallel v0.4.1
 	github.com/vicanso/go-performance v0.4.0
 	github.com/vicanso/hes v0.3.9
@@ -46,6 +47,7 @@ require (
 	github.com/vicanso/ips v1.2.1
 	github.com/vicanso/lru-ttl v1.3.1
 	github.com/vicanso/viperx v0.1.4
+	go.mongodb.org/mongo-driver v1.7.3
 	go.uber.org/atomic v1.9.0
 	go.uber.org/automaxprocs v1.4.0
 	go.uber.org/ratelimit v0.2.0
@@ -71,6 +73,7 @@ require (
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
+	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/pprof v0.0.0-20211008130755-947d60d73cc0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
@@ -87,7 +90,7 @@ require (
 	github.com/jackc/pgtype v1.8.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
-	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
+	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/mattn/go-runewidth v0.0.10 // indirect
@@ -120,12 +123,16 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vicanso/intranet-ip v0.0.1 // indirect
 	github.com/vicanso/keygrip v1.2.1 // indirect
+	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
+	github.com/xdg-go/scram v1.0.2 // indirect
+	github.com/xdg-go/stringprep v1.0.2 // indirect
+	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20211008194852-3b03d305991f // indirect
+	golang.org/x/net v0.0.0-20211013171255-e13a2654a71e // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac // indirect
+	golang.org/x/sys v0.0.0-20211013075003-97ac67df715c // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.5 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect

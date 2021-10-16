@@ -15,9 +15,9 @@
 package middleware
 
 import (
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
+	"github.com/vicanso/elton"
 )
 
 const (

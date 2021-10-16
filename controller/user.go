@@ -578,7 +578,7 @@ func (*userCtrl) me(c *elton.Context) error {
 		// 记录创建user track
 		go func() {
 			location, _ := location.GetByIP(context.Background(), ip)
-			if location.IP != "" {
+			if location != nil {
 				fields[cs.FieldCountry] = location.Country
 				fields[cs.FieldProvince] = location.Province
 				fields[cs.FieldCity] = location.City

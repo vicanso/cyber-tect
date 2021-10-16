@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"strings"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -38,7 +39,11 @@ type (
 	databaseDetectorAddParams struct {
 		detectorAddParams
 
-		Uris []string `json:"uris" validate:"required,dive,uri"`
+		Uris []string `json:"uris" validate:"required,dive,xDetectorDatabaseURI"`
+		// tls cert pem block
+		CertPem string `json:"certPem" validate:"omitempty,xDetectorTLSPemData"`
+		// tls key pem block
+		KeyPem string `json:"keyPem" validate:"omitempty,xDetectorTLSPemData"`
 	}
 
 	databaseDetectorListParams struct {
@@ -51,7 +56,12 @@ type (
 		detectorUpdateParams
 
 		account string
-		Uris    []string `json:"uris" validate:"omitempty,dive,uri"`
+		Uris    []string `json:"uris" validate:"omitempty,dive,xDetectorDatabaseURI"`
+
+		// tls cert pem block
+		CertPem string `json:"certPem" validate:"omitempty,xDetectorTLSPemData"`
+		// tls key pem block
+		KeyPem string `json:"keyPem" validate:"omitempty,xDetectorTLSPemData"`
 	}
 
 	databaseDetectorResultListParams struct {
@@ -121,6 +131,8 @@ func (addParams *databaseDetectorAddParams) save(ctx context.Context) (*ent.Data
 		SetTimeout(addParams.Timeout).
 		SetDescription(addParams.Description).
 		SetUris(addParams.Uris).
+		SetCertPem(addParams.CertPem).
+		SetKeyPem(addParams.KeyPem).
 		Save(ctx)
 }
 
@@ -220,6 +232,14 @@ func (updateParams *databaseDetectorUpdateParams) updateByID(ctx context.Context
 
 	if len(updateParams.Uris) != 0 {
 		updateOne.SetUris(updateParams.Uris)
+	}
+	if updateParams.CertPem != "" {
+		// trim space，如果是空格，则会清除该字段
+		updateOne.SetCertPem(strings.TrimSpace(updateParams.CertPem))
+	}
+	if updateParams.KeyPem != "" {
+		// trim space，如果是空格，则会清除该字段
+		updateOne.SetKeyPem(strings.TrimSpace(updateParams.KeyPem))
 	}
 
 	return updateOne.Save(ctx)

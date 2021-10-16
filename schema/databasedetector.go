@@ -25,9 +25,16 @@ type DatabaseDetector struct {
 
 // Fields of the DatabaseDetector
 func (DatabaseDetector) Fields() []ent.Field {
+	// TODO 是否要增加证书配置
 	return []ent.Field{
 		field.Strings("uris").
 			Comment("redis连接串列表"),
+		field.Text("certPem").
+			Optional().
+			Comment("cert pem block数据"),
+		field.Text("keyPem").
+			Optional().
+			Comment("key pem block数据"),
 	}
 }
 

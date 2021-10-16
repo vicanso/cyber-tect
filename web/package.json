@@ -2,9 +2,9 @@
   "version": "0.0.0",
   "scripts": {
     "format": "prettier --write src/*.ts src/*.tsx src/**/*.ts src/**/*.tsx src/**/**/*.ts src/**/**/*.tsx",
-    "lint": "eslint . --ext .js,.tsx,.ts --fix",
+    "lint": "eslint . --ext .js,.tsx,.ts --fix && vue-tsc --noEmit",
     "dev": "vite",
-    "build": "vue-tsc --noEmit && STATIC=/static vite build",
+    "build": "STATIC=/static vite build",
     "serve": "vite preview"
   },
   "dependencies": {

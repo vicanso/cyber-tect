@@ -29,6 +29,7 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/databasedetector"
+	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/go-parallel"
@@ -189,7 +190,14 @@ func mongodbCheck(ctx context.Context, params databaseCheckParams) (string, erro
 	if err != nil {
 		return maskURI, err
 	}
-	defer client.Disconnect(ctx)
+	defer func() {
+		err = client.Disconnect(ctx)
+		if err != nil {
+			log.Error(ctx).
+				Err(err).
+				Msg("mongodb disconnect fail")
+		}
+	}()
 	err = client.Ping(ctx, nil)
 	return maskURI, err
 }

@@ -85,7 +85,14 @@ func redisCheck(ctx context.Context, params databaseCheckParams) (string, error)
 	options.DialTimeout = params.Timeout
 	options.TLSConfig = params.TLSConfig
 	c := redis.NewUniversalClient(options)
-	defer c.Close()
+	defer func() {
+		err = c.Close()
+		if err != nil {
+			log.Error(ctx).
+				Err(err).
+				Msg("redis close fail")
+		}
+	}()
 	err = c.Ping(ctx).Err()
 
 	return maskURI, err
@@ -135,7 +142,14 @@ func postgresCheck(ctx context.Context, params databaseCheckParams) (string, err
 	if err != nil {
 		return maskURI, err
 	}
-	defer conn.Close(ctx)
+	defer func() {
+		err = conn.Close(ctx)
+		if err != nil {
+			log.Error(ctx).
+				Err(err).
+				Msg("postgres close fail")
+		}
+	}()
 	err = conn.Ping(ctx)
 	return maskURI, err
 }
@@ -173,7 +187,14 @@ func mysqlCheck(ctx context.Context, params databaseCheckParams) (string, error)
 	if err != nil {
 		return maskURI, err
 	}
-	defer db.Close()
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			log.Error(ctx).
+				Err(err).
+				Msg("mysql close fail")
+		}
+	}()
 	err = db.PingContext(ctx)
 	return maskURI, err
 }

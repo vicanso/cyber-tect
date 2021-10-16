@@ -196,7 +196,9 @@ export async function userLogin(params: {
   }
   try {
     info.processing = true;
-    const resp = await request.get(USERS_LOGIN);
+    const resp = await request.get<{
+      token: string,
+    }>(USERS_LOGIN);
     const { token } = resp.data;
     const { data } = await request.post(
       USERS_LOGIN,
@@ -230,7 +232,10 @@ export async function userList(params: {
   }
   try {
     users.processing = true;
-    const { data } = await request.get(USERS, {
+    const { data } = await request.get<{
+      count: number,
+      users: UserAccount[],
+    }>(USERS, {
       params,
     });
     const count = data.count || 0;
@@ -264,7 +269,10 @@ export async function userListLogin(params: {
   }
   try {
     logins.processing = true;
-    const { data } = await request.get(USERS_LOGINS, {
+    const { data } = await request.get<{
+      count: number,
+      userLogins: UserLoginRecord[],
+    }>(USERS_LOGINS, {
       params,
     });
     const count = data.count || 0;

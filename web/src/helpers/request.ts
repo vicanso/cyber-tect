@@ -14,7 +14,7 @@ const request = axios.create({
   timeout: 10 * 1000,
   transformRequest: [
     (data, header) => {
-      if (!data) {
+      if (!data || !header) {
         return;
       }
       header["Content-Type"] = "application/json;charset=UTF-8";
@@ -43,7 +43,9 @@ request.interceptors.request.use(
     if (isDevelopment()) {
       config.url = `/api${config.url}`;
     }
-    config.headers[requestedAt] = `${Date.now()}`;
+    if (config.headers) {
+      config.headers[requestedAt] = `${Date.now()}`;
+    }
     return config;
   },
   (err) => {
@@ -62,8 +64,10 @@ function addRequestStats(
     data.method = config.method;
     data.url = config.url;
     data.data = config.data;
-    const value = config.headers[requestedAt];
-    data.use = Date.now() - Number(value);
+    if (config.headers) {
+      const value = config.headers[requestedAt];
+      data.use = Date.now() - Number(value);
+    }
   }
   if (res) {
     data.status = res.status;
@@ -80,12 +84,14 @@ const timeoutErrorCodes = ["ECONNABORTED", "ECONNREFUSED", "ECONNRESET"];
 request.interceptors.response.use(
   async (res) => {
     addRequestStats(res.config, res, undefined);
-    // 根据请求开始时间计算耗时，并判断是否需要延时响应
-    const value = res.config.headers[requestedAt];
-    if (value) {
-      const use = Date.now() - Number(value);
-      if (use >= 0 && use < minUse) {
-        await new Promise((resolve) => setTimeout(resolve, minUse - use));
+    if (res.config.headers) {
+      // 根据请求开始时间计算耗时，并判断是否需要延时响应
+      const value = res.config.headers[requestedAt];
+      if (value) {
+        const use = Date.now() - Number(value);
+        if (use >= 0 && use < minUse) {
+          await new Promise((resolve) => setTimeout(resolve, minUse - use));
+        }
       }
     }
     return res;

@@ -68,7 +68,9 @@ export async function configAdd(params: {
 
 // 获取mock time的配置
 export async function configGetMockTime(): Promise<Config> {
-  const { data } = await request.get(CONFIGS, {
+  const { data } = await request.get<{
+    configurations: Config[],
+  }>(CONFIGS, {
     params: {
       category: ConfigCategory.MockTime,
       name: ConfigCategory.MockTime,
@@ -79,7 +81,7 @@ export async function configGetMockTime(): Promise<Config> {
   if (items.length === 0) {
     return <Config>{};
   }
-  return <Config>items[0];
+  return items[0];
 }
 
 // configFindByID 通过ID查询config
@@ -113,7 +115,10 @@ export async function configList(params: {
   }
   try {
     configs.processing = true;
-    const { data } = await request.get(CONFIGS, {
+    const { data } = await request.get<{
+      count: number,
+      configurations: Config[],
+    }>(CONFIGS, {
       params,
     });
     const count = data.count || 0;
@@ -135,7 +140,7 @@ export function configListClear(): void {
 export async function configGetCurrentValid(): Promise<
   Record<string, unknown>
 > {
-  const { data } = await request.get(CONFIGS_CURRENT_VALID);
+  const { data } = await request.get<Record<string,unknown>>(CONFIGS_CURRENT_VALID);
   return data;
 }
 

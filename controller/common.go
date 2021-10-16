@@ -72,7 +72,7 @@ type (
 	}
 	// httpStatsListResp http性能统计响应
 	httpStatsListResp struct {
-		StatusList []*request.InstanceStats `json:"statusList"`
+		StatsList []*request.InstanceStats `json:"statsList"`
 	}
 )
 

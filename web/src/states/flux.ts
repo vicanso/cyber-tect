@@ -209,7 +209,11 @@ export async function fluxListUserTracker(params: {
   }
   try {
     userTrackers.processing = true;
-    const { data } = await request.get(FLUXES_TRACKERS, {
+    const { data } = await request.get<{
+      trackers: UserTracker[],
+      count: number,
+      flux: string,
+    }>(FLUXES_TRACKERS, {
       params,
     });
     userTrackers.items = data.trackers || [];
@@ -233,7 +237,9 @@ export async function fluxListUserTrackAction(): Promise<void> {
       ":measurement",
       measurementUserTracker
     ).replace(":tag", "action");
-    const { data } = await request.get(url);
+    const { data } = await request.get<{
+      values: string[],
+    }>(url);
     userTrackerActions.items = (data.values || []).sort();
   } finally {
     userTrackerActions.processing = false;
@@ -261,7 +267,9 @@ export async function fluxListHTTPCategory(): Promise<void> {
       ":measurement",
       measurementHttpError
     ).replace(":tag", "category");
-    const { data } = await request.get(url);
+    const { data } = await request.get<{
+      values: string[],
+    }>(url);
     httpErrorCategories.items = (data.values || []).sort();
   } finally {
     httpErrorCategories.processing = false;
@@ -282,7 +290,11 @@ export async function fluxListHTTPError(params: {
   }
   try {
     httpErrors.processing = true;
-    const { data } = await request.get(FLUXES_HTTP_ERRORS, {
+    const { data } = await request.get<{
+      httpErrors: HTTPError[],
+      count: number,
+      flux: string,
+    }>(FLUXES_HTTP_ERRORS, {
       params,
     });
     httpErrors.items = data.httpErrors || [];
@@ -317,7 +329,11 @@ export async function fluxListRequest(params: {
   }
   try {
     requests.processing = true;
-    const { data } = await request.get(FLUXES_REQUESTS, {
+    const { data } = await request.get<{
+      requests: Request[],
+      count: number,
+      flux: string,
+    }>(FLUXES_REQUESTS, {
       params,
     });
     requests.items = data.requests || [];
@@ -348,7 +364,9 @@ export async function fluxListRequestService(): Promise<void> {
       ":measurement",
       measurementHttpRequest
     ).replace(":tag", "service");
-    const { data } = await request.get(url);
+    const { data } = await request.get<{
+      values: string[],
+    }>(url);
     requestServices.items = data.values || [];
   } finally {
     requestServices.processing = false;
@@ -366,7 +384,9 @@ export async function fluxListRequestRoute(): Promise<void> {
       ":measurement",
       measurementHttpRequest
     ).replace(":tag", "route");
-    const { data } = await request.get(url);
+    const { data } = await request.get<{
+      values: string[],
+    }>(url);
     requestRoutes.items = data.values || [];
   } finally {
     requestRoutes.processing = false;

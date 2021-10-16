@@ -244,7 +244,7 @@ func (*commonCtrl) listHTTPInstanceStats(c *elton.Context) error {
 	stats := request.GetHTTPStats()
 	c.CacheMaxAge(5 * time.Minute)
 	c.Body = &httpStatsListResp{
-		StatusList: stats,
+		StatsList: stats,
 	}
 	return nil
 }

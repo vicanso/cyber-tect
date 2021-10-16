@@ -322,12 +322,17 @@ export async function detectorListUser(keyword: string): Promise<string[]> {
   return (data.accounts as string[]) || [];
 }
 
-const defaultDetectorQueryParams = {
-  order: "-updatedAt",
+const getDefaultQueryParams = () => {
+  return {
+    order: "-updatedAt",
+  };
 };
-const defaultDetectorResultQueryParams = {
-  order: "-updatedAt",
-  ignoreCount: "true",
+
+const getDefaultResultQueryParams = () => {
+  return {
+    order: "-updatedAt",
+    ignoreCount: "true",
+  };
 };
 
 // 查询http检测配置
@@ -344,7 +349,7 @@ export async function httpDetectorList(params: {
       count: number;
       httpDetectors: HTTPDetector[];
     }>(HTTP_DETECTORS, {
-      params: Object.assign(defaultDetectorQueryParams, params),
+      params: Object.assign(getDefaultQueryParams(), params),
     });
     const count = data.count || 0;
     if (count >= 0) {
@@ -370,7 +375,7 @@ export async function dnsDetectorList(params: {
       count: number;
       dnsDetectors: DNSDetector[];
     }>(DNS_DETECTORS, {
-      params: Object.assign(defaultDetectorQueryParams, params),
+      params: Object.assign(getDefaultQueryParams(), params),
     });
     const count = data.count || 0;
     if (count >= 0) {
@@ -396,7 +401,7 @@ export async function tcpDetectorList(params: {
       count: number;
       tcpDetectors: TCPDetector[];
     }>(TCP_DETECTORS, {
-      params: Object.assign(defaultDetectorQueryParams, params),
+      params: Object.assign(getDefaultQueryParams(), params),
     });
     const count = data.count || 0;
     if (count >= 0) {
@@ -422,7 +427,7 @@ export async function pingDetectorList(params: {
       count: number;
       pingDetectors: PingDetector[];
     }>(PING_DETECTORS, {
-      params: Object.assign(defaultDetectorQueryParams, params),
+      params: Object.assign(getDefaultQueryParams(), params),
     });
     const count = data.count || 0;
     if (count >= 0) {
@@ -448,7 +453,7 @@ export async function databaseDetectorList(params: {
       count: number;
       databaseDetectors: DatabaseDetector[];
     }>(DATABASE_DETECTORS, {
-      params: Object.assign(defaultDetectorQueryParams, params),
+      params: Object.assign(getDefaultQueryParams(), params),
     });
     const count = data.count || 0;
     if (count >= 0) {
@@ -614,7 +619,7 @@ export async function httpDetectorResultList(
       count: number;
       httpDetectorResults: HTTPDetectorResult[];
     }>(HTTP_DETECTOR_RESULTS, {
-      params: Object.assign(defaultDetectorResultQueryParams, params),
+      params: Object.assign(getDefaultResultQueryParams(), params),
     });
     fillCount(params, data, "httpDetectorResults");
     httpDetectorResults.items = data.httpDetectorResults || [];
@@ -668,7 +673,7 @@ export async function tcpDetectorResultList(
       count: number;
       tcpDetectorResults: TCPDetectorResult[];
     }>(TCP_DETECTOR_RESULTS, {
-      params: Object.assign(defaultDetectorResultQueryParams, params),
+      params: Object.assign(getDefaultResultQueryParams(), params),
     });
     fillCount(params, data, "tcpDetectorResults");
     tcpDetectorResults.items = data.tcpDetectorResults || [];
@@ -690,7 +695,7 @@ export async function pingDetectorResultList(
       count: number;
       pingDetectorResults: PingDetectorResult[];
     }>(PING_DETECTOR_RESULTS, {
-      params: Object.assign(defaultDetectorResultQueryParams, params),
+      params: Object.assign(getDefaultResultQueryParams(), params),
     });
     fillCount(params, data, "pingDetectorResults");
     pingDetectorResults.items = data.pingDetectorResults || [];
@@ -712,7 +717,7 @@ export async function dnsDetectorResultList(
       count: number;
       dnsDetectorResults: DNSDetectorResult[];
     }>(DNS_DETECTOR_RESULTS, {
-      params: Object.assign(defaultDetectorResultQueryParams, params),
+      params: Object.assign(getDefaultResultQueryParams(), params),
     });
     fillCount(params, data, "dnsDetectorResults");
     dnsDetectorResults.items = data.dnsDetectorResults || [];
@@ -734,7 +739,7 @@ export async function databaseDetectorResultList(
       count: number;
       databaseDetectorResults: DatabaseDetectorResult[];
     }>(DATABASE_DETECTOR_RESULTS, {
-      params: Object.assign(defaultDetectorResultQueryParams, params),
+      params: Object.assign(getDefaultResultQueryParams(), params),
     });
     fillCount(params, data, "databaseDetectorResults");
     databaseDetectorResults.items = data.databaseDetectorResults || [];

@@ -84,6 +84,7 @@ export default defineComponent({
     },
     descriptionDetail: {
       type: Object as PropType<JSX.Element>,
+      default: () => null,
     },
     formItems: {
       type: Array as PropType<FormItem[]>,

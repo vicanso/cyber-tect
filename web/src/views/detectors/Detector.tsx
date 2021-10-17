@@ -30,6 +30,7 @@ export default defineComponent({
     },
     descriptionDetail: {
       type: Object as PropType<JSX.Element>,
+      default: () => null,
     },
     columns: {
       type: Array as PropType<TableColumn[]>,

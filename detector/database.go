@@ -107,9 +107,6 @@ func parseRedisConnectionURI(connectionURI string) (*redis.UniversalOptions, err
 	password, _ := info.User.Password()
 	master := info.Query().Get("master")
 	sentinelPassword := info.Query().Get("sentinelPassword")
-	if sentinelPassword == "" {
-		sentinelPassword = password
-	}
 	return &redis.UniversalOptions{
 		Addrs:            addrs,
 		Username:         username,

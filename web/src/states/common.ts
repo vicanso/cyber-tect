@@ -97,7 +97,7 @@ export async function commonListRouter(): Promise<void> {
   try {
     routers.processing = true;
     const { data } = await request.get<{
-      routers: Router[],
+      routers: Router[];
     }>(COMMONS_ROUTERS);
     routers.items = data.routers || [];
   } finally {
@@ -113,7 +113,7 @@ export async function commonListRequestInstance(): Promise<void> {
   try {
     requestInstances.processing = true;
     const { data } = await request.get<{
-      statsList: RequestInstance[],
+      statsList: RequestInstance[];
     }>(COMMONS_HTTP_STATS);
     requestInstances.items = data.statsList;
   } finally {

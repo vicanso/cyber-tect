@@ -82,6 +82,9 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    descriptionDetail: {
+      type: Object as PropType<JSX.Element>,
+    },
     formItems: {
       type: Array as PropType<FormItem[]>,
       required: true,
@@ -178,7 +181,7 @@ export default defineComponent({
     };
   },
   render() {
-    const { title, description, id, onBack } = this.$props;
+    const { title, description, id, onBack, descriptionDetail } = this.$props;
     const { fetching, processing, items, submit } = this;
     // 如果指定了id，则展示加载中
     if (fetching && id) {
@@ -193,6 +196,7 @@ export default defineComponent({
             onBack={onBack == noop ? undefined : onBack}
             subtitle={description}
           >
+            {descriptionDetail}
             <ExForm
               formItems={items}
               onSubmit={submit}

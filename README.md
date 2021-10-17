@@ -118,6 +118,36 @@ Ping检测用于检测网络的连通性，主要用于测试简单的网络连�
 
 ![](./images/ping-detect-result-detail.jpg)
 
+## Database检测
+
+Database检测用于测试数据库连通性，主要用于简单的测试数据库是否可正常连接，现支持以下数据库：`redis`，`postgres`，`mysql`以及`mongodb`
+
+### Redis
+
+Redis数据库支持三种模式，数据库驱动使用[go-redis](https://github.com/go-redis/redis)，数据库连接串格式如下：
+
+- `单实例`: `redis://[:pass@]host:port/`，密码选项根据数据库是否有设置密码而添加。
+- `Sentinel`: `redis://[:pass@]host1,port1,host2:port2/?master=master[&sentinelPassword=sentinelPassword]`，密码选项根据数据库是否有设置密码而添加，sentinel必须指定master，若不指定master则会判断为cluster模式。
+- `Cluster`: `redis://[:pass@]host1,port1,host2:port2,host3:port3/`，密码选项根据数据库是否有设置密码而添加。
+
+### Postgres
+
+postgres连接串格式如下：`postgres://[jack:secret@]foo.example.com:5432[,...bar.example.com:5432]/mydb`，数据库驱动使用[pgx](https://github.com/jackc/pgx)模块。
+
+### Mysql
+
+mysql连接串格式如下：`mysql://[username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]`，数据库驱动使用[mysql](https://github.com/go-sql-driver/mysql)模块。
+
+### Mongodb
+
+mongodb连接串格式如下：`mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]`，数据库驱动使用[mongodb](https://github.com/mongodb/mongo-go-driver)模块。
+
+![](./images/database-setting.jpg)
+
+![](./images/database-detect-result.jpg)
+
+![](./images/database-detect-result-detail.jpg)
+
 ## 个人信息设置
 
 告警信息使用Email发送，因此需要设置个人邮箱后才可接收到告警信息。
@@ -133,7 +163,7 @@ Ping检测用于检测网络的连通性，主要用于测试简单的网络连�
 docker run -d --restart=always \
   -p 7001:7001 \
   -e GO_ENV=production \
-  -e POSTGRES_URI=postgresql://vicanso:A123456@127.0.0.1:5432/cybertect \
+  -e POSTGRES_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
   -e MAIL_SMTP=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
   -e DETECTOR_INTERVAL=1m \
   -e DETECTOR_RESULT_EXPIRED=30d \

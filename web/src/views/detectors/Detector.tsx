@@ -28,6 +28,9 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    descriptionDetail: {
+      type: Object as PropType<JSX.Element>,
+    },
     columns: {
       type: Array as PropType<TableColumn[]>,
       required: true,
@@ -84,6 +87,7 @@ export default defineComponent({
       formItems,
       columns,
       fetch,
+      descriptionDetail,
     } = this.$props;
     const { userInfo } = this;
     const columnsClone = getDefaultColumns().slice(0);
@@ -128,6 +132,7 @@ export default defineComponent({
         title={title}
         description={description}
         formItems={formItemsClone}
+        descriptionDetail={descriptionDetail}
         onBack={() => {
           this.mode = Mode.List;
         }}

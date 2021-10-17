@@ -40,7 +40,7 @@ func TestParseRedisConnectionURI(t *testing.T) {
 	assert.Equal("user", options.Username)
 	assert.Equal("pass", options.Password)
 
-	options, err = parseRedisConnectionURI("redis://user:pass@127.0.0.1:6379,127.0.0.1:6378/?master=abc")
+	options, err = parseRedisConnectionURI("redis://user:pass@127.0.0.1:6379,127.0.0.1:6378/?master=abc&sentinelPassword=sentinelPass")
 	assert.Nil(err)
 	assert.Equal([]string{
 		"127.0.0.1:6379",
@@ -49,7 +49,7 @@ func TestParseRedisConnectionURI(t *testing.T) {
 	assert.Equal("user", options.Username)
 	assert.Equal("pass", options.Password)
 	assert.Equal("abc", options.MasterName)
-	assert.Equal("pass", options.SentinelPassword)
+	assert.Equal("sentinelPass", options.SentinelPassword)
 
 	options, err = parseRedisConnectionURI("redis://user:pass@127.0.0.1:6379,127.0.0.1:6378/?master=abc&sentinelPassword=123")
 	assert.Nil(err)

@@ -84,11 +84,11 @@ func TestInfluxdbConfig(t *testing.T) {
 	assert.Equal(30*time.Second, influxdbConfig.FlushInterval)
 }
 
-func TestMustGetPostgresConfig(t *testing.T) {
+func TestMustGetDatabaseConfig(t *testing.T) {
 	assert := assert.New(t)
 
-	postgresConfig := MustGetPostgresConfig()
-	assert.NotNil(postgresConfig.URI)
+	databaseConfig := MustGetDatabaseConfig()
+	assert.NotNil(databaseConfig.URI)
 }
 
 func TestMustGetLocationConfig(t *testing.T) {

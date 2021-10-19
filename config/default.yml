@@ -29,10 +29,11 @@ redis:
   # miniredis会直接使用mini redis代替真正的redis server
   uri: redis://miniredis/?slow=200ms&maxProcessing=1000
 
-# postgres postgres配置
-postgres:
-  # 可以配置为下面的形式，则从env中获取POSTGRES_URI对应的字符串来当postgres连接串
-  # uri: POSTGRES_URI
+# database配置
+database:
+  # 可以配置为下面的形式，则从env中获取DATABASE_URI对应的字符串来当数据库连接串
+  # uri: DATABASE_URI
+  # uri: mysql://root:pass@tcp(127.0.0.1:3306)/cybertect?timeout=30s&parseTime=true&maxIdleConns=5&maxIdleTime=30m&maxOpenConns=100
   uri: postgres://vicanso:A123456@127.0.0.1:5432/cybertect?maxIdleConns=5&maxIdleTime=30m&maxOpenConns=100
 
 # influxdb 配置

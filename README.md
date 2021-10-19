@@ -4,7 +4,14 @@
 
 提供常用的HTTP接口、TCP端口、DNS域名解析以及Ping的定时检测告警。
 
-## postgres
+## database
+
+数据库暂仅支持postgres与mysql，仅需要在配置数据库连接串时指定则可，连接串格式如下：
+
+- `postgres`: postgres://root:pass@127.0.0.1:5432/cybertect?maxIdleConns=5&maxIdleTime=30m&maxOpenConns=100
+- `mysql`: mysql://root:pass@tcp(127.0.0.1:3306)/cybertect?timeout=30s&parseTime=true&maxIdleConns=5&maxIdleTime=30m&maxOpenConns=100
+
+### postgres
 
 用户信息及检测配置、结果等数据保存在postgres中，若无现成的postgres可使用以下脚本启动实例：
 
@@ -163,7 +170,7 @@ mongodb连接串格式如下：`mongodb://[username:password@]host1[:port1][,...
 docker run -d --restart=always \
   -p 7001:7001 \
   -e GO_ENV=production \
-  -e POSTGRES_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
+  -e DATABASE_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
   -e MAIL_SMTP=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
   -e DETECTOR_INTERVAL=1m \
   -e DETECTOR_RESULT_EXPIRED=30d \

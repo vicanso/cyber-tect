@@ -103,10 +103,10 @@ type (
 		// sentinel模式下使用的master name
 		Master string
 	}
-	// PostgresConfig postgres配置
-	PostgresConfig struct {
+	// DatabaseConfig 数据库配置
+	DatabaseConfig struct {
 		// 连接串
-		URI string `validate:"required,uri"`
+		URI string `validate:"required"`
 		// 最大连接数
 		MaxOpenConns int `default:"100"`
 		// 最大空闲连接数
@@ -313,30 +313,32 @@ func MustGetRedisConfig() *RedisConfig {
 }
 
 // MustGetPostgresConfig 获取postgres配置
-func MustGetPostgresConfig() *PostgresConfig {
-	prefix := "postgres."
+func MustGetDatabaseConfig() *DatabaseConfig {
+	prefix := "database."
 	uri := defaultViperX.GetStringFromENV(prefix + "uri")
-	rawQuery := ""
-	uriInfo, _ := url.Parse(uri)
 	maxIdleConns := 0
 	maxOpenConns := 0
 	var maxIdleTime time.Duration
-	if uriInfo != nil {
-		query := uriInfo.Query()
-		rawQuery = "?" + uriInfo.RawQuery
+	arr := strings.Split(uri, "?")
+	if len(arr) == 2 {
+		query, _ := url.ParseQuery(arr[1])
 		maxIdleConns, _ = strconv.Atoi(query.Get("maxIdleConns"))
 		maxOpenConns, _ = strconv.Atoi(query.Get("maxOpenConns"))
 		maxIdleTime, _ = time.ParseDuration(query.Get("maxIdleTime"))
+		query.Del("maxIdleConns")
+		query.Del("maxOpenConns")
+		query.Del("maxIdleTime")
+		uri = arr[0] + "?" + query.Encode()
 	}
 
-	postgresConfig := &PostgresConfig{
-		URI:          strings.ReplaceAll(uri, rawQuery, ""),
+	databaseConfig := &DatabaseConfig{
+		URI:          uri,
 		MaxIdleConns: maxIdleConns,
 		MaxOpenConns: maxOpenConns,
 		MaxIdleTime:  maxIdleTime,
 	}
-	mustValidate(postgresConfig)
-	return postgresConfig
+	mustValidate(databaseConfig)
+	return databaseConfig
 }
 
 // MustGetMailConfig 获取邮件配置

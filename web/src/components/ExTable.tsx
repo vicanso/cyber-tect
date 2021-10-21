@@ -17,6 +17,7 @@ import {
   NInputGroupLabel,
   useMessage,
 } from "naive-ui";
+import { Value } from "naive-ui/lib/select/src/interface";
 import { EditRegular } from "@vicons/fa";
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 import { Component, defineComponent, onMounted, ref, PropType } from "vue";
@@ -283,6 +284,7 @@ export default defineComponent({
           component = (
             <NSelect
               filterable
+              defaultValue={filterItem.defaultValue as Value}
               size={size}
               options={filterItem.options || []}
               placeholder={filterItem.placeholder}
@@ -298,6 +300,7 @@ export default defineComponent({
               class="widthFull"
               size={size}
               placeholder={filterItem.placeholder}
+              defaultValue={filterItem.defaultValue as number}
               onUpdate:value={(value) => {
                 filterParams[filterItem.key] = value;
               }}
@@ -365,6 +368,7 @@ export default defineComponent({
               clearable
               size={size}
               placeholder={filterItem.placeholder}
+              defaultValue={filterItem.defaultValue as string}
               onUpdateValue={(value) => {
                 filterParams[filterItem.key] = value.trim();
               }}

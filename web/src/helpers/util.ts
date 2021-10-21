@@ -1,5 +1,6 @@
 import { MessageApi } from "naive-ui";
 import dayjs from "dayjs";
+import { LocationQuery } from "vue-router";
 
 import HTTPError from "./http-error";
 
@@ -190,4 +191,11 @@ export function durationToSeconds(d: string): number | null {
   }
 
   return Number.parseInt(d) * seconds[index];
+}
+
+export function getFromQuery(query: LocationQuery, key: string): string {
+  if (!query || !query[key]) {
+    return "";
+  }
+  return query[key] as string;
 }

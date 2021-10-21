@@ -148,9 +148,9 @@ func (listParams *tcpDetectorListParams) queryAll(ctx context.Context) ([]*ent.T
 }
 
 func (listParams *tcpDetectorResultListParams) where(query *ent.TCPDetectorResultQuery) {
-	task := listParams.Task
-	if task != 0 {
-		query.Where(tcpdetectorresult.Task(task))
+	tasks := listParams.tasks
+	if len(tasks) != 0 {
+		query.Where(tcpdetectorresult.TaskIn(tasks...))
 	}
 	result := listParams.Result
 	if result != 0 {

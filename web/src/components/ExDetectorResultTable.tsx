@@ -1,15 +1,20 @@
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 import { defineComponent, PropType } from "vue";
+import { LocationQuery } from "vue-router";
+
 import { FormItemTypes } from "./ExFormInterface";
 import ExTable from "./ExTable";
+import { getFromQuery } from "../helpers/util";
 
-function getFilters() {
+function getFilters(query: LocationQuery) {
+  console.dir(getFromQuery(query, "result"));
   return [
     {
       name: "结果：",
       key: "result",
       placeholder: "请选择要筛选的结果",
       type: FormItemTypes.Select,
+      defaultValue: getFromQuery(query, "result"),
       options: [
         {
           label: "所有",
@@ -64,7 +69,7 @@ export default defineComponent({
     const { columns, data } = this.$props;
     return (
       <ExTable
-        filters={getFilters()}
+        filters={getFilters(this.$route.query)}
         columns={columns}
         data={data}
         fetch={this.filterFetch}

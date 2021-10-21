@@ -161,9 +161,9 @@ func (listParams *databaseDetectorListParams) queryAll(ctx context.Context) (ent
 }
 
 func (listParams *databaseDetectorResultListParams) where(query *ent.DatabaseDetectorResultQuery) {
-	task := listParams.Task
-	if task != 0 {
-		query.Where(databasedetectorresult.Task(task))
+	tasks := listParams.tasks
+	if len(tasks) != 0 {
+		query.Where(databasedetectorresult.TaskIn(tasks...))
 	}
 	result := listParams.Result
 	if result != 0 {

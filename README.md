@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/vicanso/cyber-tect/workflows/Test/badge.svg)](https://github.com/vicanso/cyber-tect/actions)
 
-提供常用的HTTP接口、TCP端口、DNS域名解析以及Ping的定时检测告警。
+提供常用的HTTP接口、TCP端口、DNS域名解析、Ping以及各常用数据库的定时检测告警。
 
 ## database
 

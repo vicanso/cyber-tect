@@ -72,7 +72,9 @@ type (
 	detectorListResultParams struct {
 		listParams `json:"listParams"`
 
-		Task      int       `json:"task" validate:"omitempty,xDetectorTaskID"`
+		// 任务列表，通过当前登录账号获取
+		tasks []int
+
 		Result    int8      `json:"result" validate:"omitempty,xDetectorResult"`
 		Duration  string    `json:"duration" validate:"omitempty,xDuration"`
 		StartedAt time.Time `json:"startedAt"`

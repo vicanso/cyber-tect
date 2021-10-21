@@ -147,9 +147,9 @@ func (listParams *pingDetectorListParams) queryAll(ctx context.Context) ([]*ent.
 }
 
 func (listParams *pingDetectorResultListParams) where(query *ent.PingDetectorResultQuery) {
-	task := listParams.Task
-	if task != 0 {
-		query.Where(pingdetectorresult.Task(task))
+	tasks := listParams.tasks
+	if len(tasks) != 0 {
+		query.Where(pingdetectorresult.TaskIn(tasks...))
 	}
 	result := listParams.Result
 	if result != 0 {

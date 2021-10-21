@@ -37,12 +37,12 @@ const navigationOptions = [
         key: names.detectorPing,
       },
       {
-        label: "DNS",
-        key: names.detectorDNS,
-      },
-      {
         label: "Database",
         key: names.detectorDatabase,
+      },
+      {
+        label: "DNS",
+        key: names.detectorDNS,
       },
     ],
   },
@@ -65,12 +65,12 @@ const navigationOptions = [
         key: names.detectorPingResult,
       },
       {
-        label: "DNS",
-        key: names.detectorDNSResult,
-      },
-      {
         label: "Database",
         key: names.detectorDatabaseResult,
+      },
+      {
+        label: "DNS",
+        key: names.detectorDNSResult,
       },
     ],
   },

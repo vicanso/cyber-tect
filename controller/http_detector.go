@@ -153,9 +153,9 @@ func (listParams *httpDetectorListParams) queryAll(ctx context.Context) ([]*ent.
 
 // where http detector result where
 func (listParams *httpDetectorResultListParams) where(query *ent.HTTPDetectorResultQuery) {
-	task := listParams.Task
-	if task != 0 {
-		query.Where(httpdetectorresult.Task(task))
+	tasks := listParams.tasks
+	if len(tasks) != 0 {
+		query.Where(httpdetectorresult.TaskIn(tasks...))
 	}
 	result := listParams.Result
 	if result != 0 {

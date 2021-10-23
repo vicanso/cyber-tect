@@ -19,6 +19,7 @@ import {
   DATABASE_DETECTORS,
   DATABASE_DETECTORS_ID,
   DATABASE_DETECTOR_RESULTS,
+  DETECTOR_RESULT_SUMMARIES,
 } from "../constants/url";
 
 // http检测配置
@@ -226,11 +227,23 @@ interface DatabaseDetectorResult {
   results: DatabaseDetectorSubResult[];
 }
 
+interface DetectorResultSummary {
+  name: string;
+  success: number;
+  fail: number;
+}
+
 interface List<T> {
   processing: boolean;
   items: T[];
   count: number;
 }
+
+const detectorResultSummaries: List<DetectorResultSummary> = reactive({
+  processing: false,
+  items: [],
+  count: -1,
+});
 
 const httpDetectors: List<HTTPDetector> = reactive({
   processing: false,
@@ -749,6 +762,41 @@ export async function databaseDetectorResultList(
   }
 }
 
+export async function getResultSummaries(params: {
+  startedAt: string;
+}): Promise<void> {
+  if (detectorResultSummaries.processing) {
+    return;
+  }
+  const { data } = await request.get<{
+    summaries: {
+      category: string;
+      count: number;
+      result: {
+        desc: string;
+        value: number;
+      };
+    }[];
+  }>(DETECTOR_RESULT_SUMMARIES + "?startedAt=" + params.startedAt);
+  data.summaries.forEach((item) => {
+    const { category, count, result } = item;
+    let found = detectorResultSummaries.items.find(
+      (item) => item.name == category
+    );
+    if (!found) {
+      found = {
+        name: category,
+      } as DetectorResultSummary;
+      detectorResultSummaries.items.push(found);
+    }
+    if (result.value === 1) {
+      found.success = count;
+    } else {
+      found.fail = count;
+    }
+  });
+}
+
 interface ReadonlyDetectorState {
   httpDetectors: DeepReadonly<List<HTTPDetector>>;
   dnsDetectors: DeepReadonly<List<DNSDetector>>;
@@ -760,6 +808,7 @@ interface ReadonlyDetectorState {
   pingDetectorResults: DeepReadonly<List<PingDetectorResult>>;
   dnsDetectorResults: DeepReadonly<List<DNSDetectorResult>>;
   databaseDetectorResults: DeepReadonly<List<DatabaseDetectorResult>>;
+  detectorResultSummaries: DeepReadonly<List<DetectorResultSummary>>;
 }
 
 const state = {
@@ -773,6 +822,7 @@ const state = {
   pingDetectorResults: readonly(pingDetectorResults),
   dnsDetectorResults: readonly(dnsDetectorResults),
   databaseDetectorResults: readonly(databaseDetectorResults),
+  detectorResultSummaries: readonly(detectorResultSummaries),
 };
 
 export default function useDetectorState(): ReadonlyDetectorState {

@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"os"
 	"reflect"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/mcuadros/go-defaults"
@@ -195,10 +196,37 @@ func wrapError(err error) error {
 	return he
 }
 
-func queryFillValue(value reflect.Value, field reflect.StructField, data map[string]string) error {
+func isStruct(value reflect.Value) bool {
 	kind := value.Kind()
+	if kind != reflect.Struct {
+		return false
+	}
+	// 如果不可获取interface的，使用struct的处理
+	if !value.CanInterface() {
+		return true
+	}
+	// 时间不使用struct的处理
+	switch value.Interface().(type) {
+	case time.Time:
+		return false
+	}
+	return true
+}
+
+func setTimeValue(value reflect.Value, str string) error {
+	t := time.Time{}
+
+	v := []byte(fmt.Sprintf(`"%s"`, str))
+	err := json.Unmarshal(v, &t)
+	if err != nil {
+		return err
+	}
+	value.Set(reflect.ValueOf(t))
+	return nil
+}
+func queryFillValue(value reflect.Value, field reflect.StructField, data map[string]string) error {
 	// 如果是struct，直接处理其内部属性
-	if kind == reflect.Struct {
+	if isStruct(value) {
 		for i := 0; i < value.NumField(); i++ {
 			err := queryFillValue(value.Field(i), value.Type().Field(i), data)
 			if err != nil {
@@ -207,6 +235,7 @@ func queryFillValue(value reflect.Value, field reflect.StructField, data map[str
 		}
 		return nil
 	}
+	kind := value.Kind()
 	tag := field.Tag.Get("json")
 	tagValue := data[tag]
 	// 如果值为空，则不做赋值处理
@@ -244,9 +273,20 @@ func queryFillValue(value reflect.Value, field reflect.StructField, data map[str
 		value.SetBool(v)
 	case reflect.String:
 		value.SetString(tagValue)
-
 	default:
-		return wrapError(fmt.Errorf("not support the type:%s", tag))
+		errNotSupport := wrapError(fmt.Errorf("not support the field:%s", tag))
+		if !value.CanInterface() {
+			return errNotSupport
+		}
+		switch value.Interface().(type) {
+		case time.Time:
+			err := setTimeValue(value, tagValue)
+			if err != nil {
+				return err
+			}
+		default:
+			return errNotSupport
+		}
 	}
 
 	return nil

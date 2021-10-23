@@ -102,7 +102,7 @@ func init() {
 		newTrackerMiddleware(cs.ActionDetectorDNSUpdate),
 		ctrl.updateByID,
 	)
-	router.NewGroup(prefix).GET(
+	g.GET(
 		"/results/v1",
 		ctrl.listResult,
 	)
@@ -322,7 +322,22 @@ func (*dnsDetectorCtrl) listResult(c *elton.Context) error {
 	if err != nil {
 		return err
 	}
-	resp := dnsDetectorResultListResp{}
+	resp := dnsDetectorResultListResp{
+		Count: -1,
+	}
+	params.tasks, err = getDetectorTasksByReceiver(
+		c.Context(),
+		detectorCategoryDNS,
+		getUserSession(c),
+	)
+	if err == errTaskNotFound {
+		c.Body = &resp
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
 	if params.ShouldCount() {
 		count, err := params.count(c.Context())
 		if err != nil {

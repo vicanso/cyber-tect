@@ -101,7 +101,7 @@ func init() {
 		newTrackerMiddleware(cs.ActionDetectorHTTPUpdate),
 		ctrl.updateByID,
 	)
-	router.NewGroup(prefix).GET(
+	g.GET(
 		"/results/v1",
 		ctrl.listResult,
 	)
@@ -320,7 +320,22 @@ func (*httpDetectorCtrl) listResult(c *elton.Context) error {
 	if err != nil {
 		return err
 	}
-	resp := httpDetectorResultListResp{}
+	resp := httpDetectorResultListResp{
+		Count: -1,
+	}
+	params.tasks, err = getDetectorTasksByReceiver(
+		c.Context(),
+		detectorCategoryHTTP,
+		getUserSession(c),
+	)
+	if err == errTaskNotFound {
+		c.Body = &resp
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
 	if params.ShouldCount() {
 		count, err := params.count(c.Context())
 		if err != nil {

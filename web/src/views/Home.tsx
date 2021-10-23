@@ -1,19 +1,29 @@
 import { defineComponent } from "vue";
-import { NCard } from "naive-ui";
-import { css } from "@linaria/core";
-
+import { NCard, useMessage, NSpin, NButton } from "naive-ui";
 import { goTo } from "../routes";
 import { names } from "../routes/routes";
-
-const anchorClass = css`
-  cursor: pointer;
-  margin: 10px 0;
-  display: block;
-`;
+import useDetectorState, { getResultSummaries } from "../states/detector";
+import { showError } from "../helpers/util";
+import { LocationQueryRaw } from "vue-router";
 
 export default defineComponent({
   name: "Home",
+  setup() {
+    const message = useMessage();
+    const { detectorResultSummaries } = useDetectorState();
+
+    const day = 24 * 3600 * 1000;
+    getResultSummaries({
+      startedAt: new Date(Date.now() - 7 * day).toISOString(),
+    }).catch((err) => {
+      showError(message, err);
+    });
+    return {
+      detectorResultSummaries,
+    };
+  },
   render() {
+    const { detectorResultSummaries } = this;
     const configs = [
       {
         route: names.detectorHTTP,
@@ -38,8 +48,8 @@ export default defineComponent({
     ];
     const lists = configs.map((item) => (
       <li key={item.name}>
-        <a
-          class={anchorClass}
+        <NButton
+          bordered={false}
           onClick={() =>
             goTo(item.route, {
               replace: false,
@@ -47,9 +57,41 @@ export default defineComponent({
           }
         >
           {item.name}
-        </a>
+        </NButton>
       </li>
     ));
+    const routes: Record<string, string> = {
+      http: names.detectorHTTPResult,
+      dns: names.detectorDNSResult,
+      tcp: names.detectorTCPResult,
+      ping: names.detectorPingResult,
+      database: names.detectorDatabaseResult,
+    };
+    const summaryList = detectorResultSummaries.items.map((item) => {
+      const goToResultView = (result: string) => {
+        var query: LocationQueryRaw = {};
+        if (result) {
+          query.result = result;
+        }
+        goTo(routes[item.name], {
+          replace: false,
+          query,
+        });
+      };
+      return (
+        <li key={item.name}>
+          <NButton bordered={false} onClick={() => goToResultView("")}>
+            {item.name.toUpperCase()}({item.success + item.fail})
+          </NButton>
+          <NButton bordered={false} onClick={() => goToResultView("1")}>
+            成功({item.success})
+          </NButton>
+          <NButton bordered={false} onClick={() => goToResultView("2")}>
+            失败({item.fail})
+          </NButton>
+        </li>
+      );
+    });
     return (
       <div>
         <NCard title="简要说明">
@@ -59,6 +101,13 @@ export default defineComponent({
           </p>
           <ul>{lists}</ul>
         </NCard>
+        <br />
+        <NSpin show={detectorResultSummaries.processing}>
+          <NCard title="最近7天检测">
+            <p>最近7天各类型检测的结果汇总（仅包括已配置为接收告警的检测）</p>
+            <ul>{summaryList}</ul>
+          </NCard>
+        </NSpin>
       </div>
     );
   },

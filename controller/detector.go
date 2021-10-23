@@ -18,10 +18,19 @@ import (
 	"context"
 	"time"
 
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
+	"github.com/thoas/go-funk"
 	"github.com/vicanso/cybertect/ent"
+	"github.com/vicanso/cybertect/ent/databasedetector"
+	"github.com/vicanso/cybertect/ent/dnsdetector"
+	"github.com/vicanso/cybertect/ent/httpdetector"
+	"github.com/vicanso/cybertect/ent/pingdetector"
+	"github.com/vicanso/cybertect/ent/tcpdetector"
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/router"
 	"github.com/vicanso/cybertect/schema"
+	"github.com/vicanso/cybertect/session"
 	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )
@@ -30,7 +39,16 @@ type detectorCtrl struct{}
 
 const errDetectorCategory = "detector"
 
+const (
+	detectorCategoryDatabase = "database"
+	detectorCategoryDNS      = "dns"
+	detectorCategoryTCP      = "tcp"
+	detectorCategoryPing     = "ping"
+	detectorCategoryHTTP     = "http"
+)
+
 var errInvalidUser = hes.New("无修改该配置的权限", errDetectorCategory)
+var errTaskNotFound = hes.New("task not found")
 
 type (
 	// detectorAddParams detector add params
@@ -80,6 +98,20 @@ type (
 		StartedAt time.Time `json:"startedAt"`
 		EndedAt   time.Time `json:"endedAt"`
 	}
+	getResultSummaryParams struct {
+		StartedAt time.Time `json:"startedAt"`
+	}
+)
+
+type (
+	detectorResultSummary struct {
+		Category string                `json:"category"`
+		Result   schema.DetectorResult `json:"result"`
+		Count    int                   `json:"count"`
+	}
+	getResultSummaryResp struct {
+		Summaries []*detectorResultSummary `json:"summaries" validate:"required"`
+	}
 )
 
 func init() {
@@ -92,6 +124,9 @@ func init() {
 
 	// 用户查询
 	g.GET("/users/v1", ctrl.listUser)
+
+	// 获取结果汇总
+	g.GET("/result-summaries/v1", ctrl.getResultSummary)
 }
 
 // GetDurationMs
@@ -101,6 +136,76 @@ func (params *detectorListResultParams) GetDurationMillSecond() int {
 	}
 	d, _ := time.ParseDuration(params.Duration)
 	return int(d.Milliseconds())
+}
+
+func getDetectorTasksByReceiver(ctx context.Context, category string, us *session.UserSession) ([]int, error) {
+	// 超级用户不限制
+	if us.IsAdmin() {
+		return nil, nil
+	}
+	receiver := us.MustGetInfo().Account
+	newFilter := func(field string) func(*sql.Selector) {
+		return func(s *sql.Selector) {
+			s.Where(sqljson.ValueContains(field, receiver))
+		}
+	}
+	fields := "id"
+	var arr interface{}
+	var err error
+	switch category {
+	case detectorCategoryDatabase:
+		arr, err = getDatabaseDetectorClient().Query().
+			Where(newFilter(databasedetector.FieldReceivers)).
+			Select(fields).
+			All(ctx)
+	case detectorCategoryDNS:
+		arr, err = getDNSDetectorResultClient().Query().
+			Where(newFilter(dnsdetector.FieldReceivers)).
+			Select(fields).
+			All(ctx)
+	case detectorCategoryHTTP:
+		arr, err = getHTTPDetectorClient().Query().
+			Where(newFilter(httpdetector.FieldReceivers)).
+			Select(fields).
+			All(ctx)
+	case detectorCategoryPing:
+		arr, err = getPingDetectorClient().Query().
+			Where(newFilter(pingdetector.FieldReceivers)).
+			Select(fields).
+			All(ctx)
+	case detectorCategoryTCP:
+		arr, err = getTCPDetectorClient().Query().
+			Where(newFilter(tcpdetector.FieldReceivers)).
+			Select(fields).
+			All(ctx)
+
+	default:
+		return nil, hes.New(category + "类型错误")
+	}
+	if err != nil {
+		return nil, err
+	}
+	tasks := make([]int, 0)
+	funk.ForEach(arr, func(item interface{}) {
+		id := -1
+		switch data := item.(type) {
+		case *ent.DatabaseDetector:
+			id = data.ID
+		case *ent.HTTPDetector:
+			id = data.ID
+		case *ent.DNSDetector:
+			id = data.ID
+		case *ent.PingDetector:
+			id = data.ID
+		case *ent.TCPDetector:
+			id = data.ID
+		}
+		tasks = append(tasks, id)
+	})
+	if len(tasks) == 0 {
+		return nil, errTaskNotFound
+	}
+	return tasks, nil
 }
 
 func (listUserParams *detectorListUserParams) queryAll(ctx context.Context) ([]*ent.User, error) {
@@ -133,6 +238,102 @@ func (*detectorCtrl) listUser(c *elton.Context) error {
 	}
 	c.Body = map[string][]string{
 		"accounts": accounts,
+	}
+
+	return nil
+}
+
+func (*detectorCtrl) getResultSummary(c *elton.Context) error {
+	queryParams := getResultSummaryParams{}
+	err := validateQuery(c, &queryParams)
+	if err != nil {
+		return err
+	}
+	startedAt := queryParams.StartedAt
+	if time.Since(startedAt) > 10*24*time.Hour {
+		return hes.New("汇总时间过长")
+	}
+	us := getUserSession(c)
+	categories := []string{
+		detectorCategoryDatabase,
+		detectorCategoryHTTP,
+		detectorCategoryTCP,
+		detectorCategoryPing,
+		detectorCategoryDNS,
+	}
+	sumaries := make([]*detectorResultSummary, 0)
+	for _, category := range categories {
+		tasks, err := getDetectorTasksByReceiver(
+			c.Context(),
+			category,
+			us,
+		)
+		if err != nil && err != errTaskNotFound {
+			return err
+		}
+		for _, v := range []schema.DetectorResult{
+			schema.DetectorResultSuccess,
+			schema.DetectorResultFail,
+		} {
+			result := int8(v)
+			var count int
+			switch category {
+			case detectorCategoryDatabase:
+				params := databaseDetectorResultListParams{}
+				params.tasks = tasks
+				params.StartedAt = startedAt
+				params.Result = result
+				count, err = params.count(c.Context())
+				if err != nil {
+					return err
+				}
+			case detectorCategoryDNS:
+				params := dnsDetectorResultListParams{}
+				params.tasks = tasks
+				params.StartedAt = startedAt
+				params.Result = result
+				count, err = params.count(c.Context())
+				if err != nil {
+					return err
+				}
+			case detectorCategoryHTTP:
+				params := httpDetectorResultListParams{}
+				params.tasks = tasks
+				params.StartedAt = startedAt
+				params.Result = result
+				count, err = params.count(c.Context())
+				if err != nil {
+					return err
+				}
+			case detectorCategoryPing:
+				params := pingDetectorResultListParams{}
+				params.tasks = tasks
+				params.StartedAt = startedAt
+				params.Result = result
+				count, err = params.count(c.Context())
+				if err != nil {
+					return err
+				}
+			case detectorCategoryTCP:
+				params := tcpDetectorResultListParams{}
+				params.tasks = tasks
+				params.StartedAt = startedAt
+				params.Result = result
+				count, err = params.count(c.Context())
+				if err != nil {
+					return err
+				}
+			}
+			sumaries = append(sumaries, &detectorResultSummary{
+				Category: category,
+				Result:   v,
+				Count:    count,
+			})
+		}
+	}
+
+	c.Body = &getResultSummaryResp{
+		Summaries: sumaries,
 	}
 
 	return nil

@@ -96,7 +96,7 @@ func init() {
 		ctrl.updateByID,
 	)
 
-	router.NewGroup(prefix).GET(
+	g.GET(
 		"/results/v1",
 		ctrl.listResult,
 	)
@@ -310,6 +310,19 @@ func (*pingDetectorCtrl) listResult(c *elton.Context) error {
 	resp := pingDetectorResultListResp{
 		Count: -1,
 	}
+	params.tasks, err = getDetectorTasksByReceiver(
+		c.Context(),
+		detectorCategoryPing,
+		getUserSession(c),
+	)
+	if err == errTaskNotFound {
+		c.Body = &resp
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
 	if params.ShouldCount() {
 		count, err := params.count(c.Context())
 		if err != nil {

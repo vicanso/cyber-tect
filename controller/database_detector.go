@@ -108,7 +108,7 @@ func init() {
 		ctrl.updateByID,
 	)
 
-	router.NewGroup(prefix).GET(
+	g.GET(
 		"/results/v1",
 		ctrl.listResult,
 	)
@@ -332,6 +332,19 @@ func (*databaseDetectorCtrl) listResult(c *elton.Context) error {
 	resp := databasedetectorresultListResp{
 		Count: -1,
 	}
+	params.tasks, err = getDetectorTasksByReceiver(
+		c.Context(),
+		detectorCategoryDatabase,
+		getUserSession(c),
+	)
+	if err == errTaskNotFound {
+		c.Body = &resp
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+
 	if params.ShouldCount() {
 		count, err := params.count(c.Context())
 		if err != nil {

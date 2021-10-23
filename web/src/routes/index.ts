@@ -1,15 +1,18 @@
 import { names } from "./routes";
 import router from "./router";
+import { LocationQueryRaw } from "vue-router";
 
 export function goTo(
   name: string,
   params: {
-    replace: boolean;
+    replace?: boolean;
+    query?: LocationQueryRaw;
   }
 ): void {
   router.push({
     name,
     replace: params.replace,
+    query: params.query,
   });
 }
 

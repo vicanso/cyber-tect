@@ -320,7 +320,7 @@ export default defineComponent({
                       null) as number
                   }
                   onUpdate:value={(value) => {
-                    filterParams[filterItem.key] = `${value}s`;
+                    filterParams[filterItem.key] = `${value || 0}s`;
                   }}
                 />
                 <NInputGroupLabel size={size}>秒</NInputGroupLabel>

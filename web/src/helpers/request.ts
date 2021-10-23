@@ -35,7 +35,7 @@ request.interceptors.request.use(
     if (config.params) {
       Object.keys(config.params).forEach((element) => {
         // 空字符
-        if (config.params[element] === "") {
+        if (config.params[element] === "" || config.params[element] === null) {
           delete config.params[element];
         }
       });

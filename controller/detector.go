@@ -158,7 +158,7 @@ func getDetectorTasksByReceiver(ctx context.Context, category string, us *sessio
 			Select(fields).
 			All(ctx)
 	case detectorCategoryDNS:
-		arr, err = getDNSDetectorResultClient().Query().
+		arr, err = getDNSDetectorClient().Query().
 			Where(newFilter(dnsdetector.FieldReceivers)).
 			Select(fields).
 			All(ctx)
@@ -260,14 +260,17 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 		detectorCategoryPing,
 		detectorCategoryDNS,
 	}
-	sumaries := make([]*detectorResultSummary, 0)
+	summaries := make([]*detectorResultSummary, 0)
 	for _, category := range categories {
 		tasks, err := getDetectorTasksByReceiver(
 			c.Context(),
 			category,
 			us,
 		)
-		if err != nil && err != errTaskNotFound {
+		if err == errTaskNotFound {
+			continue
+		}
+		if err != nil {
 			return err
 		}
 		for _, v := range []schema.DetectorResult{
@@ -323,7 +326,7 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 					return err
 				}
 			}
-			sumaries = append(sumaries, &detectorResultSummary{
+			summaries = append(summaries, &detectorResultSummary{
 				Category: category,
 				Result:   v,
 				Count:    count,
@@ -332,7 +335,7 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 	}
 
 	c.Body = &getResultSummaryResp{
-		Summaries: sumaries,
+		Summaries: summaries,
 	}
 
 	return nil

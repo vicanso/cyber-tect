@@ -67,31 +67,43 @@ export default defineComponent({
       ping: names.detectorPingResult,
       database: names.detectorDatabaseResult,
     };
-    const summaryList = detectorResultSummaries.items.map((item) => {
-      const goToResultView = (result: string) => {
-        var query: LocationQueryRaw = {};
-        if (result) {
-          query.result = result;
-        }
-        goTo(routes[item.name], {
-          replace: false,
-          query,
+    let summaryElement: JSX.Element = <p></p>;
+    if (!detectorResultSummaries.processing) {
+      if (detectorResultSummaries.items.length !== 0) {
+        const summaryList = detectorResultSummaries.items.map((item) => {
+          const goToResultView = (result: string) => {
+            var query: LocationQueryRaw = {};
+            if (result) {
+              query.result = result;
+            }
+            goTo(routes[item.name], {
+              replace: false,
+              query,
+            });
+          };
+          return (
+            <li key={item.name}>
+              <NButton bordered={false} onClick={() => goToResultView("")}>
+                {item.name.toUpperCase()}({item.success + item.fail})
+              </NButton>
+              <NButton bordered={false} onClick={() => goToResultView("1")}>
+                成功({item.success})
+              </NButton>
+              <NButton bordered={false} onClick={() => goToResultView("2")}>
+                失败({item.fail})
+              </NButton>
+            </li>
+          );
         });
-      };
-      return (
-        <li key={item.name}>
-          <NButton bordered={false} onClick={() => goToResultView("")}>
-            {item.name.toUpperCase()}({item.success + item.fail})
-          </NButton>
-          <NButton bordered={false} onClick={() => goToResultView("1")}>
-            成功({item.success})
-          </NButton>
-          <NButton bordered={false} onClick={() => goToResultView("2")}>
-            失败({item.fail})
-          </NButton>
-        </li>
-      );
-    });
+        summaryElement = <ul>{summaryList}</ul>;
+      } else {
+        summaryElement = (
+          <p>
+            当前账号未配置接收相关检测结果，请先配置监控检测或添加接收监控告警
+          </p>
+        );
+      }
+    }
     return (
       <div>
         <NCard title="简要说明">
@@ -105,7 +117,7 @@ export default defineComponent({
         <NSpin show={detectorResultSummaries.processing}>
           <NCard title="最近7天检测">
             <p>最近7天各类型检测的结果汇总（仅包括已配置为接收告警的检测）</p>
-            <ul>{summaryList}</ul>
+            {summaryElement}
           </NCard>
         </NSpin>
       </div>

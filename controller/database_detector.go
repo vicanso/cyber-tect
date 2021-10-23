@@ -161,7 +161,7 @@ func (listParams *databaseDetectorListParams) queryAll(ctx context.Context) (ent
 }
 
 func (listParams *databaseDetectorResultListParams) where(query *ent.DatabaseDetectorResultQuery) {
-	tasks := listParams.tasks
+	tasks := listParams.Tasks
 	if len(tasks) != 0 {
 		query.Where(databasedetectorresult.TaskIn(tasks...))
 	}
@@ -332,7 +332,7 @@ func (*databaseDetectorCtrl) listResult(c *elton.Context) error {
 	resp := databasedetectorresultListResp{
 		Count: -1,
 	}
-	params.tasks, err = getDetectorTasksByReceiver(
+	params.Tasks, err = getDetectorTasksByReceiver(
 		c.Context(),
 		detectorCategoryDatabase,
 		getUserSession(c),

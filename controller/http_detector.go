@@ -153,7 +153,7 @@ func (listParams *httpDetectorListParams) queryAll(ctx context.Context) ([]*ent.
 
 // where http detector result where
 func (listParams *httpDetectorResultListParams) where(query *ent.HTTPDetectorResultQuery) {
-	tasks := listParams.tasks
+	tasks := listParams.Tasks
 	if len(tasks) != 0 {
 		query.Where(httpdetectorresult.TaskIn(tasks...))
 	}
@@ -323,7 +323,7 @@ func (*httpDetectorCtrl) listResult(c *elton.Context) error {
 	resp := httpDetectorResultListResp{
 		Count: -1,
 	}
-	params.tasks, err = getDetectorTasksByReceiver(
+	params.Tasks, err = getDetectorTasksByReceiver(
 		c.Context(),
 		detectorCategoryHTTP,
 		getUserSession(c),

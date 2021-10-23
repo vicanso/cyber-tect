@@ -148,7 +148,7 @@ func (listParams *tcpDetectorListParams) queryAll(ctx context.Context) ([]*ent.T
 }
 
 func (listParams *tcpDetectorResultListParams) where(query *ent.TCPDetectorResultQuery) {
-	tasks := listParams.tasks
+	tasks := listParams.Tasks
 	if len(tasks) != 0 {
 		query.Where(tcpdetectorresult.TaskIn(tasks...))
 	}
@@ -311,7 +311,7 @@ func (*tcpDetectorCtrl) listResult(c *elton.Context) error {
 	resp := tcpDetectorResultListResp{
 		Count: -1,
 	}
-	params.tasks, err = getDetectorTasksByReceiver(
+	params.Tasks, err = getDetectorTasksByReceiver(
 		c.Context(),
 		detectorCategoryTCP,
 		getUserSession(c),

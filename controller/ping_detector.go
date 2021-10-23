@@ -147,7 +147,7 @@ func (listParams *pingDetectorListParams) queryAll(ctx context.Context) ([]*ent.
 }
 
 func (listParams *pingDetectorResultListParams) where(query *ent.PingDetectorResultQuery) {
-	tasks := listParams.tasks
+	tasks := listParams.Tasks
 	if len(tasks) != 0 {
 		query.Where(pingdetectorresult.TaskIn(tasks...))
 	}
@@ -310,7 +310,7 @@ func (*pingDetectorCtrl) listResult(c *elton.Context) error {
 	resp := pingDetectorResultListResp{
 		Count: -1,
 	}
-	params.tasks, err = getDetectorTasksByReceiver(
+	params.Tasks, err = getDetectorTasksByReceiver(
 		c.Context(),
 		detectorCategoryPing,
 		getUserSession(c),

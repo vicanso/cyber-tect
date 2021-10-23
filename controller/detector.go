@@ -91,8 +91,7 @@ type (
 		listParams `json:"listParams"`
 
 		// 任务列表，通过当前登录账号获取
-		tasks []int
-
+		Tasks     []int
 		Result    int8      `json:"result" validate:"omitempty,xDetectorResult"`
 		Duration  string    `json:"duration" validate:"omitempty,xDuration"`
 		StartedAt time.Time `json:"startedAt"`
@@ -280,7 +279,7 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 			switch category {
 			case detectorCategoryDatabase:
 				params := databaseDetectorResultListParams{}
-				params.tasks = tasks
+				params.Tasks = tasks
 				params.StartedAt = startedAt
 				params.Result = result
 				count, err = params.count(c.Context())
@@ -289,7 +288,7 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 				}
 			case detectorCategoryDNS:
 				params := dnsDetectorResultListParams{}
-				params.tasks = tasks
+				params.Tasks = tasks
 				params.StartedAt = startedAt
 				params.Result = result
 				count, err = params.count(c.Context())
@@ -298,7 +297,7 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 				}
 			case detectorCategoryHTTP:
 				params := httpDetectorResultListParams{}
-				params.tasks = tasks
+				params.Tasks = tasks
 				params.StartedAt = startedAt
 				params.Result = result
 				count, err = params.count(c.Context())
@@ -307,7 +306,7 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 				}
 			case detectorCategoryPing:
 				params := pingDetectorResultListParams{}
-				params.tasks = tasks
+				params.Tasks = tasks
 				params.StartedAt = startedAt
 				params.Result = result
 				count, err = params.count(c.Context())
@@ -316,7 +315,7 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 				}
 			case detectorCategoryTCP:
 				params := tcpDetectorResultListParams{}
-				params.tasks = tasks
+				params.Tasks = tasks
 				params.StartedAt = startedAt
 				params.Result = result
 				count, err = params.count(c.Context())

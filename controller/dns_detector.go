@@ -154,7 +154,7 @@ func (listParams *dnsDetectorListParams) queryAll(ctx context.Context) ([]*ent.D
 }
 
 func (listParams *dnsDetectorResultListParams) where(query *ent.DNSDetectorResultQuery) {
-	tasks := listParams.tasks
+	tasks := listParams.Tasks
 	if len(tasks) != 0 {
 		query.Where(dnsdetectorresult.TaskIn(tasks...))
 	}
@@ -325,7 +325,7 @@ func (*dnsDetectorCtrl) listResult(c *elton.Context) error {
 	resp := dnsDetectorResultListResp{
 		Count: -1,
 	}
-	params.tasks, err = getDetectorTasksByReceiver(
+	params.Tasks, err = getDetectorTasksByReceiver(
 		c.Context(),
 		detectorCategoryDNS,
 		getUserSession(c),

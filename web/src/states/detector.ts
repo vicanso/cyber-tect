@@ -768,33 +768,38 @@ export async function getResultSummaries(params: {
   if (detectorResultSummaries.processing) {
     return;
   }
-  const { data } = await request.get<{
-    summaries: {
-      category: string;
-      count: number;
-      result: {
-        desc: string;
-        value: number;
-      };
-    }[];
-  }>(DETECTOR_RESULT_SUMMARIES + "?startedAt=" + params.startedAt);
-  data.summaries.forEach((item) => {
-    const { category, count, result } = item;
-    let found = detectorResultSummaries.items.find(
-      (item) => item.name == category
-    );
-    if (!found) {
-      found = {
-        name: category,
-      } as DetectorResultSummary;
-      detectorResultSummaries.items.push(found);
-    }
-    if (result.value === 1) {
-      found.success = count;
-    } else {
-      found.fail = count;
-    }
-  });
+  detectorResultSummaries.processing = true;
+  try {
+    const { data } = await request.get<{
+      summaries: {
+        category: string;
+        count: number;
+        result: {
+          desc: string;
+          value: number;
+        };
+      }[];
+    }>(DETECTOR_RESULT_SUMMARIES + "?startedAt=" + params.startedAt);
+    data.summaries.forEach((item) => {
+      const { category, count, result } = item;
+      let found = detectorResultSummaries.items.find(
+        (item) => item.name == category
+      );
+      if (!found) {
+        found = {
+          name: category,
+        } as DetectorResultSummary;
+        detectorResultSummaries.items.push(found);
+      }
+      if (result.value === 1) {
+        found.success = count;
+      } else {
+        found.fail = count;
+      }
+    });
+  } finally {
+    detectorResultSummaries.processing = false;
+  }
 }
 
 interface ReadonlyDetectorState {

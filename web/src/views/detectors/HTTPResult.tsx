@@ -33,18 +33,22 @@ export default defineComponent({
       {
         title: "名称",
         key: "taskName",
+        width: 120,
       },
       newLevelValueColumn({
         title: "结果",
         key: "result.desc",
+        width: 80,
       }),
       {
         title: "检测URL",
         key: "url",
+        width: 300,
       },
       {
         title: "最大耗时(ms)",
         key: "maxDuration",
+        width: 120,
       },
       newListColumn({
         title: "失败信息",
@@ -53,6 +57,7 @@ export default defineComponent({
       {
         title: "更新于",
         key: "updatedAt",
+        width: 180,
         render(row: Record<string, unknown>) {
           return formatDate(row.updatedAt as string);
         },

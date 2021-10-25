@@ -39,6 +39,10 @@ export default defineComponent({
         key: "ips",
         title: "IP列表",
       }),
+      {
+        title: "检测脚本",
+        key: "script",
+      },
     ];
 
     const formItems: FormItem[] = [
@@ -55,6 +59,13 @@ export default defineComponent({
         key: "url",
         span: 12,
         placeholder: "请输入要检测的URL",
+      },
+      {
+        name: "检测脚本：",
+        key: "script",
+        span: 24,
+        placeholder: "请输入对应的检测脚本，响应数据为resp，可针其数据检测(如果是更新，如果是需要清空，需要设置为空格)",
+        type: FormItemTypes.TextArea,
       },
     ];
     return (

@@ -16,6 +16,7 @@ package controller
 
 import (
 	"context"
+	"strings"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
@@ -36,10 +37,12 @@ type httpDetectorCtrl struct{}
 
 type (
 	httpDetectorAddParams struct {
-		detectorAddParams
+		detectorAddParams `json:"detectorAddParams"`
 
 		IPS []string `json:"ips" validate:"omitempty,dive,ip"`
 		URL string   `json:"url" validate:"required,xHTTP"`
+		// 检测脚本
+		Script string `json:"script" validate:"omitempty"`
 	}
 	httpDetectorListParams struct {
 		listParams
@@ -53,6 +56,8 @@ type (
 
 		IPS []string `json:"ips" validate:"omitempty,dive,ip"`
 		URL string   `json:"url" validate:"omitempty,xHTTP"`
+		// 检测脚本
+		Script string `json:"script" validate:"omitempty"`
 	}
 
 	httpDetectorResultListParams struct {
@@ -124,6 +129,7 @@ func (addParams *httpDetectorAddParams) save(ctx context.Context) (*ent.HTTPDete
 		SetDescription(addParams.Description).
 		SetIps(addParams.IPS).
 		SetURL(addParams.URL).
+		SetScript(addParams.Script).
 		Save(ctx)
 }
 
@@ -228,6 +234,9 @@ func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id
 	}
 	if updateParams.URL != "" {
 		updateOne.SetURL(updateParams.URL)
+	}
+	if updateParams.Script != "" {
+		updateOne.SetScript(strings.TrimSpace(updateParams.Script))
 	}
 
 	return updateOne.Save(ctx)

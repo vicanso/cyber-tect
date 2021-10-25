@@ -17,6 +17,7 @@ package detector
 import (
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -26,6 +27,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dop251/goja"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/httpdetector"
 	"github.com/vicanso/cybertect/schema"
@@ -45,11 +47,20 @@ var warningCertExpiredDuration = 7 * 24 * time.Hour
 var nilIPAddr = "0.0.0.0"
 
 type (
-	HTTPSrv struct{}
+	HTTPSrv         struct{}
+	httpCheckParams struct {
+		url     string
+		ip      string
+		timeout time.Duration
+		script  string
+	}
 )
 
 // check 执行一次http检测
-func (srv *HTTPSrv) check(ctx context.Context, url, ip string, timeout time.Duration) (ht *HT.HTTPTrace, err error) {
+func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (ht *HT.HTTPTrace, err error) {
+	ip := params.ip
+	url := params.url
+	timeout := params.timeout
 	var dialContext func(ctx context.Context, network, addr string) (net.Conn, error)
 	// 自定义dns解析（更新为0.0.0.0)表示不指定IP
 	if ip != "" && ip != nilIPAddr {
@@ -117,6 +128,40 @@ func (srv *HTTPSrv) check(ctx context.Context, url, ip string, timeout time.Dura
 		}
 		return
 	}
+	if len(ht.Certificates) != 0 {
+		endDate := ht.Certificates[0].NotAfter
+		// 如果证书准备过期，设置为失败
+		if endDate.UnixNano() < time.Now().UnixNano()+warningCertExpiredDuration.Nanoseconds() {
+			err = fmt.Errorf("证书将于%s过期", endDate.String())
+			return
+		}
+	}
+
+	// 如果未配置检测脚本，则直接返回
+	if params.script == "" {
+		return
+	}
+
+	vm := goja.New()
+	// 如果响应数据是json，转换为map
+	if strings.Contains(resp.Header.Get("Content-Type"), "json") {
+		m := make(map[string]interface{})
+		// 转换错误忽略
+		err = json.Unmarshal(buf, &m)
+		if err != nil {
+			return
+		}
+		vm.Set("resp", m)
+	} else {
+		vm.Set("resp", string(buf))
+	}
+	script := fmt.Sprintf(`(function(){
+		%s
+	})(resp);`, params.script)
+	_, err = vm.RunString(script)
+	if err != nil {
+		return
+	}
 	return
 }
 
@@ -143,11 +188,6 @@ func (srv *HTTPSrv) fillSubResult(ht *HT.HTTPTrace, subResult *schema.HTTPDetect
 			ht.Certificates[0].NotBefore.String(),
 			endDate.String(),
 		}
-		// 如果证书准备过期，设置为失败
-		if endDate.UnixNano() < time.Now().UnixNano()+warningCertExpiredDuration.Nanoseconds() {
-			subResult.Result = schema.DetectorResultFail
-			subResult.Message = fmt.Sprintf("证书将于%s过期", endDate.String())
-		}
 	}
 }
 
@@ -163,7 +203,12 @@ func (srv *HTTPSrv) detect(ctx context.Context, config *ent.HTTPDetector) (httpD
 	messages := make([]string, 0)
 
 	for _, ip := range config.Ips {
-		ht, err := srv.check(ctx, config.URL, ip, timeout)
+		ht, err := srv.check(ctx, httpCheckParams{
+			url:     config.URL,
+			ip:      ip,
+			timeout: timeout,
+			script:  config.Script,
+		})
 		subResult := schema.HTTPDetectorSubResult{
 			Addr: ip,
 		}

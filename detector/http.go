@@ -143,6 +143,7 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (ht *HT.H
 	}
 
 	vm := goja.New()
+	var value interface{}
 	// 如果响应数据是json，转换为map
 	if strings.Contains(resp.Header.Get("Content-Type"), "json") {
 		m := make(map[string]interface{})
@@ -151,9 +152,13 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (ht *HT.H
 		if err != nil {
 			return
 		}
-		vm.Set("resp", m)
+		value = m
 	} else {
-		vm.Set("resp", string(buf))
+		value = string(buf)
+	}
+	err = vm.Set("resp", value)
+	if err != nil {
+		return
 	}
 	script := fmt.Sprintf(`(function(){
 		%s

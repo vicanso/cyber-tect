@@ -19,6 +19,7 @@ func (HTTPDetector) Fields() []ent.Field {
 			NotEmpty().
 			Comment("测试URL"),
 		field.String("script").
+			Optional().
 			Comment("检测脚本"),
 	}
 }

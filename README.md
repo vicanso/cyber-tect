@@ -171,7 +171,7 @@ docker run -d --restart=always \
   -p 7001:7001 \
   -e GO_ENV=production \
   -e DATABASE_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
-  -e MAIL_URL=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
+  -e MAIL_URI=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
   -e DETECTOR_INTERVAL=1m \
   -e DETECTOR_EXPIRED=30d \
   --name=cybertect \

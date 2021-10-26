@@ -344,7 +344,7 @@ func MustGetDatabaseConfig() *DatabaseConfig {
 // MustGetMailConfig 获取邮件配置
 func MustGetMailConfig() *MailConfig {
 	prefix := "mail."
-	urlInfo, err := url.Parse(defaultViperX.GetStringFromENV(prefix + "url"))
+	urlInfo, err := url.Parse(defaultViperX.GetStringFromENV(prefix + "uri"))
 	if err != nil {
 		panic(err)
 	}

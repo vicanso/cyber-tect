@@ -4,9 +4,9 @@ go 1.17
 
 require (
 	entgo.io/ent v0.9.1
-	github.com/alicebob/miniredis/v2 v2.15.1
+	github.com/alicebob/miniredis/v2 v2.16.0
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20211011172007-d99e4b8cbf48
+	github.com/dop251/goja v0.0.0-20211022113120-dc8c55024d06
 	github.com/dustin/go-humanize v1.0.0
 	github.com/felixge/fgprof v0.9.1
 	github.com/fogleman/gg v1.3.0
@@ -21,9 +21,9 @@ require (
 	github.com/jackc/pgx/v4 v4.13.0
 	github.com/jinzhu/now v1.1.2
 	github.com/mcuadros/go-defaults v1.2.0
-	github.com/minio/minio-go/v7 v7.0.14
+	github.com/minio/minio-go/v7 v7.0.15
 	github.com/mozillazg/go-pinyin v0.18.0
-	github.com/pyroscope-io/pyroscope v0.2.1
+	github.com/pyroscope-io/pyroscope v0.2.2
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.3.0
 	github.com/rs/zerolog v1.25.0
@@ -31,11 +31,11 @@ require (
 	github.com/spf13/cast v1.4.1
 	github.com/stretchr/testify v1.7.0
 	github.com/thoas/go-funk v0.9.1
-	github.com/tidwall/gjson v1.9.4
+	github.com/tidwall/gjson v1.10.2
 	github.com/vicanso/count-warner v1.2.0
 	github.com/vicanso/elton v1.7.0
 	github.com/vicanso/elton-compress v1.2.0
-	github.com/vicanso/elton-session v1.2.1
+	github.com/vicanso/elton-session v1.2.2
 	github.com/vicanso/go-axios v1.3.2
 	github.com/vicanso/go-cache v1.3.0
 	github.com/vicanso/go-gauge v0.0.1
@@ -46,7 +46,7 @@ require (
 	github.com/vicanso/http-trace v1.0.6
 	github.com/vicanso/ips v1.2.1
 	github.com/vicanso/lru-ttl v1.3.1
-	github.com/vicanso/viperx v0.1.4
+	github.com/vicanso/viperx v0.2.0
 	go.mongodb.org/mongo-driver v1.7.3
 	go.uber.org/atomic v1.9.0
 	go.uber.org/automaxprocs v1.4.0
@@ -122,9 +122,9 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
+	golang.org/x/net v0.0.0-20211020060615-d418f374d309 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20211015200801-69063c4bb744 // indirect
+	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

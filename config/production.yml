@@ -1,13 +1,3 @@
 # 仅需要添加与default不相同的配置
 # 生产环境配置
 
-
-# database配置
-database:
-  # 可以配置为下面的形式，则从env中获取DATABASE_URI对应的字符串来当数据库连接串
-  uri: DATABASE_URI
-
-# mail相关配置
-mail:
-  # url: smtp://tree.xie@outlook.com:pass@smtp.office365.com:587
-  url: MAIL_SMTP

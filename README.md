@@ -173,7 +173,7 @@ docker run -d --restart=always \
   -e DATABASE_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
   -e MAIL_URL=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
   -e DETECTOR_INTERVAL=1m \
-  -e DETECTOR_RESULT_EXPIRED=30d \
+  -e DETECTOR_EXPIRED=30d \
   --name=cybertect \
   vicanso/cybertect
 ```
@@ -182,4 +182,4 @@ docker run -d --restart=always \
 - `POSTGRES_URI` 数据库连接地址
 - `MAIL_SMTP` 用于发送告警邮件的SMTP设置 
 - `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
-- `DETECTOR_RESULT_EXPIRED` 检测结果过期时间，默认为30天(30d)
+- `DETECTOR_EXPIRED` 检测结果过期时间，默认为30天(30d)

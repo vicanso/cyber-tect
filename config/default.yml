@@ -75,6 +75,6 @@ pyroscope:
   # token: ""
 
 detector:
-  expired: DETECTOR_RESULT_EXPIRED
-  interval: DETECTOR_INTERVAL
+  expired: 30d 
+  interval: 1m 
   concurrency: 5

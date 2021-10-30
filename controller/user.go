@@ -21,6 +21,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -125,6 +126,7 @@ type (
 	userUpdateMeParams struct {
 		Name        string `json:"name" validate:"omitempty,xUserName"`
 		Email       string `json:"email" validate:"omitempty,xUserEmail"`
+		AlarmURL    string `json:"alarmURL" validate:"omitempty,xUserAlarmURL"`
 		Password    string `json:"password" validate:"omitempty,xUserPassword"`
 		NewPassword string `json:"newPassword" validate:"omitempty,xUserPassword"`
 	}
@@ -357,6 +359,9 @@ func (params *userUpdateMeParams) updateOneAccount(ctx context.Context, account 
 	}
 	if params.NewPassword != "" {
 		updateOne = updateOne.SetPassword(params.NewPassword)
+	}
+	if params.AlarmURL != "" {
+		updateOne = updateOne.SetAlarmURL(strings.TrimSpace(params.AlarmURL))
 	}
 	return updateOne.Save(ctx)
 }

@@ -27,6 +27,9 @@ func init() {
 	AddAlias("xUserRole", "ascii,min=1,max=10")
 	// 用户分组
 	AddAlias("xUserGroup", "ascii,min=1,max=10")
+	// 用户接收告警地址
+	// 因为更新时使用空格表示删，因此不限制为url
+	AddAlias("xUserAlarmURL", "ascii,min=1,max=200")
 	// 用户行为分类
 	// TODO 是否调整为支持配置的方式
 	Add("xUserActionCategory", newIsInString([]string{

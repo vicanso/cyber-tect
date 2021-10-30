@@ -37,9 +37,9 @@ type httpDetectorCtrl struct{}
 
 type (
 	httpDetectorAddParams struct {
-		detectorAddParams `json:"detectorAddParams"`
+		detectorAddParams
 
-		IPS []string `json:"ips" validate:"omitempty,dive,ip"`
+		IPS []string `json:"ips" validate:"required,dive,ip"`
 		URL string   `json:"url" validate:"required,xHTTP"`
 		// 检测脚本
 		Script string `json:"script" validate:"omitempty"`

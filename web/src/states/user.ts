@@ -43,6 +43,7 @@ export interface UserDetailInfo {
   roles: string[];
   groups: string[];
   email: string;
+  alarmURL: string;
 }
 
 // 用户账户信息

@@ -12,7 +12,7 @@ import { defineComponent, ref } from "vue";
 
 import { userMeDetail, UserDetailInfo, userUpdateMe } from "../states/user";
 import ExLoading from "../components/ExLoading";
-import { showError, showWarning } from "../helpers/util";
+import { showError, showWarning, diff, toast } from "../helpers/util";
 
 export default defineComponent({
   name: "Profile",
@@ -34,22 +34,22 @@ export default defineComponent({
     const form = ref({
       name: "",
       email: "",
+      alarmURL: "",
     });
     const update = async () => {
       if (processing.value) {
         return;
       }
-      const { name, email } = form.value;
-      if (!name && !email) {
+      // 仅更新时数据有变化
+      const { name, email, alarmURL } = form.value;
+      if (!name && !email && !alarmURL) {
         showWarning(message, "信息无修改无需要更新");
         return;
       }
       processing.value = true;
       try {
-        await userUpdateMe({
-          name,
-          email,
-        });
+        await userUpdateMe({ name, email, alarmURL });
+        toast(message, "已成功更新信息。");
       } catch (err) {
         showError(message, err);
       } finally {
@@ -100,6 +100,19 @@ export default defineComponent({
                   size={size}
                   onUpdateValue={(value) => {
                     form.email = value;
+                  }}
+                />
+              </NFormItem>
+            </NGridItem>
+            <NGridItem span={24}>
+              <NFormItem label="告警接收地址：">
+                <NInput
+                  placeholder="请输入告警接收地址，如果要清除则输入空格(未配置则发送告警信息至邮箱)"
+                  defaultValue={detail.alarmURL}
+                  clearable
+                  size={size}
+                  onUpdateValue={(value) => {
+                    form.alarmURL = value;
                   }}
                 />
               </NFormItem>

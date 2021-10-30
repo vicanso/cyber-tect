@@ -94,6 +94,10 @@ func (User) Fields() []ent.Field {
 		field.String("email").
 			Optional().
 			Comment("用户邮箱"),
+		// 用户自定义的接收告警的地址
+		field.String("alarmURL").
+			Optional().
+			Comment("告警地址"),
 	}
 }
 

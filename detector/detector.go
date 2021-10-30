@@ -17,6 +17,7 @@ package detector
 import (
 	"context"
 	"net"
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -30,6 +31,7 @@ import (
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/go-axios"
 	parallel "github.com/vicanso/go-parallel"
 	"github.com/vicanso/hes"
 	"go.uber.org/atomic"
@@ -107,7 +109,7 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 	}
 	users, err := helper.EntGetClient().User.Query().
 		Where(user.AccountIn(detail.Receivers...)).
-		Select("email").
+		Select(user.FieldEmail, user.FieldAlarmURL).
 		All(context.Background())
 	if err != nil {
 		log.Error(ctx).
@@ -122,7 +124,27 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 
 	emails := make([]string, 0)
 	for _, item := range users {
-		if item.Email != "" {
+		// 如果有配置了alarm地址
+		if item.AlarmURL != "" {
+			go func() {
+				ctx1, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+				defer cancel()
+				_, err := axios.Request(&axios.Config{
+					Context: ctx,
+					Method:  http.MethodPost,
+					URL:     item.AlarmURL,
+					Body: map[string]string{
+						"title":   title,
+						"message": message,
+					},
+				})
+				if err != nil {
+					log.Error(ctx1).
+						Str("category", "sendAlarm").
+						Err(err)
+				}
+			}()
+		} else if item.Email != "" {
 			emails = append(emails, item.Email)
 		}
 	}

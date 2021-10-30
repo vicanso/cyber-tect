@@ -64,7 +64,8 @@ export default defineComponent({
         name: "检测脚本：",
         key: "script",
         span: 24,
-        placeholder: "请输入对应的检测脚本，响应数据为resp，可针其数据检测(如果是更新，如果是需要清空，需要设置为空格)",
+        placeholder:
+          "请输入对应的检测脚本，响应数据为resp，可针其数据检测(如果是更新，如果是需要清空，需要设置为空格)",
         type: FormItemTypes.TextArea,
       },
     ];

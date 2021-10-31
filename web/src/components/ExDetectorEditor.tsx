@@ -1,4 +1,11 @@
-import { NCard, NPageHeader, NSpin, useMessage } from "naive-ui";
+import {
+  NCard,
+  NPageHeader,
+  NSpin,
+  useMessage,
+  FormRules,
+  FormItemRule,
+} from "naive-ui";
 import { defineComponent, PropType, ref } from "vue";
 
 import { ConfigStatus } from "../states/configs";
@@ -11,16 +18,25 @@ function noop(): void {
   // 无操作
 }
 
+enum FormItemKey {
+  name = "name",
+  status = "status",
+  timeout = "timeout",
+  owners = "owners",
+  receivers = "receivers",
+  description = "description",
+}
+
 export function getDefaultForItems(): FormItem[] {
   return [
     {
       name: "名称：",
-      key: "name",
+      key: FormItemKey.name,
       placeholder: "请输入检测配置名称",
     },
     {
       name: "状态：",
-      key: "status",
+      key: FormItemKey.status,
       type: FormItemTypes.Select,
       placeholder: "请选择配置状态",
       options: [
@@ -36,25 +52,70 @@ export function getDefaultForItems(): FormItem[] {
     },
     {
       name: "超时时长：",
-      key: "timeout",
+      key: FormItemKey.timeout,
       type: FormItemTypes.InputDuration,
       placeholder: "请输入超时时长",
     },
     {
       name: "用户列表：",
-      key: "owners",
+      key: FormItemKey.owners,
       type: FormItemTypes.MultiUserSelect,
       placeholder: "请选择可以修改此配置的用户",
       span: 12,
     },
     {
       name: "告警接收：",
-      key: "receivers",
+      key: FormItemKey.receivers,
       type: FormItemTypes.MultiUserSelect,
       placeholder: "请选择接收此告警的用户",
       span: 12,
     },
   ];
+}
+
+export function newRequireRule(message: string): FormItemRule {
+  return {
+    required: true,
+    message: message,
+    trigger: "blur",
+  };
+}
+
+export function newListRequireRules(message: string): FormItemRule {
+  return {
+    required: true,
+    message: message,
+    trigger: "blur",
+    validator(rule, value) {
+      if (!value || !value.length) {
+        return false;
+      }
+      return true;
+    },
+  };
+}
+
+export function getDefaultFormRules(extra?: FormRules): FormRules {
+  const defaultRules: FormRules = {
+    [FormItemKey.name]: newRequireRule("配置名称不能为空"),
+    [FormItemKey.status]: {
+      required: true,
+      message: "配置状态不能为空",
+      trigger: "blur",
+      validator(rule, value) {
+        if (!value) {
+          return false;
+        }
+        return true;
+      },
+    },
+    [FormItemKey.timeout]: newRequireRule("超时配置不能为空"),
+    [FormItemKey.description]: newRequireRule("配置说明不能为空"),
+  };
+  if (!extra) {
+    return defaultRules;
+  }
+  return Object.assign(defaultRules, extra);
 }
 
 function fillItems(items: FormItem[], data: Record<string, unknown>) {
@@ -112,6 +173,10 @@ export default defineComponent({
       >,
       required: true,
     },
+    rules: {
+      type: Object as PropType<FormRules>,
+      default: null,
+    },
   },
   setup(props) {
     const message = useMessage();
@@ -124,7 +189,7 @@ export default defineComponent({
 
     items.push({
       name: "配置描述：",
-      key: "description",
+      key: FormItemKey.description,
       type: FormItemTypes.TextArea,
       placeholder: "请输入配置描述",
       span: 24,
@@ -182,7 +247,8 @@ export default defineComponent({
     };
   },
   render() {
-    const { title, description, id, onBack, descriptionDetail } = this.$props;
+    const { title, description, id, onBack, descriptionDetail, rules } =
+      this.$props;
     const { fetching, processing, items, submit } = this;
     // 如果指定了id，则展示加载中
     if (fetching && id) {
@@ -202,6 +268,7 @@ export default defineComponent({
               formItems={items}
               onSubmit={submit}
               submitText={id !== 0 ? "更新" : "添加"}
+              rules={rules}
             />
           </NPageHeader>
         </NCard>

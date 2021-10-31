@@ -10,6 +10,10 @@ import useDetectorState, {
 } from "../../states/detector";
 import { newListColumn } from "../../components/ExTable";
 import Detector from "./Detector";
+import {
+  getDefaultFormRules,
+  newListRequireRules,
+} from "../../components/ExDetectorEditor";
 
 export default defineComponent({
   name: "Ping",
@@ -42,6 +46,9 @@ export default defineComponent({
         min: 1,
       },
     ];
+    const rules = getDefaultFormRules({
+      ips: newListRequireRules("IP地址列表不能为空"),
+    });
     return (
       <Detector
         columns={columns}
@@ -53,6 +60,7 @@ export default defineComponent({
         description={"指定Ping检测IP列表，定时Ping该IP是否正常"}
         formItems={formItems}
         data={pingDetectors}
+        rules={rules}
       />
     );
   },

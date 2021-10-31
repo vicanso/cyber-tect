@@ -1,5 +1,5 @@
 import { defineComponent, ref, PropType } from "vue";
-import { NButton, NCard } from "naive-ui";
+import { NButton, NCard, FormRules } from "naive-ui";
 import { css } from "@linaria/core";
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 
@@ -66,6 +66,10 @@ export default defineComponent({
       type: Object,
       required: true,
     },
+    rules: {
+      type: Object as PropType<FormRules>,
+      default: null,
+    },
   },
   setup() {
     const mode = ref(Mode.List);
@@ -89,6 +93,7 @@ export default defineComponent({
       columns,
       fetch,
       descriptionDetail,
+      rules,
     } = this.$props;
     const { userInfo } = this;
     const columnsClone = getDefaultColumns().slice(0);
@@ -137,6 +142,7 @@ export default defineComponent({
         onBack={() => {
           this.mode = Mode.List;
         }}
+        rules={rules}
       />
     );
   },

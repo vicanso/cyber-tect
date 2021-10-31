@@ -11,6 +11,10 @@ import useDetectorState, {
 } from "../../states/detector";
 import { newListColumn } from "../../components/ExTable";
 import Detector from "./Detector";
+import {
+  getDefaultFormRules,
+  newListRequireRules,
+} from "../../components/ExDetectorEditor";
 
 export default defineComponent({
   name: "TCP",
@@ -43,6 +47,9 @@ export default defineComponent({
         min: 1,
       },
     ];
+    const rules = getDefaultFormRules({
+      addrs: newListRequireRules("检测地址列表不能为空"),
+    });
 
     return (
       <Detector
@@ -55,6 +62,7 @@ export default defineComponent({
         description={"指定IP与端口，定时检测是否可用"}
         formItems={formItems}
         data={tcpDetectors}
+        rules={rules}
       />
     );
   },

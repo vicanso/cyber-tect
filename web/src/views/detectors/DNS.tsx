@@ -11,6 +11,11 @@ import useDetectorState, {
 } from "../../states/detector";
 import { newListColumn } from "../../components/ExTable";
 import Detector from "./Detector";
+import {
+  getDefaultFormRules,
+  newRequireRule,
+  newListRequireRules,
+} from "../../components/ExDetectorEditor";
 
 export default defineComponent({
   name: "DNS",
@@ -65,6 +70,11 @@ export default defineComponent({
         min: 1,
       },
     ];
+    const rules = getDefaultFormRules({
+      host: newRequireRule("域名不能为空"),
+      servers: newListRequireRules("DNS服务器列表不能为空"),
+      ips: newListRequireRules("域名解析IP地址列表不能为空"),
+    });
     return (
       <Detector
         columns={columns}
@@ -76,6 +86,7 @@ export default defineComponent({
         description={"指定DNS服务器检测解析IP是否正确"}
         formItems={formItems}
         data={dnsDetectors}
+        rules={rules}
       />
     );
   },

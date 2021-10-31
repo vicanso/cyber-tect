@@ -1,5 +1,6 @@
 import { defineComponent } from "vue";
 import { css } from "@linaria/core";
+import { NButton, NPopover } from "naive-ui";
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 
 import { FormItem, FormItemTypes } from "../../components/ExFormInterface";
@@ -13,7 +14,11 @@ import useDetectorState, {
 
 import { newListColumn } from "../../components/ExTable";
 import Detector from "./Detector";
-import { NButton, NPopover } from "naive-ui";
+import {
+  getDefaultFormRules,
+  newListRequireRules,
+} from "../../components/ExDetectorEditor";
+
 const connectionURIListClass = css`
   margin: 0;
   padding: 0;
@@ -106,6 +111,9 @@ export default defineComponent({
         </ul>
       </NPopover>
     );
+    const rules = getDefaultFormRules({
+      uris: newListRequireRules("连接串列表不能为空"),
+    });
     return (
       <Detector
         columns={columns}
@@ -120,6 +128,7 @@ export default defineComponent({
         descriptionDetail={descriptionDetail}
         formItems={formItems}
         data={databaseDetectors}
+        rules={rules}
       />
     );
   },

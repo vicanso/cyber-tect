@@ -72,7 +72,7 @@ export default defineComponent({
       if (detectorResultSummaries.items.length !== 0) {
         const summaryList = detectorResultSummaries.items.map((item) => {
           const goToResultView = (result: string) => {
-            var query: LocationQueryRaw = {};
+            const query: LocationQueryRaw = {};
             if (result) {
               query.result = result;
             }

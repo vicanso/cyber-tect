@@ -12,7 +12,7 @@ import { defineComponent, ref } from "vue";
 
 import { userMeDetail, UserDetailInfo, userUpdateMe } from "../states/user";
 import ExLoading from "../components/ExLoading";
-import { showError, showWarning, diff, toast } from "../helpers/util";
+import { showError, showWarning, toast } from "../helpers/util";
 
 export default defineComponent({
   name: "Profile",

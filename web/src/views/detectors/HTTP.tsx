@@ -10,6 +10,11 @@ import useDetectorState, {
 } from "../../states/detector";
 import { newListColumn } from "../../components/ExTable";
 import Detector from "./Detector";
+import {
+  getDefaultFormRules,
+  newRequireRule,
+  newListRequireRules,
+} from "../../components/ExDetectorEditor";
 
 export default defineComponent({
   name: "HTTP",
@@ -69,6 +74,10 @@ export default defineComponent({
         type: FormItemTypes.TextArea,
       },
     ];
+    const rules = getDefaultFormRules({
+      url: newRequireRule("检测地址不能为空"),
+      ips: newListRequireRules("IP地址列表不能为空"),
+    });
     return (
       <Detector
         columns={columns}
@@ -80,6 +89,7 @@ export default defineComponent({
         description={"指定HTTP检测URL以及IP列表，定时检测该URL是否可正常访问"}
         formItems={formItems}
         data={httpDetectors}
+        rules={rules}
       />
     );
   },

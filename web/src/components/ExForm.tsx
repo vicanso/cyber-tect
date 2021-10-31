@@ -1,4 +1,6 @@
 import {
+  FormRules,
+  FormInst,
   NButton,
   NDatePicker,
   NDynamicInput,
@@ -11,13 +13,16 @@ import {
   NInputGroupLabel,
   NInputNumber,
   NSelect,
+  useMessage,
 } from "naive-ui";
 import { Value } from "naive-ui/lib/select/src/interface";
 import { Component, defineComponent, PropType, ref } from "vue";
+import { set } from "lodash-es";
 
 import ExUserSelect from "./ExUserSelect";
 import { FormItem, FormItemTypes } from "./ExFormInterface";
 import { durationToSeconds } from "../helpers/util";
+import { showError } from "../helpers/util";
 
 export default defineComponent({
   name: "ExForm",
@@ -36,21 +41,53 @@ export default defineComponent({
       type: String,
       default: "提交",
     },
+    rules: {
+      type: Object as PropType<FormRules>,
+      default: null,
+    },
   },
   setup(props) {
+    const formRef = ref({} as FormInst);
     const params = ref({} as Record<string, unknown>);
     props.formItems.forEach((item) => {
       if (item.defaultValue) {
-        params.value[item.key] = item.defaultValue;
+        set(params.value, item.key, item.defaultValue);
       }
     });
+    const formValidate = (): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        formRef.value.validate((errors) => {
+          if (errors) {
+            const msgList = errors.map((arr) => {
+              return arr.map((item) => item.message).join(",");
+            });
+            reject(new Error(msgList.join(";")));
+            return;
+          }
+          resolve();
+        });
+      });
+    };
+    const message = useMessage();
+
     return {
+      handleSubmit: async (data: Record<string, unknown>) => {
+        try {
+          await formValidate();
+        } catch (err) {
+          // 如果出错，则不再提交
+          showError(message, err);
+          return;
+        }
+        return props.onSubmit(data);
+      },
       params,
+      formRef,
     };
   },
   render() {
-    const { onSubmit, submitText } = this.$props;
-    const { params } = this;
+    const { submitText, rules } = this.$props;
+    const { params, handleSubmit } = this;
     const size = "large";
     const createSelect = (item: FormItem, multiple: boolean) => {
       return (
@@ -62,7 +99,7 @@ export default defineComponent({
           options={item.options || []}
           placeholder={item.placeholder}
           onUpdateValue={(value) => {
-            params[item.key] = value;
+            set(params, item.key, value);
           }}
         />
       );
@@ -221,7 +258,7 @@ export default defineComponent({
               placeholder={item.placeholder}
               defaultValue={(item.defaultValue || "") as string}
               onUpdateValue={(value) => {
-                params[item.key] = value;
+                set(params, item.key, value);
               }}
               clearable
             />
@@ -230,19 +267,25 @@ export default defineComponent({
       }
       return (
         <NGridItem span={item.span || 8}>
-          <NFormItem label={item.name}>{component}</NFormItem>
+          <NFormItem label={item.name} path={item.key}>
+            {component}
+          </NFormItem>
         </NGridItem>
       );
     });
     arr.push(
       <NGridItem span={24}>
-        <NButton size={size} class="widthFull" onClick={() => onSubmit(params)}>
+        <NButton
+          size={size}
+          class="widthFull"
+          onClick={() => handleSubmit(params)}
+        >
           {submitText}
         </NButton>
       </NGridItem>
     );
     return (
-      <NForm labelPlacement="left">
+      <NForm labelPlacement="left" rules={rules} model={params} ref="formRef">
         <NGrid xGap={24}>{arr}</NGrid>
       </NForm>
     );

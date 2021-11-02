@@ -4,6 +4,7 @@ import { TableColumn } from "naive-ui/lib/data-table/src/interface";
 import ExTable from "../../components/ExTable";
 import useUserState, { userListLogin, userLoginClear } from "../../states/user";
 import { today } from "../../helpers/util";
+import { FormItemTypes } from "../../components/ExFormInterface";
 
 function getColumns(): TableColumn[] {
   return [
@@ -70,8 +71,9 @@ function getFilters() {
     {
       key: "begin:end",
       name: "开始结束时间：",
-      type: "daterange",
+      type: FormItemTypes.DateRange,
       span: 12,
+      placeholder: "请选择开始时间:请选择结束时间",
       defaultValue: [today().toISOString(), new Date().toISOString()],
     },
   ];

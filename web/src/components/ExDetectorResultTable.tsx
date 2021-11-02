@@ -7,7 +7,6 @@ import ExTable from "./ExTable";
 import { getFromQuery } from "../helpers/util";
 
 function getFilters(query: LocationQuery) {
-  console.dir(getFromQuery(query, "result"));
   return [
     {
       name: "结果：",
@@ -41,6 +40,7 @@ function getFilters(query: LocationQuery) {
     {
       key: "startedAt:endedAt",
       name: "开始结束时间：",
+      placeholder: "请选择开始时间:请选择结束时间",
       type: FormItemTypes.DateRange,
       span: 18,
     },

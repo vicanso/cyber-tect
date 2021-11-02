@@ -339,12 +339,23 @@ export default defineComponent({
               }
             });
           }
+          let startPlaceholder = filterItem.placeholder;
+          let endPlaceholder = filterItem.placeholder;
+          if (filterItem.placeholder) {
+            const arr = filterItem.placeholder.split(":");
+            if (arr.length === 2) {
+              startPlaceholder = arr[0];
+              endPlaceholder = arr[1];
+            }
+          }
           component = (
             <NDatePicker
               class="widthFull"
               format="yyyy-MM-dd HH:mm:ss"
               size={size}
               defaultValue={defaultValue}
+              start-placeholder={startPlaceholder}
+              end-placeholder={endPlaceholder}
               ranges={ranges}
               type="daterange"
               clearable

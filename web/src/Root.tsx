@@ -7,6 +7,7 @@ import {
   NLoadingBarProvider,
   NMessageProvider,
   NNotificationProvider,
+  zhCN,
 } from "naive-ui";
 import useCommonState from "./states/common";
 
@@ -23,7 +24,7 @@ export default defineComponent({
   render() {
     const isDark = this.settings.theme === "dark";
     return (
-      <NConfigProvider theme={isDark ? darkTheme : null}>
+      <NConfigProvider theme={isDark ? darkTheme : null} locale={zhCN}>
         <NLoadingBarProvider>
           <NMessageProvider>
             <NNotificationProvider>

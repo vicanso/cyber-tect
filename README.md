@@ -57,15 +57,25 @@ HTTP检测通过指定检测URL，定时调用判断返回的HTTP状态码是否
 - `告警接收` 选择接收告警邮件的用户
 - `IP列表` 指定URL中域名对应的解析，如果域名解析的IP为多个，可以配置多个IP地址，以`,`分隔。如果不需要指定（配置的检测地址为IP形式或直接通过DNS解析），则配置为`0.0.0.0`
 - `检测地址` 配置检测的http(s)访问地址则可
+- `检测脚本` 可配置基于响应数据的检测脚本（javascript)，如果响应类型的json，则resp为Object，否则为String
 - `配置描述` 检测配置描述
 
 ![](./images/http-setting.jpg)
+
+检测脚本示例（响应数据为json)：
+```javascript
+if (!resp.code || resp.code != "123") {
+  throw new Error("信息异常");
+}
+```
 
 完成配置之后，系统会定时执行检测配置，相关检测结果可在列表中查询并可查询每次检测的详情，包括HTTP(s)请求完整链路的时间（tcp连接、tls连接等）。
 
 ![](./images/http-detect-result.jpg)
 
 ![](./images/http-detect-result-detail.jpg)
+
+
 
 ## DNS检测
 

@@ -173,6 +173,10 @@ func convertParallelError(err error, message string) error {
 
 // RemoveExpiredDetectorResult 清除过期数据
 func RemoveExpiredDetectorResult() (err error) {
+	// 如果不需要清除则直接返回
+	if detectorConfig.Expired <= 0 {
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	t := time.Now().Add(-detectorConfig.Expired)

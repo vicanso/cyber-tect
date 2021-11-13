@@ -4,9 +4,31 @@
 
 提供常用的HTTP接口、TCP端口、DNS域名解析、Ping以及各常用数据库的定时检测告警。
 
-## database
+## 启动程序
 
-数据库暂仅支持postgres与mysql，仅需要在配置数据库连接串时指定则可，连接串格式如下：
+建议直接使用已打包好的docker镜像启动项目，启动脚本如下：
+
+```bash
+docker run -d --restart=always \
+  -p 7001:7001 \
+  -e GO_ENV=production \
+  -e DATABASE_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
+  -e MAIL_URI=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
+  -e DETECTOR_INTERVAL=1m \
+  -e DETECTOR_EXPIRED=30d \
+  --name=cybertect \
+  vicanso/cybertect
+```
+
+- `GO_ENV` 设置为正式环境
+- `DATABASE_URI` 数据库连接地址
+- `MAIL_URI` 用于发送告警邮件的SMTP设置 
+- `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
+- `DETECTOR_EXPIRED` 检测结果过期时间，默认为30天(30d)，过期后的数据会自动清除。若不希望清除检测结果，则设置为负数则可，如：-1d
+
+## 数据存储 
+
+检测配置等数据暂仅支持存储至postgres与mysql，仅需要启动时通过环境变量(DATABASE_URI)指定数据库连接串时指定则可，连接串格式如下：
 
 - `postgres`: postgres://root:pass@127.0.0.1:5432/cybertect?maxIdleConns=5&maxIdleTime=30m&maxOpenConns=100
 - `mysql`: mysql://root:pass@tcp(127.0.0.1:3306)/cybertect?timeout=30s&parseTime=true&maxIdleConns=5&maxIdleTime=30m&maxOpenConns=100
@@ -46,28 +68,6 @@ make install && make generate
 go run main.go 
 ```
 
-## 启动程序
-
-建议直接使用已打包好的docker镜像启动项目，启动脚本如下：
-
-```bash
-docker run -d --restart=always \
-  -p 7001:7001 \
-  -e GO_ENV=production \
-  -e DATABASE_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
-  -e MAIL_URI=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
-  -e DETECTOR_INTERVAL=1m \
-  -e DETECTOR_EXPIRED=30d \
-  --name=cybertect \
-  vicanso/cybertect
-```
-
-- `GO_ENV` 设置为正式环境
-- `POSTGRES_URI` 数据库连接地址
-- `MAIL_SMTP` 用于发送告警邮件的SMTP设置 
-- `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
-- `DETECTOR_EXPIRED` 检测结果过期时间，默认为30天(30d)
-
 
 ## HTTP检测
 
@@ -87,7 +87,7 @@ HTTP检测通过指定检测URL，定时调用判断返回的HTTP状态码是否
 
 检测脚本示例（响应数据为json)：
 ```javascript
-if (!resp.code || resp.code != "123") {
+if (!resp || resp.code != "123") {
   throw new Error("信息异常");
 }
 ```

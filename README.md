@@ -46,6 +46,29 @@ make install && make generate
 go run main.go 
 ```
 
+## 启动程序
+
+建议直接使用已打包好的docker镜像启动项目，启动脚本如下：
+
+```bash
+docker run -d --restart=always \
+  -p 7001:7001 \
+  -e GO_ENV=production \
+  -e DATABASE_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
+  -e MAIL_URI=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
+  -e DETECTOR_INTERVAL=1m \
+  -e DETECTOR_EXPIRED=30d \
+  --name=cybertect \
+  vicanso/cybertect
+```
+
+- `GO_ENV` 设置为正式环境
+- `POSTGRES_URI` 数据库连接地址
+- `MAIL_SMTP` 用于发送告警邮件的SMTP设置 
+- `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
+- `DETECTOR_EXPIRED` 检测结果过期时间，默认为30天(30d)
+
+
 ## HTTP检测
 
 HTTP检测通过指定检测URL，定时调用判断返回的HTTP状态码是否>=200且<400，如果是则认为成功，否则失败（对于https还检测期证书是否差不多过期，如果要过期则认为检测失败），失败时通过email发送告警邮箱。配置如下：
@@ -171,25 +194,3 @@ mongodb连接串格式如下：`mongodb://[username:password@]host1[:port1][,...
 
 ![](./images/profile.jpg)
 
-
-## 启动程序
-
-建议直接使用已打包好的docker镜像启动项目，启动脚本如下：
-
-```bash
-docker run -d --restart=always \
-  -p 7001:7001 \
-  -e GO_ENV=production \
-  -e DATABASE_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
-  -e MAIL_URI=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
-  -e DETECTOR_INTERVAL=1m \
-  -e DETECTOR_EXPIRED=30d \
-  --name=cybertect \
-  vicanso/cybertect
-```
-
-- `GO_ENV` 设置为正式环境
-- `POSTGRES_URI` 数据库连接地址
-- `MAIL_SMTP` 用于发送告警邮件的SMTP设置 
-- `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
-- `DETECTOR_EXPIRED` 检测结果过期时间，默认为30天(30d)

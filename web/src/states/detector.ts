@@ -768,6 +768,7 @@ export async function getResultSummaries(params: {
   if (detectorResultSummaries.processing) {
     return;
   }
+  detectorResultSummaries.items.length = 0;
   detectorResultSummaries.processing = true;
   try {
     const { data } = await request.get<{

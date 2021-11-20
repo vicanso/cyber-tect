@@ -1,4 +1,4 @@
-import { defineComponent } from "vue";
+import { defineComponent, onBeforeMount } from "vue";
 import { NCard, useMessage, NSpin, NButton } from "naive-ui";
 import { goTo } from "../routes";
 import { names } from "../routes/routes";
@@ -12,11 +12,13 @@ export default defineComponent({
     const message = useMessage();
     const { detectorResultSummaries } = useDetectorState();
 
-    const day = 24 * 3600 * 1000;
-    getResultSummaries({
-      startedAt: new Date(Date.now() - 7 * day).toISOString(),
-    }).catch((err) => {
-      showError(message, err);
+    onBeforeMount(() => {
+      const day = 24 * 3600 * 1000;
+      getResultSummaries({
+        startedAt: new Date(Date.now() - 7 * day).toISOString(),
+      }).catch((err) => {
+        showError(message, err);
+      });
     });
     return {
       detectorResultSummaries,

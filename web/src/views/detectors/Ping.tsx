@@ -16,7 +16,7 @@ import {
 } from "../../components/ExDetectorEditor";
 
 export default defineComponent({
-  name: "Ping",
+  name: "PingDetector",
   setup() {
     const pingDetectors = useDetectorState().pingDetectors;
     const findByID = async (id: number) => {

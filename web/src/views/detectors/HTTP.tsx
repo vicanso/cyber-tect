@@ -17,7 +17,7 @@ import {
 } from "../../components/ExDetectorEditor";
 
 export default defineComponent({
-  name: "HTTP",
+  name: "HTTPDetector",
   setup() {
     const httpDetectors = useDetectorState().httpDetectors;
     const findByID = async (id: number) => {

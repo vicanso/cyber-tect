@@ -15,7 +15,7 @@ import ExLoading from "../components/ExLoading";
 import { showError, showWarning, toast } from "../helpers/util";
 
 export default defineComponent({
-  name: "Profile",
+  name: "ProfileView",
   setup() {
     const message = useMessage();
     const processing = ref(false);

@@ -158,7 +158,7 @@ function getFilters() {
 }
 
 export default defineComponent({
-  name: "HTTPErrors",
+  name: "HTTPErrorStats",
   setup() {
     const message = useMessage();
     const { httpErrorCategories, httpErrors } = useFluxState();

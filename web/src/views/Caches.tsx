@@ -4,7 +4,7 @@ import { adminCleanCacheByKey, adminFindCacheByKey } from "../states/admin";
 import { showError, showWarning, toast } from "../helpers/util";
 
 export default defineComponent({
-  name: "Caches",
+  name: "CachesView",
   setup() {
     const message = useMessage();
     const key = ref("");

@@ -18,7 +18,7 @@ const addButtonClass = css`
 `;
 
 export default defineComponent({
-  name: "Detector",
+  name: "DetectorView",
   props: {
     title: {
       type: String,

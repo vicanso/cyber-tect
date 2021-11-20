@@ -18,7 +18,7 @@ import {
 } from "../../components/ExDetectorEditor";
 
 export default defineComponent({
-  name: "DNS",
+  name: "DNSDetector",
   setup() {
     const dnsDetectors = useDetectorState().dnsDetectors;
     const findByID = async (id: number) => {

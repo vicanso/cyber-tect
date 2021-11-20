@@ -155,7 +155,7 @@ const listMode = "list";
 const updateMode = "update";
 
 export default defineComponent({
-  name: "Users",
+  name: "UsersView",
   setup() {
     const message = useMessage();
     const { users, info } = useUserState();

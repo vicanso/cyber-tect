@@ -80,7 +80,7 @@ function getFilters() {
 }
 
 export default defineComponent({
-  name: "Logins",
+  name: "LoginStats",
   setup() {
     const { logins } = useUserState();
 

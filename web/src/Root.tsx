@@ -14,7 +14,7 @@ import useCommonState from "./states/common";
 import App from "./App";
 
 export default defineComponent({
-  name: "Root",
+  name: "RootPage",
   setup() {
     const { settings } = useCommonState();
     return {

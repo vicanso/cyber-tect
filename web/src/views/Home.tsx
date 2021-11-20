@@ -7,7 +7,7 @@ import { showError } from "../helpers/util";
 import { LocationQueryRaw } from "vue-router";
 
 export default defineComponent({
-  name: "Home",
+  name: "HomeView",
   setup() {
     const message = useMessage();
     const { detectorResultSummaries } = useDetectorState();

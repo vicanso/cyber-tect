@@ -4,7 +4,7 @@ import { ConfigCategory } from "../../states/configs";
 import { FormItem, FormItemTypes } from "../../components/ExFormInterface";
 
 export default defineComponent({
-  name: "Emails",
+  name: "EmailConfigs",
   render() {
     const extraFormItems: FormItem[] = [
       {

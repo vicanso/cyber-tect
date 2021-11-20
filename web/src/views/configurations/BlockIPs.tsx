@@ -3,7 +3,7 @@ import ExConfigEditorList from "../../components/ExConfigEditorList";
 import { ConfigCategory } from "../../states/configs";
 
 export default defineComponent({
-  name: "Configs",
+  name: "BlockIPConfigs",
   render() {
     const extraFormItems = [
       {

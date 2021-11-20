@@ -27,7 +27,7 @@ const connectionURIListClass = css`
 `;
 
 export default defineComponent({
-  name: "Database",
+  name: "DatabaseDetectors",
   setup() {
     const databaseDetectors = useDetectorState().databaseDetectors;
     const findByID = async (id: number) => {

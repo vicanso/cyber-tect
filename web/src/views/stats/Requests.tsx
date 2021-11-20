@@ -237,7 +237,7 @@ function getColumns(): TableColumn[] {
   ];
 }
 export default defineComponent({
-  name: "Requests",
+  name: "RequestStats",
   setup() {
     const message = useMessage();
     const { requestServices, requests, requestRoutes } = useFluxState();

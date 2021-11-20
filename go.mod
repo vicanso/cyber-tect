@@ -6,7 +6,7 @@ require (
 	entgo.io/ent v0.9.1
 	github.com/alicebob/miniredis/v2 v2.16.0
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20211022113120-dc8c55024d06
+	github.com/dop251/goja v0.0.0-20211115154819-26ebff68a7d5
 	github.com/dustin/go-humanize v1.0.0
 	github.com/felixge/fgprof v0.9.1
 	github.com/fogleman/gg v1.3.0
@@ -19,7 +19,7 @@ require (
 	github.com/iancoleman/strcase v0.2.0
 	github.com/influxdata/influxdb-client-go/v2 v2.5.1
 	github.com/jackc/pgx/v4 v4.13.0
-	github.com/jinzhu/now v1.1.2
+	github.com/jinzhu/now v1.1.3
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/minio/minio-go/v7 v7.0.15
 	github.com/mozillazg/go-pinyin v0.18.0
@@ -33,7 +33,7 @@ require (
 	github.com/thoas/go-funk v0.9.1
 	github.com/tidwall/gjson v1.11.0
 	github.com/vicanso/count-warner v1.2.0
-	github.com/vicanso/elton v1.7.0
+	github.com/vicanso/elton v1.8.0
 	github.com/vicanso/elton-compress v1.2.1
 	github.com/vicanso/elton-session v1.2.2
 	github.com/vicanso/go-axios v1.3.2
@@ -122,10 +122,10 @@ require (
 	github.com/xdg-go/stringprep v1.0.2 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
-	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa // indirect
-	golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2 // indirect
+	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871 // indirect
+	golang.org/x/net v0.0.0-20211118161319-6a13c67c3ce4 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20211112193437-faf0a1b62c6b // indirect
+	golang.org/x/sys v0.0.0-20211117180635-dee7805ff2e1 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

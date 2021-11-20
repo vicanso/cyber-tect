@@ -17,7 +17,7 @@ import {
 } from "../../components/ExDetectorEditor";
 
 export default defineComponent({
-  name: "TCP",
+  name: "TCPDetector",
   setup() {
     const tcpDetectors = useDetectorState().tcpDetectors;
     const findByID = async (id: number) => {

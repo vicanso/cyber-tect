@@ -8,7 +8,7 @@ import ExLoading from "../../components/ExLoading";
 const validTab = "当前生效配置";
 
 export default defineComponent({
-  name: "Configs",
+  name: "ConfigsView",
   setup() {
     const message = useMessage();
     const tab = ref("所有配置");

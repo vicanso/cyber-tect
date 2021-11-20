@@ -163,7 +163,7 @@ function getFilters() {
 }
 
 export default defineComponent({
-  name: "UserTrackers",
+  name: "UserTrackerStats",
   setup() {
     const message = useMessage();
     const { userTrackers, userTrackerActions } = useFluxState();

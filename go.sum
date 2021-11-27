@@ -826,8 +826,8 @@ github.com/vicanso/keygrip v1.2.1 h1:876fXDwGJqxdi4JxZ1lNGBxYswyLZotrs7AA2QWcLeY
 github.com/vicanso/keygrip v1.2.1/go.mod h1:tfB5az1yqold78zotkzNugk3sV+QW5m71CFz3zg9eeo=
 github.com/vicanso/lru-ttl v1.3.1 h1:5RCMwqkHAVlrwkNgenrN09w4yRu+k6vZn9cwX4RpljA=
 github.com/vicanso/lru-ttl v1.3.1/go.mod h1:YJVBHTWqOrKhseiJlYFOfp+vq028QRGVnCKi4JQByT0=
-github.com/vicanso/viperx v0.2.0 h1:5HURycVwGr9Fdb8p/iKU5yOhXr7YhlaZzVEmfMIUaoc=
-github.com/vicanso/viperx v0.2.0/go.mod h1:RKVA1ACIvyU1paltcWKNVHP5KSUIyKc53TJeyVSc1Yk=
+github.com/vicanso/viperx v0.4.0 h1:hIq6XiYUvoznRC9OQDVrKHHyQQT72xCIMJ1Ztnal/5A=
+github.com/vicanso/viperx v0.4.0/go.mod h1:RKVA1ACIvyU1paltcWKNVHP5KSUIyKc53TJeyVSc1Yk=
 github.com/wacul/ptr v0.0.0-20170209030335-91632201dfc8/go.mod h1:BD0gjsZrCwtoR+yWDB9v2hQ8STlq9tT84qKfa+3txOc=
 github.com/wacul/ptr v1.0.0/go.mod h1:BD0gjsZrCwtoR+yWDB9v2hQ8STlq9tT84qKfa+3txOc=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=

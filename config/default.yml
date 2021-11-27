@@ -77,4 +77,4 @@ pyroscope:
 detector:
   expired: 30d 
   interval: 1m 
-  concurrency: 5
+  concurrency: 10

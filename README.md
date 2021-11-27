@@ -24,6 +24,7 @@ docker run -d --restart=always \
 - `DATABASE_URI` 数据库连接地址
 - `MAIL_URI` 用于发送告警邮件的SMTP设置 
 - `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
+- `DETECTOR_CONCURRENCY` 检测任务并发数，若配置的检测任务较多，可调整此值，默认为10
 - `DETECTOR_EXPIRED` 检测结果过期时间，默认为30天(30d)，过期后的数据会自动清除。若不希望清除检测结果，则设置为负数则可，如：-1d
 
 ## 数据存储 

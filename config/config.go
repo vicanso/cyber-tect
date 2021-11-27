@@ -429,7 +429,7 @@ func MustGetDetectorConfig() *DetectorConfig {
 
 	detectorConfig := &DetectorConfig{
 		Interval:    defaultViperX.GetStringFromENVDefault(prefix+"interval", "1m"),
-		Concurrency: defaultViperX.GetInt(prefix + "concurrency"),
+		Concurrency: defaultViperX.GetIntFromENV(prefix + "concurrency"),
 		Expired:     expiredTime,
 	}
 	mustValidate(detectorConfig)

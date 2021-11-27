@@ -1,12 +1,18 @@
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
+import { css } from "@linaria/core";
 import { defineComponent, onMounted, PropType } from "vue";
-import { useMessage } from "naive-ui";
+import { useMessage, NIcon } from "naive-ui";
 import { LocationQuery } from "vue-router";
+import { EyeRegular } from "@vicons/fa";
 
 import { FormItemTypes } from "./ExFormInterface";
 import ExTable from "./ExTable";
 import { getFromQuery, showError } from "../helpers/util";
 import useDetectorState, { listTask } from "../states/detector";
+
+const showMoreClass = css`
+  width: 40px;
+`;
 
 function getFilters(query: LocationQuery) {
   return [
@@ -58,6 +64,14 @@ function getFilters(query: LocationQuery) {
       span: 18,
     },
   ];
+}
+
+export function newShowMoreIcon(): JSX.Element {
+  return (
+    <NIcon class={showMoreClass}>
+      <EyeRegular />
+    </NIcon>
+  );
 }
 
 export default defineComponent({

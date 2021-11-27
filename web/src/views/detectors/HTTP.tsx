@@ -53,9 +53,15 @@ export default defineComponent({
         key: "script",
         width: 300,
         render: (row: Record<string, unknown>) => {
-          return <pre style={{
-            whiteSpace: "break-spaces",
-          }}>{row["script"]}</pre>;
+          return (
+            <pre
+              style={{
+                whiteSpace: "break-spaces",
+              }}
+            >
+              {row["script"]}
+            </pre>
+          );
         },
       },
     ];

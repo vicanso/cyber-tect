@@ -1,14 +1,15 @@
 import { defineComponent } from "vue";
 import { css } from "@linaria/core";
-import { EyeRegular } from "@vicons/fa";
-import { NCard, NDataTable, NPopover, NIcon } from "naive-ui";
+import { NCard, NDataTable, NPopover } from "naive-ui";
 import { RowData, TableColumn } from "naive-ui/lib/data-table/src/interface";
 
 import useDetectorState, {
   httpDetectorResultList,
 } from "../../states/detector";
 import { newListColumn, newLevelValueColumn } from "../../components/ExTable";
-import ExDetectorResultTable from "../../components/ExDetectorResultTable";
+import ExDetectorResultTable, {
+  newShowMoreIcon,
+} from "../../components/ExDetectorResultTable";
 import { formatDate } from "../../helpers/util";
 
 const popupClass = css`
@@ -121,11 +122,7 @@ export default defineComponent({
             }),
           ];
           const slots = {
-            trigger: () => (
-              <NIcon>
-                <EyeRegular />
-              </NIcon>
-            ),
+            trigger: newShowMoreIcon,
           };
           return (
             <NPopover v-slots={slots} placement="left-end">

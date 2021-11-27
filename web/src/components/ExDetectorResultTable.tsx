@@ -109,7 +109,7 @@ export default defineComponent({
           return;
         }
         options.push({
-          label: `${item.name}(${item.id})`,
+          label: `${item.name}(id:${item.id})`,
           value: `${item.id}`,
         });
       });

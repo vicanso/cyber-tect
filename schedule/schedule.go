@@ -42,6 +42,8 @@ type (
 
 const logCategory = "schedule"
 
+var detectCheckTimeout = 30 * time.Second
+
 func init() {
 	detectorConfig := config.MustGetDetectorConfig()
 	c := cron.New()
@@ -334,38 +336,44 @@ func routerConcurrencyStats() {
 	})
 }
 
+func doDetect(fn func(ctx context.Context) error) error {
+	ctx, cancel := context.WithTimeout(context.Background(), detectCheckTimeout)
+	defer cancel()
+	return fn(ctx)
+}
+
 func doHTTPDetect() {
 	srv := detector.HTTPSrv{}
 	doTask("http detect", func() error {
-		return srv.Detect(context.Background())
+		return doDetect(srv.Detect)
 	})
 }
 
 func doDNSDetect() {
 	srv := detector.DNSSrv{}
 	doTask("dns detect", func() error {
-		return srv.Detect(context.Background())
+		return doDetect(srv.Detect)
 	})
 }
 
 func doTCPDetect() {
 	srv := detector.TCPSrv{}
 	doTask("tcp detect", func() error {
-		return srv.Detect(context.Background())
+		return doDetect(srv.Detect)
 	})
 }
 
 func doPingDetect() {
 	srv := detector.PingSrv{}
 	doTask("ping detect", func() error {
-		return srv.Detect(context.Background())
+		return doDetect(srv.Detect)
 	})
 }
 
 func doDatabaseDetect() {
 	srv := detector.DatabaseSrv{}
 	doTask("database detect", func() error {
-		return srv.Detect(context.Background())
+		return doDetect(srv.Detect)
 	})
 }
 

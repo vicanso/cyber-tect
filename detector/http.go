@@ -308,8 +308,6 @@ func (srv *HTTPSrv) doAlarm(ctx context.Context, name string, receivers []string
 
 // Detect do http detect
 func (srv *HTTPSrv) Detect(ctx context.Context) (err error) {
-	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
 	result, err := getEntClient().HTTPDetector.Query().
 		Where(httpdetector.StatusEQ(schema.StatusEnabled)).
 		All(ctx)

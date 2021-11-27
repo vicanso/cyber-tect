@@ -309,8 +309,6 @@ func (srv *DatabaseSrv) doAlarm(ctx context.Context, name string, receivers []st
 }
 
 func (srv *DatabaseSrv) Detect(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
 	result, err := getEntClient().DatabaseDetector.Query().
 		Where(databasedetector.StatusEQ(schema.StatusEnabled)).
 		All(ctx)

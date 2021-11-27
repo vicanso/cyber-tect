@@ -114,8 +114,6 @@ func (srv *PingSrv) doAlarm(ctx context.Context, name string, receivers []string
 
 // Detect do ping detect
 func (srv *PingSrv) Detect(ctx context.Context) (err error) {
-	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
-	defer cancel()
 	result, err := getEntClient().PingDetector.Query().
 		Where(pingdetector.StatusEQ(schema.StatusEnabled)).
 		All(ctx)

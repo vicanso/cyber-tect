@@ -70,6 +70,10 @@ export default defineComponent({
       type: Object as PropType<FormRules>,
       default: null,
     },
+    tableScrollX: {
+      type: Number,
+      default: () => 0,
+    },
   },
   setup() {
     const mode = ref(Mode.List);
@@ -94,6 +98,7 @@ export default defineComponent({
       fetch,
       descriptionDetail,
       rules,
+      tableScrollX,
     } = this.$props;
     const { userInfo } = this;
     const columnsClone = getDefaultColumns().slice(0);
@@ -108,7 +113,12 @@ export default defineComponent({
     if (mode === Mode.List) {
       return (
         <NCard title={title}>
-          <ExTable columns={columnsClone} data={data} fetch={fetch}></ExTable>
+          <ExTable
+            columns={columnsClone}
+            data={data}
+            fetch={fetch}
+            scrollX={tableScrollX}
+          ></ExTable>
           <NButton
             size="large"
             onClick={() => {

@@ -27,6 +27,7 @@ type HTTPDetectorSubResult struct {
 	ContentTransfer            int            `json:"contentTransfer"`
 	Duration                   int            `json:"duration"`
 	Message                    string         `json:"message"`
+	Proxy                      string         `json:"proxy"`
 }
 
 type HTTPDetectorSubResults []*HTTPDetectorSubResult

@@ -73,6 +73,11 @@ export default defineComponent({
               fixed: "left",
               width: 200,
             },
+            {
+              title: "代理地址",
+              key: "proxy",
+              width: 200,
+            },
             newLevelValueColumn({
               title: "结果",
               key: "result.desc",

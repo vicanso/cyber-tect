@@ -39,8 +39,9 @@ type (
 	httpDetectorAddParams struct {
 		detectorAddParams
 
-		IPS []string `json:"ips" validate:"required,dive,ip"`
-		URL string   `json:"url" validate:"required,xHTTP"`
+		IPS     []string `json:"ips" validate:"required,dive,ip"`
+		Proxies []string `json:"proxies" validate:"required,dive,uri" `
+		URL     string   `json:"url" validate:"required,xHTTP"`
 		// 检测脚本
 		Script string `json:"script" validate:"omitempty"`
 	}
@@ -54,8 +55,9 @@ type (
 
 		account string
 
-		IPS []string `json:"ips" validate:"omitempty,dive,ip"`
-		URL string   `json:"url" validate:"omitempty,xHTTP"`
+		IPS     []string `json:"ips" validate:"omitempty,dive,ip"`
+		Proxies []string `json:"proxies" validate:"omitempty,dive,uri" `
+		URL     string   `json:"url" validate:"omitempty,xHTTP"`
 		// 检测脚本
 		Script string `json:"script" validate:"omitempty"`
 	}
@@ -130,6 +132,7 @@ func (addParams *httpDetectorAddParams) save(ctx context.Context) (*ent.HTTPDete
 		SetIps(addParams.IPS).
 		SetURL(addParams.URL).
 		SetScript(addParams.Script).
+		SetProxies(addParams.Proxies).
 		Save(ctx)
 }
 
@@ -231,6 +234,9 @@ func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id
 
 	if len(updateParams.IPS) != 0 {
 		updateOne.SetIps(updateParams.IPS)
+	}
+	if len(updateParams.Proxies) != 0 {
+		updateOne.SetProxies(updateParams.Proxies)
 	}
 	if updateParams.URL != "" {
 		updateOne.SetURL(updateParams.URL)

@@ -8,6 +8,7 @@ export function getDefaultColumns(): TableColumn[] {
       title: "名称",
       key: "name",
       width: 120,
+      fixed: "left",
     },
     {
       title: "状态",

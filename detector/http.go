@@ -24,6 +24,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptrace"
+	"net/url"
 	"strings"
 	"time"
 
@@ -35,6 +36,7 @@ import (
 	parallel "github.com/vicanso/go-parallel"
 	"github.com/vicanso/hes"
 	HT "github.com/vicanso/http-trace"
+	"golang.org/x/net/http/httpproxy"
 )
 
 const userAgentChrome = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"
@@ -53,13 +55,14 @@ type (
 		ip      string
 		timeout time.Duration
 		script  string
+		proxy   string
 	}
 )
 
 // check 执行一次http检测
 func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (ht *HT.HTTPTrace, err error) {
 	ip := params.ip
-	url := params.url
+	requestURL := params.url
 	timeout := params.timeout
 	var dialContext func(ctx context.Context, network, addr string) (net.Conn, error)
 	// 自定义dns解析（更新为0.0.0.0)表示不指定IP
@@ -79,24 +82,34 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (ht *HT.H
 		}
 	}
 	// 每次都使用新的client，避免复用
+	transport := &http.Transport{
+		ForceAttemptHTTP2: true,
+		// 设置较短时间，不复用
+		IdleConnTimeout:       1 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		DialContext:           dialContext,
+	}
+	// 如果有定义代理，则通过代理检测服务
+	if params.proxy != "" {
+		fn := (&httpproxy.Config{
+			HTTPProxy:  params.proxy,
+			HTTPSProxy: params.proxy,
+		}).ProxyFunc()
+		transport.Proxy = func(r *http.Request) (*url.URL, error) {
+			return fn(r.URL)
+		}
+	}
 	client := &http.Client{
 		Timeout: timeout,
 		// 禁止重定向
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
-		Transport: &http.Transport{
-			Proxy:             http.ProxyFromEnvironment,
-			ForceAttemptHTTP2: true,
-			// 设置较短时间，不复用
-			IdleConnTimeout:       1 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 1 * time.Second,
-			DialContext:           dialContext,
-		},
+		Transport: transport,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
 		return
 	}
@@ -207,15 +220,40 @@ func (srv *HTTPSrv) detect(ctx context.Context, config *ent.HTTPDetector) (httpD
 	maxDuration := 0
 	messages := make([]string, 0)
 
+	type httpCheck struct {
+		ip    string
+		proxy string
+	}
+	checkList := make([]httpCheck, 0)
 	for _, ip := range config.Ips {
+		if len(config.Proxies) == 0 {
+			checkList = append(checkList, httpCheck{
+				ip: ip,
+			})
+			continue
+		}
+
+		for _, proxy := range config.Proxies {
+			checkList = append(checkList, httpCheck{
+				ip:    ip,
+				proxy: proxy,
+			})
+		}
+	}
+
+	for _, check := range checkList {
+		ip := check.ip
+		proxy := check.proxy
 		ht, err := srv.check(ctx, httpCheckParams{
 			url:     config.URL,
 			ip:      ip,
 			timeout: timeout,
 			script:  config.Script,
+			proxy:   proxy,
 		})
 		subResult := schema.HTTPDetectorSubResult{
-			Addr: ip,
+			Addr:  ip,
+			Proxy: proxy,
 		}
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail

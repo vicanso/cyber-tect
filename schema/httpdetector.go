@@ -21,6 +21,9 @@ func (HTTPDetector) Fields() []ent.Field {
 		field.String("script").
 			Optional().
 			Comment("检测脚本"),
+		field.Strings("proxies").
+			Optional().
+			Comment("代理列表"),
 	}
 }
 

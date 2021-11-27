@@ -190,6 +190,10 @@ export default defineComponent({
       type: Boolean,
       default: () => false,
     },
+    scrollX: {
+      type: Number,
+      default: () => 0,
+    },
   },
   setup(props) {
     const message = useMessage();
@@ -252,7 +256,7 @@ export default defineComponent({
   },
   render() {
     const { offset, fetchData, filterParams, $slots, processing } = this;
-    const { columns, data, limit, filters, title, hidePagination } =
+    const { columns, data, limit, filters, title, hidePagination, scrollX } =
       this.$props;
 
     const tableData = data as TableData;
@@ -419,7 +423,11 @@ export default defineComponent({
               <NGrid xGap={24}>{filterGrids}</NGrid>
             </NForm>
           )}
-          <NDataTable columns={columns} data={tableData.items}></NDataTable>
+          <NDataTable
+            columns={columns}
+            data={tableData.items}
+            scrollX={scrollX}
+          ></NDataTable>
           {!hidePagination && pageCount > 1 && (
             <NPagination
               page={page}

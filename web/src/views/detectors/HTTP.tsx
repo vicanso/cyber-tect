@@ -35,7 +35,7 @@ export default defineComponent({
       {
         title: "URL",
         key: "url",
-        width: 100,
+        width: 250,
         ellipsis: {
           tooltip: true,
         },
@@ -44,9 +44,17 @@ export default defineComponent({
         key: "ips",
         title: "IP列表",
       }),
+      newListColumn({
+        key: "proxies",
+        title: "代理地址",
+      }),
       {
         title: "检测脚本",
         key: "script",
+        width: 300,
+        render: (row: Record<string, unknown>) => {
+          return <pre>{row["script"]}</pre>;
+        },
       },
     ];
 
@@ -55,14 +63,21 @@ export default defineComponent({
         type: FormItemTypes.DynamicInput,
         name: "IP列表：",
         key: "ips",
-        span: 12,
+        span: 8,
         placeholder: "请输入对应的IP地址，若不指定则输入0.0.0.0",
         min: 1,
       },
       {
+        type: FormItemTypes.DynamicInput,
+        name: "代理地址：",
+        key: "proxies",
+        placeholder:
+          "请输入使用的代理地址，如：http://127.0.0.1:52206，http://0.0.0.0 表示不使用代理",
+      },
+      {
         name: "检测地址：",
         key: "url",
-        span: 12,
+        span: 8,
         placeholder: "请输入要检测的URL",
       },
       {
@@ -90,6 +105,7 @@ export default defineComponent({
         formItems={formItems}
         data={httpDetectors}
         rules={rules}
+        tableScrollX={1800}
       />
     );
   },

@@ -72,7 +72,7 @@ export default defineComponent({
     },
     tableScrollX: {
       type: Number,
-      default: () => 0,
+      default: () => null,
     },
   },
   setup() {
@@ -103,12 +103,12 @@ export default defineComponent({
     const { userInfo } = this;
     const columnsClone = getDefaultColumns().slice(0);
     columnsClone.splice(1, 0, ...columns);
-    columnsClone.push(
-      newOPColumn((row) => {
-        this.mode = Mode.Update;
-        this.updatedID = row.id as number;
-      })
-    );
+    const op = newOPColumn((row) => {
+      this.mode = Mode.Update;
+      this.updatedID = row.id as number;
+    });
+    op.fixed = "right";
+    columnsClone.push(op);
     const { mode, updatedID } = this;
     if (mode === Mode.List) {
       return (

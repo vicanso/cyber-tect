@@ -113,6 +113,7 @@ export default defineComponent({
           columns={columns}
           data={dnsDetectorResults}
           fetch={fetch}
+          category="dns"
         />
       </NCard>
     );

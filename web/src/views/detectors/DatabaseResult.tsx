@@ -106,6 +106,7 @@ export default defineComponent({
           columns={columns}
           data={databaseDetectorResults}
           fetch={fetch}
+          category="database"
         />
       </NCard>
     );

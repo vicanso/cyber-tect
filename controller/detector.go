@@ -16,6 +16,8 @@ package controller
 
 import (
 	"context"
+	"strconv"
+	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -96,6 +98,8 @@ type (
 		Duration  string    `json:"duration" validate:"omitempty,xDuration"`
 		StartedAt time.Time `json:"startedAt"`
 		EndedAt   time.Time `json:"endedAt"`
+		// 过滤的任务id
+		FilterTasks string `json:"filterTasks"`
 	}
 	getResultSummaryParams struct {
 		StartedAt time.Time `json:"startedAt"`
@@ -103,6 +107,13 @@ type (
 )
 
 type (
+	detectorTask struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+	listDetectorTaskResp struct {
+		Tasks []*detectorTask `json:"tasks"`
+	}
 	detectorResultSummary struct {
 		Category string                `json:"category"`
 		Result   schema.DetectorResult `json:"result"`
@@ -112,6 +123,14 @@ type (
 		Summaries []*detectorResultSummary `json:"summaries" validate:"required"`
 	}
 )
+
+var detectorCategories = []string{
+	detectorCategoryDatabase,
+	detectorCategoryHTTP,
+	detectorCategoryTCP,
+	detectorCategoryPing,
+	detectorCategoryDNS,
+}
 
 func init() {
 	ctrl := detectorCtrl{}
@@ -126,6 +145,9 @@ func init() {
 
 	// 获取结果汇总
 	g.GET("/result-summaries/v1", ctrl.getResultSummary)
+
+	// 获取接收告警的检测任务
+	g.GET("/tasks/v1/{category}", ctrl.listDetectorByReceiver)
 }
 
 // GetDurationMs
@@ -137,45 +159,61 @@ func (params *detectorListResultParams) GetDurationMillSecond() int {
 	return int(d.Milliseconds())
 }
 
-func getDetectorTasksByReceiver(ctx context.Context, category string, us *session.UserSession) ([]int, error) {
-	// 超级用户不限制
-	if us.IsAdmin() {
-		return nil, nil
+// 根据filterTasks字段再过滤tasks
+func (params *detectorListResultParams) doTaskFilter() []int {
+	if params.FilterTasks == "" {
+		return params.Tasks
 	}
+	ids := make([]int, 0)
+	// 指定的filter task需要在tasks(接收任务列表)中存在
+	for _, value := range strings.Split(params.FilterTasks, ",") {
+		id, _ := strconv.Atoi(value)
+		if funk.Contains(params.Tasks, id) {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+func getDetectorTaskInfosByReceiver(ctx context.Context, category string, us *session.UserSession) ([]*detectorTask, error) {
 	receiver := us.MustGetInfo().Account
 	newFilter := func(field string) func(*sql.Selector) {
 		return func(s *sql.Selector) {
+			// 超级用户不限制
+			if us.IsAdmin() {
+				return
+			}
 			s.Where(sqljson.ValueContains(field, receiver))
 		}
 	}
-	fields := "id"
+	fields := []string{"id", "name"}
 	var arr interface{}
 	var err error
 	switch category {
 	case detectorCategoryDatabase:
 		arr, err = getDatabaseDetectorClient().Query().
 			Where(newFilter(databasedetector.FieldReceivers)).
-			Select(fields).
+			Select(fields...).
 			All(ctx)
 	case detectorCategoryDNS:
 		arr, err = getDNSDetectorClient().Query().
 			Where(newFilter(dnsdetector.FieldReceivers)).
-			Select(fields).
+			Select(fields...).
 			All(ctx)
 	case detectorCategoryHTTP:
 		arr, err = getHTTPDetectorClient().Query().
 			Where(newFilter(httpdetector.FieldReceivers)).
-			Select(fields).
+			Select(fields...).
 			All(ctx)
 	case detectorCategoryPing:
 		arr, err = getPingDetectorClient().Query().
 			Where(newFilter(pingdetector.FieldReceivers)).
-			Select(fields).
+			Select(fields...).
 			All(ctx)
 	case detectorCategoryTCP:
 		arr, err = getTCPDetectorClient().Query().
 			Where(newFilter(tcpdetector.FieldReceivers)).
-			Select(fields).
+			Select(fields...).
 			All(ctx)
 
 	default:
@@ -184,27 +222,47 @@ func getDetectorTasksByReceiver(ctx context.Context, category string, us *sessio
 	if err != nil {
 		return nil, err
 	}
-	tasks := make([]int, 0)
+	tasks := make([]*detectorTask, 0)
 	funk.ForEach(arr, func(item interface{}) {
-		id := -1
+		task := &detectorTask{}
 		switch data := item.(type) {
 		case *ent.DatabaseDetector:
-			id = data.ID
+			task.ID = data.ID
+			task.Name = data.Name
+
 		case *ent.HTTPDetector:
-			id = data.ID
+			task.ID = data.ID
+			task.Name = data.Name
 		case *ent.DNSDetector:
-			id = data.ID
+			task.ID = data.ID
+			task.Name = data.Name
 		case *ent.PingDetector:
-			id = data.ID
+			task.ID = data.ID
+			task.Name = data.Name
 		case *ent.TCPDetector:
-			id = data.ID
+			task.ID = data.ID
+			task.Name = data.Name
 		}
-		tasks = append(tasks, id)
+		if task.ID > 0 {
+			tasks = append(tasks, task)
+		}
 	})
 	if len(tasks) == 0 {
 		return nil, errTaskNotFound
 	}
 	return tasks, nil
+}
+
+func getDetectorTasksByReceiver(ctx context.Context, category string, us *session.UserSession) ([]int, error) {
+	taskInfos, err := getDetectorTaskInfosByReceiver(ctx, category, us)
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]int, len(taskInfos))
+	for index, task := range taskInfos {
+		ids[index] = task.ID
+	}
+	return ids, nil
 }
 
 func (listUserParams *detectorListUserParams) queryAll(ctx context.Context) ([]*ent.User, error) {
@@ -242,6 +300,7 @@ func (*detectorCtrl) listUser(c *elton.Context) error {
 	return nil
 }
 
+// 检测结果汇总
 func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 	queryParams := getResultSummaryParams{}
 	err := validateQuery(c, &queryParams)
@@ -253,15 +312,9 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 		return hes.New("汇总时间过长")
 	}
 	us := getUserSession(c)
-	categories := []string{
-		detectorCategoryDatabase,
-		detectorCategoryHTTP,
-		detectorCategoryTCP,
-		detectorCategoryPing,
-		detectorCategoryDNS,
-	}
+
 	summaries := make([]*detectorResultSummary, 0)
-	for _, category := range categories {
+	for _, category := range detectorCategories {
 		tasks, err := getDetectorTasksByReceiver(
 			c.Context(),
 			category,
@@ -273,6 +326,7 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 		if err != nil {
 			return err
 		}
+
 		for _, v := range []schema.DetectorResult{
 			schema.DetectorResultSuccess,
 			schema.DetectorResultFail,
@@ -338,5 +392,18 @@ func (*detectorCtrl) getResultSummary(c *elton.Context) error {
 		Summaries: summaries,
 	}
 
+	return nil
+}
+
+// 根据接收配置获取所有的检测任务
+func (*detectorCtrl) listDetectorByReceiver(c *elton.Context) error {
+	us := getUserSession(c)
+	tasks, err := getDetectorTaskInfosByReceiver(c.Context(), c.Param("category"), us)
+	if err != nil {
+		return err
+	}
+	c.Body = &listDetectorTaskResp{
+		Tasks: tasks,
+	}
 	return nil
 }

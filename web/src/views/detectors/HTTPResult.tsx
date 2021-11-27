@@ -147,6 +147,7 @@ export default defineComponent({
           columns={columns}
           data={httpDetectorResults}
           fetch={fetch}
+          category="http"
         />
       </NCard>
     );

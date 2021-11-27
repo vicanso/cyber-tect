@@ -107,6 +107,7 @@ export default defineComponent({
           columns={columns}
           data={pingDetectorResults}
           fetch={fetch}
+          category="ping"
         />
       </NCard>
     );

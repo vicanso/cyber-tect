@@ -105,6 +105,7 @@ export default defineComponent({
           columns={columns}
           data={tcpDetectorResults}
           fetch={fetch}
+          category="tcp"
         />
       </NCard>
     );

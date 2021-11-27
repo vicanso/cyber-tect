@@ -192,7 +192,7 @@ export default defineComponent({
     },
     scrollX: {
       type: Number,
-      default: () => 0,
+      default: () => null,
     },
   },
   setup(props) {
@@ -294,6 +294,25 @@ export default defineComponent({
               placeholder={filterItem.placeholder}
               onUpdateValue={(value) => {
                 filterParams[filterItem.key] = value;
+              }}
+            ></NSelect>
+          );
+          break;
+        case FormItemTypes.MultiSelect:
+          component = (
+            <NSelect
+              filterable
+              defaultValue={filterItem.defaultValue as Value}
+              size={size}
+              multiple
+              options={filterItem.options || []}
+              placeholder={filterItem.placeholder}
+              onUpdateValue={(value) => {
+                let result = "";
+                if (value) {
+                  result = (value as []).join(",");
+                }
+                filterParams[filterItem.key] = result;
               }}
             ></NSelect>
           );

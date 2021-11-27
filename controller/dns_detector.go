@@ -154,7 +154,7 @@ func (listParams *dnsDetectorListParams) queryAll(ctx context.Context) ([]*ent.D
 }
 
 func (listParams *dnsDetectorResultListParams) where(query *ent.DNSDetectorResultQuery) {
-	tasks := listParams.Tasks
+	tasks := listParams.doTaskFilter()
 	if len(tasks) != 0 {
 		query.Where(dnsdetectorresult.TaskIn(tasks...))
 	}

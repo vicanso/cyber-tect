@@ -1,10 +1,12 @@
 import { TableColumn } from "naive-ui/lib/data-table/src/interface";
-import { defineComponent, PropType } from "vue";
+import { defineComponent, onMounted, PropType } from "vue";
+import { useMessage } from "naive-ui";
 import { LocationQuery } from "vue-router";
 
 import { FormItemTypes } from "./ExFormInterface";
 import ExTable from "./ExTable";
-import { getFromQuery } from "../helpers/util";
+import { getFromQuery, showError } from "../helpers/util";
+import useDetectorState, { listTask } from "../states/detector";
 
 function getFilters(query: LocationQuery) {
   return [
@@ -28,14 +30,25 @@ function getFilters(query: LocationQuery) {
           value: "2",
         },
       ],
-      span: 12,
+      span: 8,
+    },
+    {
+      name: "检测任务：",
+      key: "filterTasks",
+      placeholder: "请选择要筛选的任务",
+      type: FormItemTypes.MultiSelect,
+      options: [] as {
+        label: string;
+        value: string;
+      }[],
+      span: 8,
     },
     {
       name: "耗时：",
       key: "duration",
       placeholder: "请输入过滤时长（大于等于）",
       type: FormItemTypes.InputDuration,
-      span: 12,
+      span: 8,
     },
     {
       key: "startedAt:endedAt",
@@ -62,20 +75,48 @@ export default defineComponent({
       type: Function,
       required: true,
     },
+    category: {
+      type: String,
+      required: true,
+    },
   },
   setup(props) {
     const filterFetch = (params: Record<string, unknown>) => {
       return props.fetch(params);
     };
+    const detectorTasks = useDetectorState().detectorTasks;
+    onMounted(async () => {
+      try {
+        await listTask(props.category);
+      } catch (err) {
+        const message = useMessage();
+        showError(message, err);
+      }
+    });
     return {
+      detectorTasks,
       filterFetch,
     };
   },
   render() {
+    const { detectorTasks } = this;
     const { columns, data } = this.$props;
+    const filters = getFilters(this.$route.query);
+    if (!detectorTasks.processing) {
+      detectorTasks.items.forEach((item) => {
+        const options = filters[1].options;
+        if (!options) {
+          return;
+        }
+        options.push({
+          label: `${item.name}(${item.id})`,
+          value: `${item.id}`,
+        });
+      });
+    }
     return (
       <ExTable
-        filters={getFilters(this.$route.query)}
+        filters={filters}
         columns={columns}
         data={data}
         fetch={this.filterFetch}

@@ -56,6 +56,8 @@ export default defineComponent({
     const logout = async () => {
       try {
         await userLogout();
+        // 刷新缓存数据
+        window.location.reload();
       } catch (err) {
         showError(message, err);
       }

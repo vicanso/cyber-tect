@@ -20,7 +20,14 @@ import {
   DATABASE_DETECTORS_ID,
   DATABASE_DETECTOR_RESULTS,
   DETECTOR_RESULT_SUMMARIES,
+  DETECTOR_LIST_TASK,
 } from "../constants/url";
+
+interface DetectorTask {
+  [key: string]: unknown;
+  id: number;
+  name: string;
+}
 
 // http检测配置
 interface HTTPDetector {
@@ -238,6 +245,12 @@ interface List<T> {
   items: T[];
   count: number;
 }
+
+const detectorTasks: List<DetectorTask> = reactive({
+  processing: false,
+  items: [],
+  count: -1,
+});
 
 const detectorResultSummaries: List<DetectorResultSummary> = reactive({
   processing: false,
@@ -803,6 +816,20 @@ export async function getResultSummaries(params: {
   }
 }
 
+export async function listTask(category: string) {
+  if (detectorTasks.processing) {
+    return;
+  }
+  const url = DETECTOR_LIST_TASK.replace(":category", category);
+  try {
+    detectorTasks.processing = true;
+    const { data } = await request.get(url);
+    detectorTasks.items = data.tasks;
+  } finally {
+    detectorTasks.processing = false;
+  }
+}
+
 interface ReadonlyDetectorState {
   httpDetectors: DeepReadonly<List<HTTPDetector>>;
   dnsDetectors: DeepReadonly<List<DNSDetector>>;
@@ -815,6 +842,7 @@ interface ReadonlyDetectorState {
   dnsDetectorResults: DeepReadonly<List<DNSDetectorResult>>;
   databaseDetectorResults: DeepReadonly<List<DatabaseDetectorResult>>;
   detectorResultSummaries: DeepReadonly<List<DetectorResultSummary>>;
+  detectorTasks: DeepReadonly<List<DetectorTask>>;
 }
 
 const state = {
@@ -829,6 +857,7 @@ const state = {
   dnsDetectorResults: readonly(dnsDetectorResults),
   databaseDetectorResults: readonly(databaseDetectorResults),
   detectorResultSummaries: readonly(detectorResultSummaries),
+  detectorTasks: readonly(detectorTasks),
 };
 
 export default function useDetectorState(): ReadonlyDetectorState {

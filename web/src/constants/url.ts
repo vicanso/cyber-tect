@@ -47,6 +47,7 @@ export const ADMINS_CACHE_ID = "/@admin/v1/caches/:key";
 
 export const DETECTOR_LIST_USER = "/detectors/users/v1";
 export const DETECTOR_RESULT_SUMMARIES = "/detectors/result-summaries/v1";
+export const DETECTOR_LIST_TASK = "/detectors/tasks/v1/:category";
 // http检测
 export const HTTP_DETECTORS = "/http-detectors/v1";
 export const HTTP_DETECTORS_ID = "/http-detectors/v1/:id";

@@ -236,7 +236,12 @@ func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id
 		updateOne.SetIps(updateParams.IPS)
 	}
 	if len(updateParams.Proxies) != 0 {
-		updateOne.SetProxies(updateParams.Proxies)
+		// 清除
+		if strings.Join(updateParams.Proxies, ",") == "http://0.0.0.0" {
+			updateOne.SetProxies([]string{})
+		} else {
+			updateOne.SetProxies(updateParams.Proxies)
+		}
 	}
 	if updateParams.URL != "" {
 		updateOne.SetURL(updateParams.URL)

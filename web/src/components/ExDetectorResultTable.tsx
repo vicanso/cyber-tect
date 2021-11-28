@@ -11,7 +11,7 @@ import { getFromQuery, showError } from "../helpers/util";
 import useDetectorState, { listTask } from "../states/detector";
 
 const showMoreClass = css`
-  width: 40px;
+  padding: 10px 15px;
 `;
 
 function getFilters(query: LocationQuery) {

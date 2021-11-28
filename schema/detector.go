@@ -98,6 +98,8 @@ func (DetectorMixin) Fields() []ent.Field {
 // Indexes of the detector
 func (DetectorMixin) Indexes() []ent.Index {
 	return []ent.Index{
+		index.Fields("name").
+			Unique(),
 		index.Fields("owners"),
 	}
 }

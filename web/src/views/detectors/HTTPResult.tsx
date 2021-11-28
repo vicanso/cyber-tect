@@ -99,10 +99,12 @@ export default defineComponent({
             {
               title: "HTTP协议",
               key: "protocol",
+              width: 100,
             },
             {
               title: "TLS",
               key: "tlsVersion",
+              width: 80,
             },
             {
               title: "TLS加密",
@@ -115,8 +117,10 @@ export default defineComponent({
             newListColumn({
               key: "certificateDNSNames",
               title: "证书域名",
+              width: 120,
             }),
             newListColumn({
+              width: 140,
               key: "certificateExpirationDates",
               title: "证书有效期",
             }),
@@ -128,7 +132,7 @@ export default defineComponent({
             <NPopover v-slots={slots} placement="left-end" trigger="click">
               <div class={popupClass}>
                 <NDataTable
-                  scrollX={1300}
+                  scrollX={1500}
                   columns={columns}
                   data={data.results as RowData[]}
                 />

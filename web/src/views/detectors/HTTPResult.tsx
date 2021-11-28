@@ -125,7 +125,7 @@ export default defineComponent({
             trigger: newShowMoreIcon,
           };
           return (
-            <NPopover v-slots={slots} placement="left-end">
+            <NPopover v-slots={slots} placement="left-end" trigger="click">
               <div class={popupClass}>
                 <NDataTable
                   scrollX={1300}

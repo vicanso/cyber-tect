@@ -12,6 +12,7 @@ import useDetectorState, { listTask } from "../states/detector";
 
 const showMoreClass = css`
   padding: 10px 15px;
+  cursor: pointer;
 `;
 
 function getFilters(query: LocationQuery) {

@@ -195,6 +195,12 @@ func (listParams *databaseDetectorResultListParams) queryAll(ctx context.Context
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
 	listParams.where(query)
+	fields := listParams.GetFields()
+	if len(fields) != 0 {
+		results := make(ent.DatabaseDetectorResults, 0)
+		err := query.Select(fields...).Scan(ctx, &results)
+		return results, err
+	}
 	return query.All(ctx)
 }
 

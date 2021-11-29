@@ -15,6 +15,7 @@
 package controller
 
 import (
+	"bytes"
 	"context"
 	"strconv"
 	"strings"
@@ -22,6 +23,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqljson"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/expfmt"
 	"github.com/thoas/go-funk"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/databasedetector"
@@ -104,6 +107,11 @@ type (
 	getResultSummaryParams struct {
 		StartedAt time.Time `json:"startedAt"`
 	}
+	listMetricsParams struct {
+		Period   string `json:"period" validate:"required,xDuration" default:"5m"`
+		Category string `json:"category" validate:"omitempty,xDetectorCategories"`
+		Limit    int    `json:"limit" default:"1000"`
+	}
 )
 
 type (
@@ -134,8 +142,9 @@ var detectorCategories = []string{
 
 func init() {
 	ctrl := detectorCtrl{}
+	prefix := "/detectors"
 	g := router.NewGroup(
-		"/detectors",
+		prefix,
 		loadUserSession,
 		shouldBeLogin,
 	)
@@ -148,6 +157,12 @@ func init() {
 
 	// 获取接收告警的检测任务
 	g.GET("/tasks/v1/{category}", ctrl.listDetectorByReceiver)
+
+	router.NewGroup(prefix).
+		GET(
+			"/metrics/v1",
+			ctrl.listMetrics,
+		)
 }
 
 // GetDurationMs
@@ -405,5 +420,152 @@ func (*detectorCtrl) listDetectorByReceiver(c *elton.Context) error {
 	c.Body = &listDetectorTaskResp{
 		Tasks: tasks,
 	}
+	return nil
+}
+
+func (*detectorCtrl) listMetrics(c *elton.Context) error {
+	params := listMetricsParams{}
+	err := validateQuery(c, &params)
+	if err != nil {
+		return err
+	}
+	categories := detectorCategories
+	if params.Category != "" {
+		categories = strings.Split(params.Category, ",")
+	}
+	d, err := time.ParseDuration(params.Period)
+	if err != nil {
+		return err
+	}
+	startedAt := time.Now().Add(-d)
+	detectorResults := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "detector_check_result",
+			Help: "The count of detector check result",
+		},
+		[]string{
+			"category",
+			"result",
+		},
+	)
+	r := prometheus.NewRegistry()
+	err = r.Register(detectorResults)
+	if err != nil {
+		return err
+	}
+	// 汇总记录限制
+	limit := params.Limit
+	fields := "result"
+
+	for _, category := range categories {
+		successCount := 0
+		failCount := 0
+		switch category {
+		case detectorCategoryDatabase:
+			params := databaseDetectorResultListParams{}
+			params.Limit = limit
+			params.Fields = fields
+			params.StartedAt = startedAt
+			results, err := params.queryAll(c.Context())
+			if err != nil {
+				return err
+			}
+			for _, item := range results {
+				if item.Result == schema.DetectorResultSuccess {
+					successCount++
+				} else {
+					failCount++
+				}
+			}
+		case detectorCategoryDNS:
+			params := dnsDetectorResultListParams{}
+			params.Limit = limit
+			params.Fields = fields
+			params.StartedAt = startedAt
+			results, err := params.queryAll(c.Context())
+			if err != nil {
+				return err
+			}
+			for _, item := range results {
+				if item.Result == schema.DetectorResultSuccess {
+					successCount++
+				} else {
+					failCount++
+				}
+			}
+		case detectorCategoryHTTP:
+			params := httpDetectorResultListParams{}
+			params.Limit = limit
+			params.Fields = fields
+			params.StartedAt = startedAt
+			results, err := params.queryAll(c.Context())
+			if err != nil {
+				return err
+			}
+			for _, item := range results {
+				if item.Result == schema.DetectorResultSuccess {
+					successCount++
+				} else {
+					failCount++
+				}
+			}
+		case detectorCategoryPing:
+			params := pingDetectorResultListParams{}
+			params.Limit = limit
+			params.Fields = fields
+			params.StartedAt = startedAt
+			results, err := params.queryAll(c.Context())
+			if err != nil {
+				return err
+			}
+			for _, item := range results {
+				if item.Result == schema.DetectorResultSuccess {
+					successCount++
+				} else {
+					failCount++
+				}
+			}
+		case detectorCategoryTCP:
+			params := tcpDetectorResultListParams{}
+			params.Limit = limit
+			params.Fields = fields
+			params.StartedAt = startedAt
+			results, err := params.queryAll(c.Context())
+			if err != nil {
+				return err
+			}
+			for _, item := range results {
+				if item.Result == schema.DetectorResultSuccess {
+					successCount++
+				} else {
+					failCount++
+				}
+			}
+		}
+		detectorResults.With(prometheus.Labels{
+			"category": category,
+			"result":   "success",
+		}).Add(float64(successCount))
+		detectorResults.With(prometheus.Labels{
+			"category": category,
+			"result":   "fail",
+		}).Add(float64(failCount))
+	}
+
+	gather, err := r.Gather()
+	if err != nil {
+		return err
+	}
+
+	buffer := bytes.Buffer{}
+	enc := expfmt.NewEncoder(&buffer, expfmt.FmtText)
+	for _, v := range gather {
+		err = enc.Encode(v)
+		if err != nil {
+			return err
+		}
+	}
+	c.BodyBuffer = &buffer
+
 	return nil
 }

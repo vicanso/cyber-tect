@@ -182,12 +182,18 @@ func (listParams *dnsDetectorResultListParams) count(ctx context.Context) (int, 
 	return query.Count(ctx)
 }
 
-func (listParams *dnsDetectorResultListParams) queryAll(ctx context.Context) ([]*ent.DNSDetectorResult, error) {
+func (listParams *dnsDetectorResultListParams) queryAll(ctx context.Context) (ent.DNSDetectorResults, error) {
 	query := getDNSDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
 	listParams.where(query)
+	fields := listParams.GetFields()
+	if len(fields) != 0 {
+		results := make(ent.DNSDetectorResults, 0)
+		err := query.Select(fields...).Scan(ctx, &results)
+		return results, err
+	}
 	return query.All(ctx)
 }
 

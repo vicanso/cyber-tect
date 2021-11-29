@@ -176,12 +176,18 @@ func (listParams *pingDetectorResultListParams) count(ctx context.Context) (int,
 	return query.Count(ctx)
 }
 
-func (listParams *pingDetectorResultListParams) queryAll(ctx context.Context) ([]*ent.PingDetectorResult, error) {
+func (listParams *pingDetectorResultListParams) queryAll(ctx context.Context) (ent.PingDetectorResults, error) {
 	query := getPingDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
 	listParams.where(query)
+	fields := listParams.GetFields()
+	if len(fields) != 0 {
+		results := make(ent.PingDetectorResults, 0)
+		err := query.Select(fields...).Scan(ctx, &results)
+		return results, err
+	}
 	return query.All(ctx)
 }
 

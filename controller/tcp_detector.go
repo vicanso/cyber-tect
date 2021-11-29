@@ -176,12 +176,18 @@ func (listParams *tcpDetectorResultListParams) count(ctx context.Context) (int, 
 	return query.Count(ctx)
 }
 
-func (listParams *tcpDetectorResultListParams) queryAll(ctx context.Context) ([]*ent.TCPDetectorResult, error) {
+func (listParams *tcpDetectorResultListParams) queryAll(ctx context.Context) (ent.TCPDetectorResults, error) {
 	query := getTCPDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
 		Offset(listParams.GetOffset()).
 		Order(listParams.GetOrders()...)
 	listParams.where(query)
+	fields := listParams.GetFields()
+	if len(fields) != 0 {
+		results := make(ent.TCPDetectorResults, 0)
+		err := query.Select(fields...).Scan(ctx, &results)
+		return results, err
+	}
 	return query.All(ctx)
 }
 

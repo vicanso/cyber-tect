@@ -55,7 +55,7 @@ func init() {
 	})
 	AddAlias("xHostPort", "hostname_port")
 	// duration配置
-	durationReg := regexp.MustCompile(`^\d+(ms|s|m)$`)
+	durationReg := regexp.MustCompile(`^\d+(ms|s|m|h)$`)
 	Add("xDuration", func(fl validator.FieldLevel) bool {
 		v, _ := toString(fl)
 		return durationReg.MatchString(v)

@@ -45,26 +45,26 @@ export const CONFIGS_CURRENT_VALID = "/configurations/v1/current-valid";
 // 管理员相关接口
 export const ADMINS_CACHE_ID = "/@admin/v1/caches/:key";
 
-export const DETECTOR_LIST_USER = "/detectors/users/v1";
-export const DETECTOR_RESULT_SUMMARIES = "/detectors/result-summaries/v1";
-export const DETECTOR_LIST_TASK = "/detectors/tasks/v1/:category";
+export const DETECTOR_LIST_USER = "/detectors/v1/users";
+export const DETECTOR_RESULT_SUMMARIES = "/detectors/v1/result-summaries";
+export const DETECTOR_LIST_TASK = "/detectors/v1/tasks/:category";
 // http检测
 export const HTTP_DETECTORS = "/http-detectors/v1";
 export const HTTP_DETECTORS_ID = "/http-detectors/v1/:id";
-export const HTTP_DETECTOR_RESULTS = "/http-detectors/results/v1";
+export const HTTP_DETECTOR_RESULTS = "/http-detectors/v1/results";
 // dns检测
 export const DNS_DETECTORS = "/dns-detectors/v1";
 export const DNS_DETECTORS_ID = "/dns-detectors/v1/:id";
-export const DNS_DETECTOR_RESULTS = "/dns-detectors/results/v1";
+export const DNS_DETECTOR_RESULTS = "/dns-detectors/v1/results";
 // tcp检测
 export const TCP_DETECTORS = "/tcp-detectors/v1";
 export const TCP_DETECTORS_ID = "/tcp-detectors/v1/:id";
-export const TCP_DETECTOR_RESULTS = "/tcp-detectors/results/v1";
+export const TCP_DETECTOR_RESULTS = "/tcp-detectors/v1/results";
 // ping检测
 export const PING_DETECTORS = "/ping-detectors/v1";
 export const PING_DETECTORS_ID = "/ping-detectors/v1/:id";
-export const PING_DETECTOR_RESULTS = "/ping-detectors/results/v1";
+export const PING_DETECTOR_RESULTS = "/ping-detectors/v1/results";
 // database检测
 export const DATABASE_DETECTORS = "/database-detectors/v1";
 export const DATABASE_DETECTORS_ID = "/database-detectors/v1/:id";
-export const DATABASE_DETECTOR_RESULTS = "/database-detectors/results/v1";
+export const DATABASE_DETECTOR_RESULTS = "/database-detectors/v1/results";

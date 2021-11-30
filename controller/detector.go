@@ -150,17 +150,17 @@ func init() {
 	)
 
 	// 用户查询
-	g.GET("/users/v1", ctrl.listUser)
+	g.GET("/v1/users", ctrl.listUser)
 
 	// 获取结果汇总
-	g.GET("/result-summaries/v1", ctrl.getResultSummary)
+	g.GET("/v1/result-summaries", ctrl.getResultSummary)
 
 	// 获取接收告警的检测任务
-	g.GET("/tasks/v1/{category}", ctrl.listDetectorByReceiver)
+	g.GET("/v1/tasks/{category}", ctrl.listDetectorByReceiver)
 
 	router.NewGroup(prefix).
 		GET(
-			"/metrics/v1",
+			"/v1/metrics",
 			ctrl.listMetrics,
 		)
 }

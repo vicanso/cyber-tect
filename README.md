@@ -197,6 +197,14 @@ mongodb连接串格式如下：`mongodb://[username:password@]host1[:port1][,...
 ![](./images/profile.jpg)
 
 
+## prometheus
+
+支持将检测数据以`prometheus`形式导出统计数据，直接请求`/detectors/v1/metrics?period=1h`即可。
+
+- `period` 区间，默认为`5m`
+- `category` 过滤的检测类型，如果多个类型可以以`,`分隔，如`http,dns`，默认为空（所有类型）
+- `limit` 每种类型的最大数量，默认为`1000`
+
 ## 常见问题
 
 - esbuild提示未成功安装，执行`node node_modules/esbuild/install.js`

@@ -109,7 +109,7 @@ func init() {
 		ctrl.updateByID,
 	)
 	g.GET(
-		"/results/v1",
+		"/v1/results",
 		ctrl.listResult,
 	)
 }

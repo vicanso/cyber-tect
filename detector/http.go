@@ -17,6 +17,8 @@ package detector
 import (
 	"compress/gzip"
 	"context"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -57,10 +59,14 @@ type (
 		script  string
 		proxy   string
 	}
+	httpCheckResult struct {
+		ht   *HT.HTTPTrace
+		body []byte
+	}
 )
 
 // check 执行一次http检测
-func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (ht *HT.HTTPTrace, err error) {
+func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (result *httpCheckResult, err error) {
 	ip := params.ip
 	requestURL := params.url
 	timeout := params.timeout
@@ -133,6 +139,11 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (ht *HT.H
 		r = resp.Body
 	}
 	buf, _ := ioutil.ReadAll(r)
+
+	result = &httpCheckResult{
+		ht:   ht,
+		body: buf,
+	}
 	// < 200 或者 >= 400 均认为失败
 	if resp.StatusCode >= http.StatusBadRequest || resp.StatusCode < http.StatusOK {
 		err = &hes.Error{
@@ -180,6 +191,7 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (ht *HT.H
 	if err != nil {
 		return
 	}
+
 	return
 }
 
@@ -244,7 +256,7 @@ func (srv *HTTPSrv) detect(ctx context.Context, config *ent.HTTPDetector) (httpD
 	for _, check := range checkList {
 		ip := check.ip
 		proxy := check.proxy
-		ht, err := srv.check(ctx, httpCheckParams{
+		checkResult, err := srv.check(ctx, httpCheckParams{
 			url:     config.URL,
 			ip:      ip,
 			timeout: timeout,
@@ -254,6 +266,13 @@ func (srv *HTTPSrv) detect(ctx context.Context, config *ent.HTTPDetector) (httpD
 		subResult := schema.HTTPDetectorSubResult{
 			Addr:  ip,
 			Proxy: proxy,
+		}
+		var ht *HT.HTTPTrace
+		if checkResult != nil {
+			ht = checkResult.ht
+			m := md5.New()
+			m.Write(checkResult.body)
+			subResult.Hash = hex.EncodeToString(m.Sum(nil))
 		}
 		if err != nil {
 			subResult.Result = schema.DetectorResultFail

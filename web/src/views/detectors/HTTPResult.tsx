@@ -124,6 +124,14 @@ export default defineComponent({
               key: "certificateExpirationDates",
               title: "证书有效期",
             }),
+            {
+              title: "Hash",
+              key: "hash",
+              ellipsis: {
+                tooltip: true,
+              },
+              width: 100,
+            },
           ];
           const slots = {
             trigger: newShowMoreIcon,

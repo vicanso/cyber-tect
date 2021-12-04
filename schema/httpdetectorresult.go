@@ -28,6 +28,8 @@ type HTTPDetectorSubResult struct {
 	Duration                   int            `json:"duration"`
 	Message                    string         `json:"message"`
 	Proxy                      string         `json:"proxy"`
+	// body md5 hash
+	Hash string `json:"hash"`
 }
 
 type HTTPDetectorSubResults []*HTTPDetectorSubResult

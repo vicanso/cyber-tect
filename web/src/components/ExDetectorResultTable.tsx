@@ -37,7 +37,14 @@ function getFilters(query: LocationQuery) {
           value: "2",
         },
       ],
-      span: 8,
+      span: 5,
+    },
+    {
+      name: "耗时：",
+      key: "duration",
+      placeholder: "请输入过滤时长（大于等于）",
+      type: FormItemTypes.InputDuration,
+      span: 7,
     },
     {
       name: "检测任务：",
@@ -48,14 +55,7 @@ function getFilters(query: LocationQuery) {
         label: string;
         value: string;
       }[],
-      span: 8,
-    },
-    {
-      name: "耗时：",
-      key: "duration",
-      placeholder: "请输入过滤时长（大于等于）",
-      type: FormItemTypes.InputDuration,
-      span: 8,
+      span: 12,
     },
     {
       key: "startedAt:endedAt",

@@ -119,11 +119,18 @@ export default defineComponent({
     const filters = getFilters(this.$route.query);
     if (!detectorTasks.processing) {
       detectorTasks.items.forEach((item) => {
-        const options = filters[1].options;
-        if (!options) {
+        let result = filters[0];
+        let found = false;
+        filters.forEach((filter) => {
+          if (filter.key === "filterTasks") {
+            found = true;
+            result = filter;
+          }
+        });
+        if (!found || !result.options) {
           return;
         }
-        options.push({
+        result.options.push({
           label: `${item.name}(id:${item.id})`,
           value: `${item.id}`,
         });

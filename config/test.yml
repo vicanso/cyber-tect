@@ -1,5 +1,7 @@
 # 仅需要添加与default不相同的配置
 # 测试环境配置
+redis:
+  uri: redis://miniredis/?slow=200ms&maxProcessing=1000
 
 database:
   uri: postgres://postgres:postgres@127.0.0.1:5432/cybertect

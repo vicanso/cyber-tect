@@ -2,3 +2,6 @@
 # 本地开发环境
 redis:
   uri: redis://127.0.0.1:6379/?slow=200ms&maxProcessing=1000
+
+database:
+  uri: postgres://vicanso:A123456@127.0.0.1:5432/cybertect?maxIdleConns=5&maxIdleTime=30m&maxOpenConns=100

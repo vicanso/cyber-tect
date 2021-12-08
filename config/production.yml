@@ -1,3 +1,5 @@
 # 仅需要添加与default不相同的配置
 # 生产环境配置
 
+redis:
+  uri: redis://miniredis/?slow=200ms&maxProcessing=1000

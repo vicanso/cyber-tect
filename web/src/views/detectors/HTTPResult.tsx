@@ -141,6 +141,7 @@ export default defineComponent({
               <div class={popupClass}>
                 <NDataTable
                   scrollX={1500}
+                  maxHeight={450}
                   columns={columns}
                   data={data.results as RowData[]}
                 />

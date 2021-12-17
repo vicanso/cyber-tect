@@ -130,5 +130,6 @@ func (DetectorResultMixin) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("task"),
 		index.Fields("result"),
+		index.Fields("maxDuration"),
 	}
 }

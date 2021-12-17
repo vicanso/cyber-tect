@@ -123,6 +123,9 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (result *
 	req.Header.Set("User-Agent", userAgentChrome)
 	req.Header.Set("Accept-Encoding", acceptEncodingChrome)
 	trace, ht := HT.NewClientTrace()
+	result = &httpCheckResult{
+		ht: ht,
+	}
 	defer ht.Finish()
 	ctx = httptrace.WithClientTrace(ctx, trace)
 	req = req.WithContext(ctx)
@@ -140,10 +143,7 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (result *
 	}
 	buf, _ := ioutil.ReadAll(r)
 
-	result = &httpCheckResult{
-		ht:   ht,
-		body: buf,
-	}
+	result.body = buf
 	// < 200 或者 >= 400 均认为失败
 	if resp.StatusCode >= http.StatusBadRequest || resp.StatusCode < http.StatusOK {
 		err = &hes.Error{

@@ -168,10 +168,13 @@ func dependServiceCheck() (err error) {
 	if err != nil {
 		return
 	}
-	// 程序启动后再执行init schema
-	err = helper.EntInitSchema()
-	if err != nil {
-		return
+	// 设置为0可禁用初始化schema
+	if os.Getenv("INIT_SCHEMA") != "0" {
+		// 程序启动后再执行init schema
+		err = helper.EntInitSchema()
+		if err != nil {
+			return
+		}
 	}
 	configSrv := new(service.ConfigurationSrv)
 	err = configSrv.Refresh()

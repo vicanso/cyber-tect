@@ -15,6 +15,7 @@
 package helper
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"reflect"
@@ -346,6 +347,12 @@ func EntInitSchema() error {
 	initSchemaOnce.Do(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+		w := bytes.Buffer{}
+		_ = defaultEntClient.Schema.WriteTo(context.Background(), &w)
+		log.Info(ctx).
+			Str("category", "migrate").
+			Msg(w.String())
+
 		err = defaultEntClient.Schema.Create(ctx)
 	})
 	return err

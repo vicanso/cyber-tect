@@ -40,7 +40,7 @@ type (
 		detectorAddParams
 
 		IPS     []string `json:"ips" validate:"required,dive,ip"`
-		Proxies []string `json:"proxies" validate:"required,dive,uri" `
+		Proxies []string `json:"proxies" validate:"omitempty,dive,uri" `
 		URL     string   `json:"url" validate:"required,xHTTP"`
 		// 检测脚本
 		Script string `json:"script" validate:"omitempty"`

@@ -144,6 +144,7 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (result *
 	if ht.Protocol == "" {
 		ht.Protocol = resp.Proto
 	}
+	ht.Protocol = strings.ToUpper(ht.Protocol)
 	buf, _ := ioutil.ReadAll(r)
 
 	result.body = buf

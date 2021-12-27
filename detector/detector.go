@@ -67,6 +67,21 @@ func portCheck(network, addr string, timeout time.Duration) (err error) {
 	return
 }
 
+func isMatchAlarmCount(count int) bool {
+	// 前三次每次告警
+	if count <= 3 {
+		return true
+	}
+	// <=60时，每10次发送一次
+	if count <= 60 && count%10 == 0 {
+		return true
+	}
+	if count > 60 && count%60 == 0 {
+		return true
+	}
+	return false
+}
+
 func doAlarm(ctx context.Context, detail alarmDetail) {
 	value, _ := taskFailCountMap.LoadOrStore(detail.Task, atomic.NewUint32(0))
 	failCount, ok := value.(*atomic.Uint32)
@@ -88,11 +103,7 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 
 	// 如果非前几次失败，则后续的告警不再每次发送
 	// 由于使用邮件告警，容易忽略，因此前几次均发送
-	if newCount > 3 &&
-		// <=60时，每10次发送一次
-		((newCount <= 60 && newCount%10 != 0) ||
-			// 大于60则每60发送一次
-			newCount%60 == 0) {
+	if !isMatchAlarmCount(int(newCount)) {
 		return
 	}
 	// 如果状态变化，而且此次是success

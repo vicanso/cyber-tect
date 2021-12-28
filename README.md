@@ -196,6 +196,7 @@ mongodb连接串格式如下：`mongodb://[username:password@]host1[:port1][,...
 
 ![](./images/profile.jpg)
 
+如果个人信息中设置`告警接收地址`，如配置为`http://10.2.0.0/wechat-alarm`，则会使用HTTP POST的形式提交告警信息，数据如下`{"title": "标题", "message": "告警信息"}`。如果未设置则以邮件的形式告警，如果均未设置，则此用户无法接收告警。
 
 ## prometheus
 

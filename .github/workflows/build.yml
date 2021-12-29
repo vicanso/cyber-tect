@@ -16,9 +16,11 @@ jobs:
     - uses: actions/setup-node@v2
       with:
         node-version: '16'
+    - run: cd web
     - run: npm install
     - run: npm run build
     - run: rm -rf node_module
+    - run: cd ..
 
     - uses: actions/setup-go@v2
       with:

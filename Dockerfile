@@ -1,10 +1,10 @@
 FROM node:16-alpine as webbuilder
 
 COPY . /cybertect
-RUN cd /cybertect/web \
-  && npm i \
-  && npm run build \
-  && rm -rf node_module
+RUN apk update \
+  && apk add make \
+  && cd /cybertect \
+  && make build-web
 
 FROM golang:1.17-alpine as builder
 

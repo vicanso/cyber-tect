@@ -2,10 +2,8 @@ name: Build
 
 on:
   push:
-    branches: [ test ]
-  pull_request:
-    branches: [ test ]
-
+    tags:
+      - 'v*.*.*'
 jobs:
 
   build:

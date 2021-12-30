@@ -14,6 +14,9 @@ test:
 install:
 	go get -d entgo.io/ent/cmd/entc
 
+build-web:
+	cd web && npm install && npm run build && rm -rf node_modules
+
 generate: 
 	rm -rf ./ent
 	go run entgo.io/ent/cmd/ent generate ./schema --template ./template --target ./ent

@@ -24,7 +24,7 @@ jobs:
       run: make install
     
     - name: Generate
-      run: make generate
+      run: cp -rf web/dist asset/ && make generate
 
     - name: Tidy
       run: make tidy

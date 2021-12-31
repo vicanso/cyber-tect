@@ -22,7 +22,7 @@ web/coverage
 
 # production
 web/build
-# web/dist
+web/dist
 
 # misc
 .DS_Store

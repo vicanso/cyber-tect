@@ -15,7 +15,7 @@ install:
 	go get -d entgo.io/ent/cmd/entc
 
 build-web:
-	cd web && npm install && npm run build && rm -rf node_modules
+	cd web && npm install && npm run build && rm -rf node_modules && cd .. && rm -rf asset/dist && cp -rf web/dist asset/
 
 generate: 
 	rm -rf ./ent

@@ -27,11 +27,11 @@ jobs:
     - name: Install
       run: make install
     
-    - name: Tidy
-      run: make tidy
-
     - name: Generate
       run: make generate
+
+    - name: Tidy
+      run: make tidy
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v2
       with:

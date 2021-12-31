@@ -26,6 +26,9 @@ jobs:
 
     - name: Install
       run: make install
+    
+    - name: Tidy
+      run: make tidy
 
     - name: Generate
       run: make generate

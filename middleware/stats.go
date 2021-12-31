@@ -16,12 +16,12 @@ package middleware
 
 import (
 	"github.com/dustin/go-humanize"
-	"github.com/vicanso/elton"
-	M "github.com/vicanso/elton/middleware"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/util"
+	"github.com/vicanso/elton"
+	M "github.com/vicanso/elton/middleware"
 )
 
 func NewStats() elton.Handler {
@@ -46,7 +46,7 @@ func NewStats() elton.Handler {
 				Str("uri", info.URI).
 				Int("status", info.Status).
 				Uint32("connecting", info.Connecting).
-				Str("consuming", info.Consuming.String()).
+				Str("latency", info.Latency.String()).
 				Str("size", humanize.Bytes(uint64(info.Size))).
 				Int("bytes", info.Size).
 				Msg("")
@@ -60,7 +60,7 @@ func NewStats() elton.Handler {
 				cs.FieldSID:        sid,
 				cs.FieldURI:        info.URI,
 				cs.FieldStatus:     info.Status,
-				cs.FieldUse:        int(info.Consuming.Milliseconds()),
+				cs.FieldUse:        int(info.Latency.Milliseconds()),
 				cs.FieldSize:       info.Size,
 				cs.FieldProcessing: info.Connecting,
 			}

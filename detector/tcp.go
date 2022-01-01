@@ -92,7 +92,7 @@ func (srv *TCPSrv) doAlarm(ctx context.Context, name string, receivers []string,
 }
 
 // Detect do tcp detect
-func (srv *TCPSrv) Detect(ctx context.Context) (err error) {
+func (srv *TCPSrv) Detect(ctx context.Context, count int64) (err error) {
 	result, err := getEntClient().TCPDetector.Query().
 		Where(tcpdetector.StatusEQ(schema.StatusEnabled)).
 		All(ctx)

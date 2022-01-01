@@ -128,7 +128,7 @@ func (srv *DNSSrv) doAlarm(ctx context.Context, name string, receivers []string,
 }
 
 // Detect do dns detect
-func (srv *DNSSrv) Detect(ctx context.Context) error {
+func (srv *DNSSrv) Detect(ctx context.Context, count int64) error {
 	result, err := getEntClient().DNSDetector.Query().
 		Where(dnsdetector.StatusEQ(schema.StatusEnabled)).
 		All(ctx)

@@ -33,6 +33,7 @@ import (
 	routerconcurrency "github.com/vicanso/cybertect/router_concurrency"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
+	"go.uber.org/atomic"
 )
 
 type (
@@ -61,11 +62,17 @@ func init() {
 
 	// 检测任务
 	spec := fmt.Sprintf("@every %s", detectorConfig.Interval)
-	_, _ = c.AddFunc(spec, doHTTPDetect)
-	_, _ = c.AddFunc(spec, doDNSDetect)
-	_, _ = c.AddFunc(spec, doTCPDetect)
-	_, _ = c.AddFunc(spec, doPingDetect)
-	_, _ = c.AddFunc(spec, doDatabaseDetect)
+	httpSrv := detector.HTTPSrv{}
+	dnsSrv := detector.DNSSrv{}
+	tcpSrv := detector.TCPSrv{}
+	pingSrv := detector.PingSrv{}
+	databaseSrv := detector.DatabaseSrv{}
+
+	_, _ = c.AddFunc(spec, newDetect("http detect", httpSrv.Detect))
+	_, _ = c.AddFunc(spec, newDetect("dns detect", dnsSrv.Detect))
+	_, _ = c.AddFunc(spec, newDetect("tcp detect", tcpSrv.Detect))
+	_, _ = c.AddFunc(spec, newDetect("ping detect", pingSrv.Detect))
+	_, _ = c.AddFunc(spec, newDetect("database detect", databaseSrv.Detect))
 
 	// 如果是开发环境，则不执行定时任务
 	if util.IsDevelopment() {
@@ -100,7 +107,7 @@ func doStatsTask(desc string, fn statsTaskFn) {
 		Str("category", logCategory).
 		Dur("use", time.Since(startedAt)).
 		Dict("stats", zerolog.Dict().Fields(stats)).
-		Msg("")
+		Msg(desc)
 }
 
 func redisPing() {
@@ -336,45 +343,16 @@ func routerConcurrencyStats() {
 	})
 }
 
-func doDetect(fn func(ctx context.Context) error) error {
-	ctx, cancel := context.WithTimeout(context.Background(), detectCheckTimeout)
-	defer cancel()
-	return fn(ctx)
-}
-
-func doHTTPDetect() {
-	srv := detector.HTTPSrv{}
-	doTask("http detect", func() error {
-		return doDetect(srv.Detect)
-	})
-}
-
-func doDNSDetect() {
-	srv := detector.DNSSrv{}
-	doTask("dns detect", func() error {
-		return doDetect(srv.Detect)
-	})
-}
-
-func doTCPDetect() {
-	srv := detector.TCPSrv{}
-	doTask("tcp detect", func() error {
-		return doDetect(srv.Detect)
-	})
-}
-
-func doPingDetect() {
-	srv := detector.PingSrv{}
-	doTask("ping detect", func() error {
-		return doDetect(srv.Detect)
-	})
-}
-
-func doDatabaseDetect() {
-	srv := detector.DatabaseSrv{}
-	doTask("database detect", func() error {
-		return doDetect(srv.Detect)
-	})
+func newDetect(desc string, fn func(context.Context, int64) error) cron.FuncJob {
+	count := atomic.NewInt64(0)
+	return func() {
+		doTask(desc, func() error {
+			value := count.Inc()
+			ctx, cancel := context.WithTimeout(context.Background(), detectCheckTimeout)
+			defer cancel()
+			return fn(ctx, value)
+		})
+	}
 }
 
 func removeExpiredDetectorResult() {

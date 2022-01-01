@@ -194,6 +194,10 @@ export default defineComponent({
       type: Number,
       default: () => null,
     },
+    pageSize: {
+      type: Number,
+      default: () => 0,
+    },
   },
   setup(props) {
     const message = useMessage();
@@ -256,8 +260,16 @@ export default defineComponent({
   },
   render() {
     const { offset, fetchData, filterParams, $slots, processing } = this;
-    const { columns, data, limit, filters, title, hidePagination, scrollX } =
-      this.$props;
+    const {
+      columns,
+      data,
+      limit,
+      filters,
+      title,
+      hidePagination,
+      scrollX,
+      pageSize,
+    } = this.$props;
 
     const tableData = data as TableData;
 
@@ -446,6 +458,13 @@ export default defineComponent({
             columns={columns}
             data={tableData.items}
             scrollX={scrollX}
+            pagination={
+              pageSize === 0
+                ? undefined
+                : {
+                    pageSize,
+                  }
+            }
           ></NDataTable>
           {!hidePagination && pageCount > 1 && (
             <NPagination

@@ -118,6 +118,7 @@ export default defineComponent({
             data={data}
             fetch={fetch}
             scrollX={tableScrollX}
+            pageSize={10}
           ></ExTable>
           <NButton
             size="large"

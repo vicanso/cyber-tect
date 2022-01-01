@@ -49,12 +49,14 @@ export function getDefaultForItems(): FormItem[] {
           value: ConfigStatus.Disabled,
         },
       ],
+      defaultValue: ConfigStatus.Enabled,
     },
     {
       name: "超时时长：",
       key: FormItemKey.timeout,
       type: FormItemTypes.InputDuration,
       placeholder: "请输入超时时长",
+      defaultValue: "3s",
     },
     {
       name: "用户列表：",

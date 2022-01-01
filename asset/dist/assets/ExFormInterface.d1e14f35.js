@@ -1,1 +1,0 @@
-let u;(function(t){t.Select="select",t.MultiSelect="multiSelect",t.DateTime="dateTime",t.DateRange="dateRange",t.InputNumber="inputNumber",t.InputNumberGroup="inputGroup",t.InputDuration="inputDuration",t.DynamicInput="dynamicInput",t.TextArea="textArea",t.Blank="blank",t.MultiUserSelect="multiUserSelect"})(u||(u={}));export{u as F};

@@ -120,6 +120,7 @@ func (addParams *tcpDetectorAddParams) save(ctx context.Context) (*ent.TCPDetect
 		SetTimeout(addParams.Timeout).
 		SetDescription(addParams.Description).
 		SetAddrs(addParams.Addrs).
+		SetInterval(addParams.Interval).
 		Save(ctx)
 }
 
@@ -226,6 +227,15 @@ func (updateParams *tcpDetectorUpdateParams) updateByID(ctx context.Context, id 
 	if len(updateParams.Addrs) != 0 {
 		updateOne.SetAddrs(updateParams.Addrs)
 	}
+
+	interval := updateParams.Interval
+	if interval != "" {
+		if interval == "0s" {
+			interval = ""
+		}
+		updateOne.SetInterval(interval)
+	}
+
 	return updateOne.Save(ctx)
 }
 

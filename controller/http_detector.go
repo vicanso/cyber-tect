@@ -133,6 +133,7 @@ func (addParams *httpDetectorAddParams) save(ctx context.Context) (*ent.HTTPDete
 		SetURL(addParams.URL).
 		SetScript(addParams.Script).
 		SetProxies(addParams.Proxies).
+		SetInterval(addParams.Interval).
 		Save(ctx)
 }
 
@@ -254,6 +255,14 @@ func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id
 	}
 	if updateParams.Script != "" {
 		updateOne.SetScript(strings.TrimSpace(updateParams.Script))
+	}
+
+	interval := updateParams.Interval
+	if interval != "" {
+		if interval == "0s" {
+			interval = ""
+		}
+		updateOne.SetInterval(interval)
 	}
 
 	return updateOne.Save(ctx)

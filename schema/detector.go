@@ -90,6 +90,9 @@ func (DetectorMixin) Fields() []ent.Field {
 		field.String("timeout").
 			NotEmpty().
 			Comment("超时设置"),
+		field.String("interval").
+			Optional().
+			Comment("检测间隔"),
 		field.String("description").
 			Comment("配置描述"),
 	}

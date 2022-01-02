@@ -70,6 +70,8 @@ type (
 		Owners []string `json:"owners" validate:"required,dive,xUserAccount"`
 		// 超时设置
 		Timeout string `json:"timeout" validate:"required,xDuration"`
+		// 检测间隔
+		Interval string `json:"interval" validate:"omitempty,xDuration"`
 	}
 
 	// detectorUpdateParams detector update params
@@ -81,6 +83,8 @@ type (
 		Timeout     string        `json:"timeout" validate:"omitempty,xDuration"`
 		// 拥有者
 		Owners []string `json:"owners" validate:"omitempty,dive,xUserAccount"`
+		// 检测间隔
+		Interval string `json:"interval" validate:"omitempty,xDuration"`
 	}
 
 	detectorListUserParams struct {

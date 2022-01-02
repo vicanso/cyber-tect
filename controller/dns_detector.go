@@ -127,6 +127,7 @@ func (addParams *dnsDetectorAddParams) save(ctx context.Context) (*ent.DNSDetect
 		SetHost(addParams.Host).
 		SetIps(addParams.IPS).
 		SetServers(addParams.Servers).
+		SetInterval(addParams.Interval).
 		Save(ctx)
 }
 
@@ -233,6 +234,14 @@ func (updateParams *dnsDetectorUpdateParams) updateByID(ctx context.Context, id 
 	}
 	if len(updateParams.Servers) != 0 {
 		updateOne.SetServers(updateParams.Servers)
+	}
+
+	interval := updateParams.Interval
+	if interval != "" {
+		if interval == "0s" {
+			interval = ""
+		}
+		updateOne.SetInterval(interval)
 	}
 
 	return updateOne.Save(ctx)

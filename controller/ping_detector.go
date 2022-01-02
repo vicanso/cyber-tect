@@ -119,6 +119,7 @@ func (addParams *pingDetectorAddParams) save(ctx context.Context) (*ent.PingDete
 		SetTimeout(addParams.Timeout).
 		SetDescription(addParams.Description).
 		SetIps(addParams.IPS).
+		SetInterval(addParams.Interval).
 		Save(ctx)
 }
 
@@ -225,6 +226,14 @@ func (updateParams *pingDetectorUpdateParams) updateByID(ctx context.Context, id
 
 	if len(updateParams.IPS) != 0 {
 		updateOne.SetIps(updateParams.IPS)
+	}
+
+	interval := updateParams.Interval
+	if interval != "" {
+		if interval == "0s" {
+			interval = ""
+		}
+		updateOne.SetInterval(interval)
 	}
 
 	return updateOne.Save(ctx)

@@ -25,6 +25,7 @@ enum FormItemKey {
   owners = "owners",
   receivers = "receivers",
   description = "description",
+  interval = "interval",
 }
 
 export function getDefaultForItems(): FormItem[] {
@@ -32,6 +33,7 @@ export function getDefaultForItems(): FormItem[] {
     {
       name: "名称：",
       key: FormItemKey.name,
+      span: 6,
       placeholder: "请输入检测配置名称",
     },
     {
@@ -39,6 +41,7 @@ export function getDefaultForItems(): FormItem[] {
       key: FormItemKey.status,
       type: FormItemTypes.Select,
       placeholder: "请选择配置状态",
+      span: 4,
       options: [
         {
           label: "启用",
@@ -53,10 +56,18 @@ export function getDefaultForItems(): FormItem[] {
     },
     {
       name: "超时时长：",
+      span: 7,
       key: FormItemKey.timeout,
       type: FormItemTypes.InputDuration,
       placeholder: "请输入超时时长",
       defaultValue: "3s",
+    },
+    {
+      name: "检测间隔：",
+      span: 7,
+      key: FormItemKey.interval,
+      type: FormItemTypes.InputDuration,
+      placeholder: "请输入检测间隔",
     },
     {
       name: "用户列表：",

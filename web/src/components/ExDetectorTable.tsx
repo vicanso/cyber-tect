@@ -23,6 +23,11 @@ export function getDefaultColumns(): TableColumn[] {
       key: "timeout",
       width: 80,
     },
+    {
+      title: "检测间隔",
+      key: "interval",
+      width: 80,
+    },
     newListColumn({
       key: "owners",
       title: "所有人",

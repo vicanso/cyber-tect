@@ -16,6 +16,7 @@ package detector
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
@@ -180,6 +181,22 @@ func convertParallelError(err error, message string) error {
 		}
 	}
 	return &errs
+}
+
+func shouldDoDetect(intervalValue string, count int64) bool {
+	interval, _ := time.ParseDuration(intervalValue)
+
+	configInterval, _ := time.ParseDuration(detectorConfig.Interval)
+	// 如果间隔<=1s，则每次都检测
+	// 或者检测间隔少于应用配置检测检测
+	if interval <= time.Second ||
+		configInterval <= time.Second ||
+		interval < configInterval {
+		return true
+	}
+	value := int64(interval / configInterval)
+	fmt.Println(count % value)
+	return count%value == 0
 }
 
 // RemoveExpiredDetectorResult 清除过期数据

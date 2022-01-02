@@ -315,8 +315,15 @@ func (srv *DatabaseSrv) Detect(ctx context.Context, count int64) error {
 	if err != nil {
 		return err
 	}
+	// 如果未配置检测，则直接返回
+	if len(result) == 0 {
+		return nil
+	}
 	pErr := parallel.Parallel(func(index int) error {
 		item := result[index]
+		if !shouldDoDetect(item.Interval, count) {
+			return nil
+		}
 		detectResult, err := srv.detect(ctx, item)
 		srv.doAlarm(ctx, item.Name, item.Receivers, detectResult)
 		return err

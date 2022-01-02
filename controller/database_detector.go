@@ -133,6 +133,7 @@ func (addParams *databaseDetectorAddParams) save(ctx context.Context) (*ent.Data
 		SetUris(addParams.Uris).
 		SetCertPem(addParams.CertPem).
 		SetKeyPem(addParams.KeyPem).
+		SetInterval(addParams.Interval).
 		Save(ctx)
 }
 
@@ -246,6 +247,14 @@ func (updateParams *databaseDetectorUpdateParams) updateByID(ctx context.Context
 	if updateParams.KeyPem != "" {
 		// trim space，如果是空格，则会清除该字段
 		updateOne.SetKeyPem(strings.TrimSpace(updateParams.KeyPem))
+	}
+
+	interval := updateParams.Interval
+	if interval != "" {
+		if interval == "0s" {
+			interval = ""
+		}
+		updateOne.SetInterval(interval)
 	}
 
 	return updateOne.Save(ctx)

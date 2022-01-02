@@ -15,7 +15,7 @@ docker run -d --restart=always \
   -e DATABASE_URI=postgres://vicanso:A123456@127.0.0.1:5432/cybertect \
   -e MAIL_URI=smtp://tree.xie@outlook.com:pass@smtp.office365.com:587 \
   -e DETECTOR_INTERVAL=1m \
-  -e DETECTOR_EXPIRED=30d \
+  -e DETECTOR_EXPIRED=720h \
   --name=cybertect \
   vicanso/cybertect
 ```
@@ -25,7 +25,7 @@ docker run -d --restart=always \
 - `MAIL_URI` 用于发送告警邮件的SMTP设置 
 - `DETECTOR_INTERVAL` 检测间隔，默认为1m（1分钟一次)
 - `DETECTOR_CONCURRENCY` 检测任务并发数，若配置的检测任务较多，可调整此值，默认为10
-- `DETECTOR_EXPIRED` 检测结果过期时间，默认为30天(30d)，过期后的数据会自动清除。若不希望清除检测结果，则设置为负数则可，如：-1d
+- `DETECTOR_EXPIRED` 检测结果过期时间，默认为30天(720h)，过期后的数据会自动清除。若不希望清除检测结果，则设置为负数则可，如：-1h。需要注意，调整为标准的`time.ParseDuration`后，现不支持使用`d`为单位，需要使用`h`
 
 ## 数据存储 
 

@@ -223,12 +223,13 @@ func GetENV() string {
 // MustGetBasicConfig 获取基本配置信息
 func MustGetBasicConfig() *BasicConfig {
 	prefix := "basic."
+	limit := defaultViperX.GetIntFromENV(prefix + "requestLimit")
 	basicConfig := &BasicConfig{
 		Name:         defaultViperX.GetString(prefix + "name"),
-		RequestLimit: defaultViperX.GetUint(prefix + "requestLimit"),
+		RequestLimit: uint(limit),
 		Listen:       defaultViperX.GetStringFromENV(prefix + "listen"),
 		Prefixes:     defaultViperX.GetStringSlice(prefix + "prefixes"),
-		Timeout:      defaultViperX.GetDuration(prefix + "timeout"),
+		Timeout:      defaultViperX.GetDurationFromENV(prefix + "timeout"),
 	}
 	pidFile := fmt.Sprintf("%s.pid", basicConfig.Name)
 	pwd, _ := os.Getwd()
@@ -244,7 +245,7 @@ func MustGetBasicConfig() *BasicConfig {
 func MustGetSessionConfig() *SessionConfig {
 	prefix := "session."
 	sessConfig := &SessionConfig{
-		TTL:        defaultViperX.GetDuration(prefix + "ttl"),
+		TTL:        defaultViperX.GetDurationFromENV(prefix + "ttl"),
 		Key:        defaultViperX.GetString(prefix + "key"),
 		CookiePath: defaultViperX.GetString(prefix + "path"),
 		Keys:       defaultViperX.GetStringSlice(prefix + "keys"),
@@ -366,15 +367,16 @@ func MustGetMailConfig() *MailConfig {
 // MustGetInfluxdbConfig 获取influxdb配置
 func MustGetInfluxdbConfig() *InfluxdbConfig {
 	prefix := "influxdb."
+	batchSize := defaultViperX.GetIntFromENV(prefix + "batchSize")
 	influxdbConfig := &InfluxdbConfig{
 		URI:           defaultViperX.GetStringFromENV(prefix + "uri"),
-		Bucket:        defaultViperX.GetString(prefix + "bucket"),
-		Org:           defaultViperX.GetString(prefix + "org"),
+		Bucket:        defaultViperX.GetStringFromENV(prefix + "bucket"),
+		Org:           defaultViperX.GetStringFromENV(prefix + "org"),
 		Token:         defaultViperX.GetStringFromENV(prefix + "token"),
-		BatchSize:     defaultViperX.GetUint(prefix + "batchSize"),
-		FlushInterval: defaultViperX.GetDuration(prefix + "flushInterval"),
-		Gzip:          defaultViperX.GetBool(prefix + "gzip"),
-		Disabled:      defaultViperX.GetBool(prefix + "disabled"),
+		BatchSize:     uint(batchSize),
+		FlushInterval: defaultViperX.GetDurationFromENV(prefix + "flushInterval"),
+		Gzip:          defaultViperX.GetBoolFromENV(prefix + "gzip"),
+		Disabled:      defaultViperX.GetBoolFromENV(prefix + "disabled"),
 	}
 	mustValidate(influxdbConfig)
 	return influxdbConfig
@@ -384,8 +386,8 @@ func MustGetInfluxdbConfig() *InfluxdbConfig {
 func MustGetLocationConfig() *LocationConfig {
 	prefix := "location."
 	locationConfig := &LocationConfig{
-		BaseURL: defaultViperX.GetString(prefix + "baseURL"),
-		Timeout: defaultViperX.GetDuration(prefix + "timeout"),
+		BaseURL: defaultViperX.GetStringFromENV(prefix + "baseURL"),
+		Timeout: defaultViperX.GetDurationFromENV(prefix + "timeout"),
 	}
 	mustValidate(locationConfig)
 	return locationConfig
@@ -417,15 +419,7 @@ func MustGetPyroscopeConfig() *PyroscopeConfig {
 // MustGetDetectorConfig 获取检测配置
 func MustGetDetectorConfig() *DetectorConfig {
 	prefix := "detector."
-	expired := defaultViperX.GetStringFromENVDefault(prefix+"expired", "30d")
-	if strings.HasSuffix(expired, "d") {
-		d, _ := strconv.Atoi(expired[0 : len(expired)-1])
-		expired = fmt.Sprintf("%dh", 24*d)
-	}
-	expiredTime, err := time.ParseDuration(expired)
-	if err != nil {
-		panic(err)
-	}
+	expiredTime := defaultViperX.GetDurationFromENVDefault(prefix+"expired", 30*24*time.Hour)
 
 	detectorConfig := &DetectorConfig{
 		Interval:    defaultViperX.GetStringFromENVDefault(prefix+"interval", "1m"),

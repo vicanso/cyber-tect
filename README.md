@@ -224,3 +224,4 @@ mongodb连接串格式如下：`mongodb://[username:password@]host1[:port1][,...
 ## 常见问题
 
 - esbuild提示未成功安装，执行`node node_modules/esbuild/install.js`
+- release版本时需要先执行一次`make build-web`编译对应的前端静态文件并提交

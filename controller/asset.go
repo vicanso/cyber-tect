@@ -20,10 +20,10 @@ package controller
 import (
 	"time"
 
-	"github.com/vicanso/elton"
-	M "github.com/vicanso/elton/middleware"
 	"github.com/vicanso/cybertect/asset"
 	"github.com/vicanso/cybertect/router"
+	"github.com/vicanso/elton"
+	M "github.com/vicanso/elton/middleware"
 )
 
 type (
@@ -64,7 +64,7 @@ func (*assetCtrl) getIndex(c *elton.Context) error {
 
 // getFavIcon 图标
 func (*assetCtrl) getFavIcon(c *elton.Context) error {
-	err := assetFS.SendFile(c, "favicon.png")
+	err := assetFS.SendFile(c, "favicon.ico")
 	if err != nil {
 		return err
 	}

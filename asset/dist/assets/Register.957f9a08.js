@@ -1,0 +1,1 @@
+import{E as e}from"./ExLoginRegister.bdf7091f.js";import{h as r,G as i}from"./ui.c327b114.js";import"./index.14cddf8e.js";import"./common.c9fa31ee.js";import"./naive.650dd42a.js";var m=r({name:"RegisterView",render(){return i(e,{type:"register"},null)}});export{m as default};

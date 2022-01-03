@@ -23,14 +23,6 @@ import (
 	"github.com/vicanso/elton"
 )
 
-const testHTMLContent = `<!DOCTYPE html>
-<html>
-    <head>
-        <title>仅用于测试的html</title>
-    </head>
-    <body></body>
-</html>`
-
 func TestStaticFile(t *testing.T) {
 	assert := assert.New(t)
 	assert.True(assetFS.Exists("index.html"))
@@ -38,7 +30,7 @@ func TestStaticFile(t *testing.T) {
 
 	buf, err := assetFS.Get("index.html")
 	assert.Nil(err)
-	assert.Equal(testHTMLContent, string(buf))
+	assert.NotEmpty(buf)
 
 	assert.Nil(assetFS.Stat("index.html"))
 
@@ -47,7 +39,7 @@ func TestStaticFile(t *testing.T) {
 	assert.NotNil(r)
 	buf, err = ioutil.ReadAll(r)
 	assert.Nil(err)
-	assert.Equal(testHTMLContent, string(buf))
+	assert.NotEmpty(buf)
 }
 
 func TestAassetCtrl(t *testing.T) {
@@ -57,7 +49,7 @@ func TestAassetCtrl(t *testing.T) {
 		c := elton.NewContext(httptest.NewRecorder(), nil)
 		err := ctrl.getIndex(c)
 		assert.Nil(err)
-		assert.Equal(testHTMLContent, c.BodyBuffer.String())
+		assert.NotEmpty(c.BodyBuffer.String())
 		assert.Equal("text/html; charset=utf-8", c.GetHeader(elton.HeaderContentType))
 		assert.Equal("public, max-age=10", c.GetHeader(elton.HeaderCacheControl))
 	})
@@ -65,8 +57,8 @@ func TestAassetCtrl(t *testing.T) {
 		c := elton.NewContext(httptest.NewRecorder(), nil)
 		err := ctrl.getFavIcon(c)
 		assert.Nil(err)
-		assert.Equal(958, c.BodyBuffer.Len())
-		assert.Equal("image/png", c.GetHeader(elton.HeaderContentType))
+		assert.NotEqual(0, c.BodyBuffer.Len())
+		assert.Equal("image/x-icon", c.GetHeader(elton.HeaderContentType))
 		assert.Equal("public, max-age=3600, s-maxage=600", c.GetHeader(elton.HeaderCacheControl))
 	})
 }

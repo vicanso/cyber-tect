@@ -58,7 +58,6 @@ func TestAassetCtrl(t *testing.T) {
 		err := ctrl.getFavIcon(c)
 		assert.Nil(err)
 		assert.NotEqual(0, c.BodyBuffer.Len())
-		assert.Equal("image/x-icon", c.GetHeader(elton.HeaderContentType))
 		assert.Equal("public, max-age=3600, s-maxage=600", c.GetHeader(elton.HeaderCacheControl))
 	})
 }

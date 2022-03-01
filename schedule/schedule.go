@@ -22,7 +22,6 @@ import (
 
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog"
-	"github.com/shirou/gopsutil/v3/process"
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/detector"
@@ -33,6 +32,7 @@ import (
 	routerconcurrency "github.com/vicanso/cybertect/router_concurrency"
 	"github.com/vicanso/cybertect/service"
 	"github.com/vicanso/cybertect/util"
+	"github.com/vicanso/go-performance"
 	"go.uber.org/atomic"
 )
 
@@ -163,13 +163,13 @@ var prevNumGC uint32
 var prevPauseTotal time.Duration
 
 // 上一次的 io counter记录
-var prevIOCountersStat = &process.IOCountersStat{}
+var prevIOCountersStat = &performance.IOCountersStat{}
 
 // 上一次context切换记录
-var prevNumCtxSwitchesStat = &process.NumCtxSwitchesStat{}
+var prevNumCtxSwitchesStat = &performance.NumCtxSwitchesStat{}
 
 // 上一次的page faults记录
-var prevPageFaultsStat = &process.PageFaultsStat{}
+var prevPageFaultsStat = &performance.PageFaultsStat{}
 
 const mb = 1024 * 1024
 
@@ -246,6 +246,10 @@ func performanceStats() {
 			count := make(map[string]string)
 
 			for k, v := range data.ConnStat.Status {
+				// 如果该状态下对应的连接大于0，则记录此连接数
+				if v > 0 {
+					fields[cs.FieldConnTotal+k] = v
+				}
 				count[k] = strconv.Itoa(v)
 			}
 			for k, v := range data.ConnStat.RemoteAddr {
@@ -276,10 +280,14 @@ func performanceStats() {
 		}
 
 		// fd 相关
-		fields[cs.FieldNumFds] = data.NumFds
+		if data.NumFdsStat != nil {
+			fields[cs.FieldNumFds] = data.NumFdsStat.Fds
+
+		}
 
 		// open files的统计
-		if len(data.OpenFilesStats) != 0 {
+		if data.OpenFilesStats != nil &&
+			len(data.OpenFilesStats.OpenFiles) != 0 {
 			log.Info(context.Background()).
 				Str("category", "openFiles").
 				Dict("stat", log.Struct(data.OpenFilesStats)).

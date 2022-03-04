@@ -10,7 +10,7 @@ import { newListColumn, newLevelValueColumn } from "../../components/ExTable";
 import ExDetectorResultTable, {
   newShowMoreIcon,
 } from "../../components/ExDetectorResultTable";
-import { formatDate } from "../../helpers/util";
+import { formatSimpleDate } from "../../helpers/util";
 
 const popupClass = css`
   max-width: 980px;
@@ -60,7 +60,7 @@ export default defineComponent({
         key: "updatedAt",
         width: 180,
         render(row: Record<string, unknown>) {
-          return formatDate(row.updatedAt as string);
+          return formatSimpleDate(row.updatedAt as string);
         },
       },
       {

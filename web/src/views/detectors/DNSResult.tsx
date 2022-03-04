@@ -5,7 +5,7 @@ import { RowData, TableColumn } from "naive-ui/lib/data-table/src/interface";
 
 import useDetectorState, { dnsDetectorResultList } from "../../states/detector";
 import { newListColumn, newLevelValueColumn } from "../../components/ExTable";
-import { formatDate } from "../../helpers/util";
+import { formatSimpleDate } from "../../helpers/util";
 import ExDetectorResultTable, {
   newShowMoreIcon,
 } from "../../components/ExDetectorResultTable";
@@ -57,7 +57,7 @@ export default defineComponent({
         title: "更新于",
         key: "updatedAt",
         render(row: Record<string, unknown>) {
-          return formatDate(row.updatedAt as string);
+          return formatSimpleDate(row.updatedAt as string);
         },
       },
       {

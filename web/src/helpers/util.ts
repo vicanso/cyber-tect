@@ -102,6 +102,14 @@ export function yesterday(): Date {
   return getDaysAgo(1);
 }
 
+export function formatTime(str: string): string {
+  return formatDate(str).substring(11);
+}
+
+export function formatSimpleDate(str: string): string {
+  return formatDate(str).substring(5);
+}
+
 // formatDate 格式化日期
 export function formatDate(str: string): string {
   return dayjs(str).format("YYYY-MM-DD HH:mm:ss");

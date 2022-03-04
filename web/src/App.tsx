@@ -1,4 +1,4 @@
-import { NLayout, NLayoutSider, useLoadingBar } from "naive-ui";
+import { NLayout, NLayoutSider, useLoadingBar, useMessage } from "naive-ui";
 import { css } from "@linaria/core";
 import { defineComponent, onMounted } from "vue";
 import AppHeader from "./AppHeader";
@@ -20,15 +20,28 @@ const contentLayoutClass = css`
   padding: ${2 * padding}px;
 `;
 
+import { userMeDetail } from "./states/user";
+import { toast } from "./helpers/util";
+
 export default defineComponent({
   name: "App",
   setup() {
+    const message = useMessage();
     const { settings } = useCommonState();
     const loadingBar = useLoadingBar();
     if (loadingBar != undefined) {
       setLoadingEvent(loadingBar.start, loadingBar.finish);
       onMounted(() => {
         loadingBar.finish();
+
+        userMeDetail().then((userInfo) => {
+          if (userInfo.account && !userInfo.email) {
+            toast(
+              message,
+              "未设置接收告警信息的邮箱，请先在个人信息中设置(右上角个人信息)"
+            );
+          }
+        });
       });
     }
     return {

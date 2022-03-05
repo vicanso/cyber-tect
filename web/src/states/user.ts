@@ -302,8 +302,8 @@ export async function userUpdateByID(params: {
 }
 
 export async function userMeDetail(): Promise<UserDetailInfo> {
-  const { data } = await request.get(USERS_ME_DETAIL);
-  return data as UserDetailInfo;
+  const { data } = await request.get<UserDetailInfo>(USERS_ME_DETAIL);
+  return data;
 }
 
 export async function userUpdateMe(

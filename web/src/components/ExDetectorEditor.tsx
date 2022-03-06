@@ -60,7 +60,7 @@ export function getDefaultForItems(): FormItem[] {
       key: FormItemKey.timeout,
       type: FormItemTypes.InputDuration,
       placeholder: "请输入超时时长",
-      defaultValue: "3s",
+      defaultValue: "5s",
     },
     {
       name: "检测间隔：",

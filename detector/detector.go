@@ -83,6 +83,10 @@ func isMatchAlarmCount(count int) bool {
 	return false
 }
 
+func isWeComRobot(url string) bool {
+	return strings.HasPrefix(url, "https://qyapi.weixin.qq.com")
+}
+
 func doAlarm(ctx context.Context, detail alarmDetail) {
 	value, _ := taskFailCountMap.LoadOrStore(detail.Task, atomic.NewUint32(0))
 	failCount, ok := value.(*atomic.Uint32)
@@ -141,7 +145,7 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 			go func() {
 				ctx1, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 				defer cancel()
-				_, err := axios.Request(&axios.Config{
+				conf := &axios.Config{
 					Context: ctx,
 					Method:  http.MethodPost,
 					URL:     item.AlarmURL,
@@ -149,7 +153,18 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 						"title":   title,
 						"message": message,
 					},
-				})
+				}
+				// 如果是企业微信机器人
+				if isWeComRobot(item.AlarmURL) {
+					content := fmt.Sprintf("标题：%s\n内容：%s", title, message)
+					conf.Body = map[string]interface{}{
+						"msgtype": "markdown",
+						"markdown": map[string]string{
+							"content": content,
+						},
+					}
+				}
+				_, err := axios.Request(conf)
 				if err != nil {
 					log.Error(ctx1).
 						Str("category", "sendAlarm").

@@ -6,7 +6,7 @@ require (
 	entgo.io/ent v0.10.1
 	github.com/alicebob/miniredis/v2 v2.20.0
 	github.com/disintegration/imaging v1.6.2
-	github.com/dop251/goja v0.0.0-20220403115030-90825c02072b
+	github.com/dop251/goja v0.0.0-20220408131256-ffe77e20c6f1
 	github.com/dustin/go-humanize v1.0.0
 	github.com/felixge/fgprof v0.9.2
 	github.com/fogleman/gg v1.3.0
@@ -25,7 +25,7 @@ require (
 	github.com/mozillazg/go-pinyin v0.19.0
 	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/common v0.33.0
-	github.com/pyroscope-io/pyroscope v0.13.0
+	github.com/pyroscope-io/pyroscope v0.14.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/xid v1.4.0
 	github.com/rs/zerolog v1.26.1
@@ -40,7 +40,7 @@ require (
 	github.com/vicanso/go-axios v1.4.0
 	github.com/vicanso/go-cache v1.5.0
 	github.com/vicanso/go-gauge v0.0.1
-	github.com/vicanso/go-mask v0.4.0
+	github.com/vicanso/go-mask v0.5.0
 	github.com/vicanso/go-parallel v0.5.0
 	github.com/vicanso/go-performance v0.5.0
 	github.com/vicanso/hes v0.5.0
@@ -48,12 +48,12 @@ require (
 	github.com/vicanso/ips v1.2.1
 	github.com/vicanso/lru-ttl v1.4.0
 	github.com/vicanso/viperx v0.6.0
-	go.mongodb.org/mongo-driver v1.8.4
+	go.mongodb.org/mongo-driver v1.9.0
 	go.uber.org/atomic v1.9.0
-	go.uber.org/automaxprocs v1.4.0
+	go.uber.org/automaxprocs v1.5.1
 	go.uber.org/ratelimit v0.2.0
 	golang.org/x/image v0.0.0-20220321031419-a8550c1d254a
-	golang.org/x/net v0.0.0-20220403103023-749bd193bc2b
+	golang.org/x/net v0.0.0-20220407224826-aac1ed45d8e3
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
 
@@ -97,7 +97,7 @@ require (
 	github.com/jackc/pgtype v1.10.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.15.1 // indirect
-	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
+	github.com/klauspost/cpuid/v2 v2.0.12 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20220326011226-f1430873d8db // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
@@ -140,10 +140,10 @@ require (
 	github.com/yuin/gopher-lua v0.0.0-20210529063254-f4c35e4016d9 // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
 	github.com/zclconf/go-cty v1.10.0 // indirect
-	golang.org/x/crypto v0.0.0-20220331220935-ae2d96664a29 // indirect
+	golang.org/x/crypto v0.0.0-20220408190544-5352b0902921 // indirect
 	golang.org/x/mod v0.5.1 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20220403205710-6acee93ad0eb // indirect
+	golang.org/x/sys v0.0.0-20220408201424-a24fb2fb8a0f // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

@@ -143,7 +143,7 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 		// 如果有配置了alarm地址
 		if item.AlarmURL != "" {
 			go func() {
-				ctx1, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+				ctx1, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 				defer cancel()
 				conf := &axios.Config{
 					Context: ctx,
@@ -175,6 +175,10 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 					log.Error(ctx1).
 						Str("category", "sendAlarm").
 						Err(err)
+				} else {
+					log.Info(ctx1).
+						Str("category", "sendAlarm").
+						Send()
 				}
 			}()
 		} else if item.Email != "" {

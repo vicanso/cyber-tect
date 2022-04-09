@@ -32,6 +32,7 @@ import (
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
+	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/go-axios"
 	parallel "github.com/vicanso/go-parallel"
 	"github.com/vicanso/hes"
@@ -117,7 +118,7 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 	if detail.IsSuccess {
 		title = detail.Name + "(success)"
 	} else {
-		message = strings.Join(detail.Messages, ",")
+		message = strings.Join(detail.Messages, "\n")
 		title = detail.Name + "(fail)"
 		if message == "" {
 			message = "检测失败，未知异常"
@@ -162,7 +163,10 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 					if len(buf) > maxSize {
 						message = string(buf[:maxSize])
 					}
-					content := fmt.Sprintf("标题：%s\n内容：%s", title, message)
+
+					t, _ := util.ChinaNow()
+
+					content := fmt.Sprintf("时间：%s\n标题：%s\n内容：%s", t, title, message)
 					conf.Body = map[string]interface{}{
 						"msgtype": "markdown",
 						"markdown": map[string]string{
@@ -171,13 +175,14 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 					}
 				}
 				_, err := axios.Request(conf)
+				sendAlarmCategory := "sendAlarm"
 				if err != nil {
 					log.Error(ctx1).
-						Str("category", "sendAlarm").
+						Str("category", sendAlarmCategory).
 						Err(err)
 				} else {
 					log.Info(ctx1).
-						Str("category", "sendAlarm").
+						Str("category", sendAlarmCategory).
 						Send()
 				}
 			}()

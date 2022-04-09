@@ -156,6 +156,12 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 				}
 				// 如果是企业微信机器人
 				if isWeComRobot(item.AlarmURL) {
+					buf := []byte(message)
+					maxSize := 4096
+					// 直接截短
+					if len(buf) > maxSize {
+						message = string(buf[:maxSize])
+					}
 					content := fmt.Sprintf("标题：%s\n内容：%s", title, message)
 					conf.Body = map[string]interface{}{
 						"msgtype": "markdown",

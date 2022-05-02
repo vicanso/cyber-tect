@@ -8,7 +8,7 @@ RUN apk update \
   && npm run build \
   && rm -rf node_modules
 
-FROM golang:1.17-alpine as builder
+FROM golang:1.18-alpine as builder
 
 COPY --from=webbuilder /cybertect /cybertect
 

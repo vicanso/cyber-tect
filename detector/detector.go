@@ -157,13 +157,7 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 				}
 				// 如果是企业微信机器人
 				if isWeComRobot(item.AlarmURL) {
-					buf := []byte(message)
-					maxSize := 4096
-					// 直接截短
-					if len(buf) > maxSize {
-						message = string(buf[:maxSize])
-					}
-
+					message = util.CutRune(message, 512)
 					t, _ := util.ChinaNow()
 
 					content := fmt.Sprintf("时间：%s\n标题：%s\n内容：%s", t, title, message)

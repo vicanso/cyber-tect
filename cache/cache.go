@@ -19,14 +19,16 @@ import (
 
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/helper"
-	goCache "github.com/vicanso/go-cache"
-	lruttl "github.com/vicanso/lru-ttl"
+	goCache "github.com/vicanso/go-cache/v2"
 )
 
 var redisCache = newRedisCache()
-var redisCacheWithCompress = newCompressRedisCache()
+
 var redisSession = newRedisSession()
 var redisConfig = config.MustGetRedisConfig()
+
+// 数据压缩的最小长度
+var compressMinLength = 2 * 1024
 
 func newRedisCache() *goCache.RedisCache {
 	opts := []goCache.RedisCacheOption{
@@ -36,15 +38,27 @@ func newRedisCache() *goCache.RedisCache {
 	return c
 }
 
-func newCompressRedisCache() *goCache.RedisCache {
-	// 大于10KB以上的数据压缩
-	// 适用于数据量较大，而且数据内容重复较多的场景
-	minCompressSize := 10 * 1024
-	return goCache.NewCompressRedisCache(
-		helper.RedisGetClient(),
-		minCompressSize,
-		goCache.RedisCachePrefixOption(redisConfig.Prefix),
+func MustNewSnappyCompressCache(ttl time.Duration) *goCache.Cache {
+	return mustNewCompressCache(ttl, goCache.NewSnappyCompressor(compressMinLength))
+}
+
+func MustNewZSTDCompressCache(ttl time.Duration) *goCache.Cache {
+	return mustNewCompressCache(ttl, goCache.NewZSTDCompressor(compressMinLength, 2))
+}
+
+func mustNewCompressCache(ttl time.Duration, compressor goCache.Compressor) *goCache.Cache {
+	c, err := goCache.New(
+		ttl,
+		goCache.CacheCompressorOption(compressor),
+		goCache.CacheKeyPrefixOption(redisConfig.Prefix),
+		goCache.CacheStoreOption(
+			goCache.NewRedisStore(helper.RedisGetClient()),
+		),
 	)
+	if err != nil {
+		panic(err)
+	}
+	return c
 }
 
 func newRedisSession() *goCache.RedisSession {
@@ -59,28 +73,36 @@ func GetRedisCache() *goCache.RedisCache {
 	return redisCache
 }
 
-// GetRedisCacheWithCompress get redis cache which will compress data
-func GetRedisCacheWithCompress() *goCache.RedisCache {
-	return redisCacheWithCompress
-}
-
 // GetRedisSession get redis session
 func GetRedisSession() *goCache.RedisSession {
 	return redisSession
 }
 
-// NewMultilevelCache create a new multilevel cache
-func NewMultilevelCache(lruSize int, ttl time.Duration, prefix string) *lruttl.L2Cache {
-	opts := []goCache.MultilevelCacheOption{
-		goCache.MultilevelCacheRedisOption(redisCache),
-		goCache.MultilevelCacheLRUSizeOption(lruSize),
-		goCache.MultilevelCacheTTLOption(ttl),
-		goCache.MultilevelCachePrefixOption(prefix),
+// MustNewMultilevelCache create a new multilevel cache
+func MustNewMultilevelCache(ttl time.Duration, cacheSizeMB int, prefix string) *goCache.Cache {
+
+	c, err := goCache.New(
+		ttl,
+		goCache.CacheHardMaxCacheSizeOption(cacheSizeMB),
+		goCache.CacheKeyPrefixOption(prefix),
+		goCache.CacheSecondaryStoreOption(
+			goCache.NewRedisStore(helper.RedisGetClient()),
+		),
+	)
+	if err != nil {
+		panic(err)
 	}
-	return goCache.NewMultilevelCache(opts...)
+	return c
 }
 
-// NewLRUCache new lru cache with ttl
-func NewLRUCache(maxEntries int, defaultTTL time.Duration) *lruttl.Cache {
-	return lruttl.New(maxEntries, defaultTTL)
+// MustNewLRUCache new lru cache with ttl
+func MustNewLRUCache(ttl time.Duration, cacheSizeMB int) *goCache.Cache {
+	c, err := goCache.New(
+		ttl,
+		goCache.CacheHardMaxCacheSizeOption(cacheSizeMB),
+	)
+	if err != nil {
+		panic(err)
+	}
+	return c
 }

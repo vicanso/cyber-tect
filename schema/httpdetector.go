@@ -24,6 +24,9 @@ func (HTTPDetector) Fields() []ent.Field {
 		field.Strings("proxies").
 			Optional().
 			Comment("代理列表"),
+		field.Int8("randomQueryString").
+			Optional().
+			Comment("随机query string"),
 	}
 }
 

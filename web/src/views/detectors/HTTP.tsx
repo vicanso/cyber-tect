@@ -49,6 +49,16 @@ export default defineComponent({
         title: "代理地址",
       }),
       {
+        title: "随机QueryString",
+        key: "randomQueryString",
+        render: (row: Record<string, unknown>) => {
+          if (row.randomQueryString === 1) {
+            return '是'
+          }
+          return '否'
+        }
+      },
+      {
         title: "检测脚本",
         key: "script",
         width: 300,
@@ -71,20 +81,38 @@ export default defineComponent({
         type: FormItemTypes.DynamicInput,
         name: "IP列表：",
         key: "ips",
-        span: 8,
+        span: 6,
         placeholder: "请输入对应的IP地址，若不指定则输入0.0.0.0",
         min: 1,
       },
       {
         name: "检测地址：",
         key: "url",
-        span: 8,
+        span: 6,
         placeholder: "请输入要检测的URL",
+      },
+      {
+        type: FormItemTypes.Select,
+        name: "随机QueryString：",
+        key: "randomQueryString",
+        span: 6,
+        placeholder: "请选择是否使用",
+        options: [
+          {
+            label: "是",
+            value: 1,
+          },
+          {
+            label: "否",
+            value: 2,
+          },
+        ],
       },
       {
         type: FormItemTypes.DynamicInput,
         name: "代理地址：",
         key: "proxies",
+        span: 6,
         placeholder:
           "请输入使用的代理地址，如：http://127.0.0.1:52206，http://0.0.0.0 表示不使用代理",
       },
@@ -113,7 +141,7 @@ export default defineComponent({
         formItems={formItems}
         data={httpDetectors}
         rules={rules}
-        tableScrollX={1800}
+        tableScrollX={2200}
       />
     );
   },

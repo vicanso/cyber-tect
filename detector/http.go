@@ -260,8 +260,17 @@ func (srv *HTTPSrv) detect(ctx context.Context, config *ent.HTTPDetector) (httpD
 	for _, check := range checkList {
 		ip := check.ip
 		proxy := check.proxy
+		url := config.URL
+		if config.RandomQueryString == 1 {
+			str := util.RandomString(8)
+			if strings.Contains(url, "?") {
+				url += fmt.Sprintf("&%s", str)
+			} else {
+				url += fmt.Sprintf("?%s", str)
+			}
+		}
 		checkResult, err := srv.check(ctx, httpCheckParams{
-			url:     config.URL,
+			url:     url,
 			ip:      ip,
 			timeout: timeout,
 			script:  config.Script,
@@ -286,7 +295,7 @@ func (srv *HTTPSrv) detect(ctx context.Context, config *ent.HTTPDetector) (httpD
 			if ip == "" && len(ht.Addrs) != 0 {
 				ip = ht.Addrs[0]
 			}
-			subResult.Message = fmt.Sprintf("%s, %s(%s)", err.Error(), config.URL, ip)
+			subResult.Message = fmt.Sprintf("%s, %s(%s)", err.Error(), url, ip)
 			if ht != nil {
 				subResult.Message += fmt.Sprintf(" stats=%s", ht.Stats().String())
 			}

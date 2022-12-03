@@ -44,6 +44,7 @@ interface HTTPDetector {
   description: string;
   ips: string[];
   url: string;
+  randomQueryString: number;
 }
 
 // dns 检测配置
@@ -381,7 +382,12 @@ export async function httpDetectorList(params: {
     if (count >= 0) {
       httpDetectors.count = count;
     }
-    httpDetectors.items = data.httpDetectors || [];
+    httpDetectors.items = (data.httpDetectors || []).map((item) => {
+      if (!item.randomQueryString) {
+        item.randomQueryString = 2;
+      }
+      return item
+    });
   } finally {
     httpDetectors.processing = false;
   }
@@ -496,6 +502,9 @@ export async function httpDetectorFindByID(id: number): Promise<HTTPDetector> {
   const { data } = await request.get(
     HTTP_DETECTORS_ID.replace(":id", id.toString())
   );
+  if (!data.randomQueryString) {
+    data.randomQueryString = 2;
+  }
   return data as HTTPDetector;
 }
 

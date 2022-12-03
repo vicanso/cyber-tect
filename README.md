@@ -39,20 +39,22 @@ docker run -d --restart=always \
 用户信息及检测配置、结果等数据保存在postgres中，若无现成的postgres可使用以下脚本启动实例：
 
 ```
-docker pull postgres:14-alpine
+docker pull postgres:15-alpine
 
 docker run -d --restart=always \
   -v $PWD/data:/var/lib/postgresql/data \
   -e POSTGRES_PASSWORD=A123456 \
   -p 5432:5432 \
-  --name=postgres \
-  postgres:14-alpine
+  --name=cybertect-postgres \
+  postgres:15-alpine
 
-docker exec -it postgres sh
+docker exec -it cybertect-postgres sh
 
 psql -c "CREATE DATABASE cybertect;" -U postgres
 psql -c "CREATE USER vicanso WITH PASSWORD 'A123456';" -U postgres
 psql -c "GRANT ALL PRIVILEGES ON DATABASE cybertect to vicanso;" -U postgres
+psql -c "GRANT ALL ON DATABASE cybertect TO vicanso;" -U postgres
+psql -c "ALTER DATABASE cybertect OWNER TO vicanso;" -U postgres
 ```
 
 ## 项目启动

@@ -44,6 +44,8 @@ type (
 		URL     string   `json:"url" validate:"required,xHTTP"`
 		// 检测脚本
 		Script string `json:"script" validate:"omitempty"`
+		// 随机字符串
+		RandomQueryString int8 `json:"randomQueryString" validate:"omitempty"`
 	}
 	httpDetectorListParams struct {
 		listParams
@@ -60,6 +62,8 @@ type (
 		URL     string   `json:"url" validate:"omitempty,xHTTP"`
 		// 检测脚本
 		Script string `json:"script" validate:"omitempty"`
+		// 随机字符串
+		RandomQueryString int8 `json:"randomQueryString" validate:"omitempty"`
 	}
 
 	httpDetectorResultListParams struct {
@@ -134,6 +138,7 @@ func (addParams *httpDetectorAddParams) save(ctx context.Context) (*ent.HTTPDete
 		SetScript(addParams.Script).
 		SetProxies(addParams.Proxies).
 		SetInterval(addParams.Interval).
+		SetRandomQueryString(addParams.RandomQueryString).
 		Save(ctx)
 }
 
@@ -255,6 +260,9 @@ func (updateParams *httpDetectorUpdateParams) updateByID(ctx context.Context, id
 	}
 	if updateParams.Script != "" {
 		updateOne.SetScript(strings.TrimSpace(updateParams.Script))
+	}
+	if updateParams.RandomQueryString != 0 {
+		updateOne.SetRandomQueryString(updateParams.RandomQueryString)
 	}
 
 	interval := updateParams.Interval

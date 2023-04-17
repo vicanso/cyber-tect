@@ -22,7 +22,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -145,7 +144,7 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (result *
 		ht.Protocol = resp.Proto
 	}
 	ht.Protocol = strings.ToUpper(ht.Protocol)
-	buf, _ := ioutil.ReadAll(r)
+	buf, _ := io.ReadAll(r)
 
 	result.body = buf
 	// < 200 或者 >= 400 均认为失败

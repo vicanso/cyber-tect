@@ -141,22 +141,23 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 
 	emails := make([]string, 0)
 	for _, item := range users {
+		cloneItem := *item
 		// 如果有配置了alarm地址
-		if item.AlarmURL != "" {
+		if cloneItem.AlarmURL != "" {
 			go func() {
 				ctx1, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 				defer cancel()
 				conf := &axios.Config{
 					Context: ctx,
 					Method:  http.MethodPost,
-					URL:     item.AlarmURL,
+					URL:     cloneItem.AlarmURL,
 					Body: map[string]string{
 						"title":   title,
 						"message": message,
 					},
 				}
 				// 如果是企业微信机器人
-				if isWeComRobot(item.AlarmURL) {
+				if isWeComRobot(cloneItem.AlarmURL) {
 					t, _ := util.ChinaNow()
 
 					content := fmt.Sprintf("时间：%s\n标题：%s", t, title)

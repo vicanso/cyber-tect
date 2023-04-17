@@ -21,14 +21,13 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/disintegration/imaging"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/config"
+	"github.com/vicanso/elton"
 )
 
 type (
@@ -83,7 +82,7 @@ func (srv *FileSrv) GetData(ctx context.Context, bucket, filename string) ([]byt
 		return nil, nil, err
 	}
 
-	data, err := ioutil.ReadAll(object)
+	data, err := io.ReadAll(object)
 	if err != nil {
 		return nil, nil, err
 	}

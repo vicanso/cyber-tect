@@ -15,7 +15,7 @@
 package controller
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"testing"
 
@@ -37,7 +37,7 @@ func TestStaticFile(t *testing.T) {
 	r, err := assetFS.NewReader("index.html")
 	assert.Nil(err)
 	assert.NotNil(r)
-	buf, err = ioutil.ReadAll(r)
+	buf, err = io.ReadAll(r)
 	assert.Nil(err)
 	assert.NotEmpty(buf)
 }

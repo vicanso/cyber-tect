@@ -262,7 +262,7 @@ func (srv *HTTPSrv) detect(ctx context.Context, config *ent.HTTPDetector) (httpD
 		proxy := check.proxy
 		url := config.URL
 		if config.RandomQueryString == 1 {
-			str := util.RandomString(8)
+			str := util.GenXID()
 			if strings.Contains(url, "?") {
 				url += fmt.Sprintf("&%s", str)
 			} else {

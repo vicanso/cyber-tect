@@ -18,8 +18,7 @@ build-web:
 	cd web && npm install && npm run build && rm -rf node_modules && cd .. && rm -rf asset/dist && cp -rf web/dist asset/
 
 generate: 
-	rm -rf ./ent
-	go run entgo.io/ent/cmd/ent generate ./schema --template ./template --target ./ent
+	go run entgo.io/ent/cmd/ent generate --feature sql/modifier --feature privacy --feature intercept ./schema --template ./template --target ./ent
 
 describe:
 	entc describe ./schema

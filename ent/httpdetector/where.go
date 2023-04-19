@@ -12,288 +12,190 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldID, id))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v schema.Status) predicate.HTTPDetector {
 	vc := int8(v)
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldStatus), vc))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldStatus, vc))
 }
 
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldName, v))
 }
 
 // Timeout applies equality check predicate on the "timeout" field. It's identical to TimeoutEQ.
 func Timeout(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldTimeout, v))
 }
 
 // Interval applies equality check predicate on the "interval" field. It's identical to IntervalEQ.
 func Interval(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldInterval, v))
 }
 
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldDescription, v))
 }
 
 // URL applies equality check predicate on the "url" field. It's identical to URLEQ.
 func URL(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldURL, v))
 }
 
 // Script applies equality check predicate on the "script" field. It's identical to ScriptEQ.
 func Script(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldScript, v))
 }
 
 // RandomQueryString applies equality check predicate on the "randomQueryString" field. It's identical to RandomQueryStringEQ.
 func RandomQueryString(v int8) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldRandomQueryString), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldRandomQueryString, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
 func CreatedAtNEQ(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtGT applies the GT predicate on the "created_at" field.
 func CreatedAtGT(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldCreatedAt, v))
 }
 
 // CreatedAtGTE applies the GTE predicate on the "created_at" field.
 func CreatedAtGTE(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldCreatedAt, v))
 }
 
 // CreatedAtLT applies the LT predicate on the "created_at" field.
 func CreatedAtLT(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldCreatedAt, v))
 }
 
 // CreatedAtLTE applies the LTE predicate on the "created_at" field.
 func CreatedAtLTE(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldCreatedAt, v))
 }
 
 // UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
 func UpdatedAtEQ(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
 func UpdatedAtNEQ(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldUpdatedAt, v))
 }
 
 // UpdatedAtIn applies the In predicate on the "updated_at" field.
 func UpdatedAtIn(vs ...time.Time) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUpdatedAt), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldUpdatedAt, vs...))
 }
 
 // UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
 func UpdatedAtNotIn(vs ...time.Time) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUpdatedAt), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldUpdatedAt, vs...))
 }
 
 // UpdatedAtGT applies the GT predicate on the "updated_at" field.
 func UpdatedAtGT(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldUpdatedAt, v))
 }
 
 // UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
 func UpdatedAtGTE(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldUpdatedAt, v))
 }
 
 // UpdatedAtLT applies the LT predicate on the "updated_at" field.
 func UpdatedAtLT(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldUpdatedAt, v))
 }
 
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v schema.Status) predicate.HTTPDetector {
 	vc := int8(v)
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldStatus), vc))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldStatus, vc))
 }
 
 // StatusNEQ applies the NEQ predicate on the "status" field.
 func StatusNEQ(v schema.Status) predicate.HTTPDetector {
 	vc := int8(v)
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldStatus), vc))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldStatus, vc))
 }
 
 // StatusIn applies the In predicate on the "status" field.
@@ -302,9 +204,7 @@ func StatusIn(vs ...schema.Status) predicate.HTTPDetector {
 	for i := range v {
 		v[i] = int8(vs[i])
 	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldStatus), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldStatus, v...))
 }
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
@@ -313,755 +213,501 @@ func StatusNotIn(vs ...schema.Status) predicate.HTTPDetector {
 	for i := range v {
 		v[i] = int8(vs[i])
 	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldStatus), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldStatus, v...))
 }
 
 // StatusGT applies the GT predicate on the "status" field.
 func StatusGT(v schema.Status) predicate.HTTPDetector {
 	vc := int8(v)
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldStatus), vc))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldStatus, vc))
 }
 
 // StatusGTE applies the GTE predicate on the "status" field.
 func StatusGTE(v schema.Status) predicate.HTTPDetector {
 	vc := int8(v)
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldStatus), vc))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldStatus, vc))
 }
 
 // StatusLT applies the LT predicate on the "status" field.
 func StatusLT(v schema.Status) predicate.HTTPDetector {
 	vc := int8(v)
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldStatus), vc))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldStatus, vc))
 }
 
 // StatusLTE applies the LTE predicate on the "status" field.
 func StatusLTE(v schema.Status) predicate.HTTPDetector {
 	vc := int8(v)
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldStatus), vc))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldStatus, vc))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldName, v))
 }
 
 // NameNEQ applies the NEQ predicate on the "name" field.
 func NameNEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldName, v))
 }
 
 // NameIn applies the In predicate on the "name" field.
 func NameIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldName), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldName, vs...))
 }
 
 // NameNotIn applies the NotIn predicate on the "name" field.
 func NameNotIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldName), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldName, vs...))
 }
 
 // NameGT applies the GT predicate on the "name" field.
 func NameGT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldName, v))
 }
 
 // NameGTE applies the GTE predicate on the "name" field.
 func NameGTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldName, v))
 }
 
 // NameLT applies the LT predicate on the "name" field.
 func NameLT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldName, v))
 }
 
 // NameLTE applies the LTE predicate on the "name" field.
 func NameLTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldName, v))
 }
 
 // NameContains applies the Contains predicate on the "name" field.
 func NameContains(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContains(FieldName, v))
 }
 
 // NameHasPrefix applies the HasPrefix predicate on the "name" field.
 func NameHasPrefix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasPrefix(FieldName, v))
 }
 
 // NameHasSuffix applies the HasSuffix predicate on the "name" field.
 func NameHasSuffix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasSuffix(FieldName, v))
 }
 
 // NameEqualFold applies the EqualFold predicate on the "name" field.
 func NameEqualFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEqualFold(FieldName, v))
 }
 
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldName), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContainsFold(FieldName, v))
 }
 
 // TimeoutEQ applies the EQ predicate on the "timeout" field.
 func TimeoutEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldTimeout, v))
 }
 
 // TimeoutNEQ applies the NEQ predicate on the "timeout" field.
 func TimeoutNEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldTimeout, v))
 }
 
 // TimeoutIn applies the In predicate on the "timeout" field.
 func TimeoutIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldTimeout), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldTimeout, vs...))
 }
 
 // TimeoutNotIn applies the NotIn predicate on the "timeout" field.
 func TimeoutNotIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldTimeout), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldTimeout, vs...))
 }
 
 // TimeoutGT applies the GT predicate on the "timeout" field.
 func TimeoutGT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldTimeout, v))
 }
 
 // TimeoutGTE applies the GTE predicate on the "timeout" field.
 func TimeoutGTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldTimeout, v))
 }
 
 // TimeoutLT applies the LT predicate on the "timeout" field.
 func TimeoutLT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldTimeout, v))
 }
 
 // TimeoutLTE applies the LTE predicate on the "timeout" field.
 func TimeoutLTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldTimeout, v))
 }
 
 // TimeoutContains applies the Contains predicate on the "timeout" field.
 func TimeoutContains(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContains(FieldTimeout, v))
 }
 
 // TimeoutHasPrefix applies the HasPrefix predicate on the "timeout" field.
 func TimeoutHasPrefix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasPrefix(FieldTimeout, v))
 }
 
 // TimeoutHasSuffix applies the HasSuffix predicate on the "timeout" field.
 func TimeoutHasSuffix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasSuffix(FieldTimeout, v))
 }
 
 // TimeoutEqualFold applies the EqualFold predicate on the "timeout" field.
 func TimeoutEqualFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEqualFold(FieldTimeout, v))
 }
 
 // TimeoutContainsFold applies the ContainsFold predicate on the "timeout" field.
 func TimeoutContainsFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldTimeout), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContainsFold(FieldTimeout, v))
 }
 
 // IntervalEQ applies the EQ predicate on the "interval" field.
 func IntervalEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldInterval, v))
 }
 
 // IntervalNEQ applies the NEQ predicate on the "interval" field.
 func IntervalNEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldInterval, v))
 }
 
 // IntervalIn applies the In predicate on the "interval" field.
 func IntervalIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldInterval), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldInterval, vs...))
 }
 
 // IntervalNotIn applies the NotIn predicate on the "interval" field.
 func IntervalNotIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldInterval), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldInterval, vs...))
 }
 
 // IntervalGT applies the GT predicate on the "interval" field.
 func IntervalGT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldInterval, v))
 }
 
 // IntervalGTE applies the GTE predicate on the "interval" field.
 func IntervalGTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldInterval, v))
 }
 
 // IntervalLT applies the LT predicate on the "interval" field.
 func IntervalLT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldInterval, v))
 }
 
 // IntervalLTE applies the LTE predicate on the "interval" field.
 func IntervalLTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldInterval, v))
 }
 
 // IntervalContains applies the Contains predicate on the "interval" field.
 func IntervalContains(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContains(FieldInterval, v))
 }
 
 // IntervalHasPrefix applies the HasPrefix predicate on the "interval" field.
 func IntervalHasPrefix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasPrefix(FieldInterval, v))
 }
 
 // IntervalHasSuffix applies the HasSuffix predicate on the "interval" field.
 func IntervalHasSuffix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasSuffix(FieldInterval, v))
 }
 
 // IntervalIsNil applies the IsNil predicate on the "interval" field.
 func IntervalIsNil() predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldInterval)))
-	})
+	return predicate.HTTPDetector(sql.FieldIsNull(FieldInterval))
 }
 
 // IntervalNotNil applies the NotNil predicate on the "interval" field.
 func IntervalNotNil() predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldInterval)))
-	})
+	return predicate.HTTPDetector(sql.FieldNotNull(FieldInterval))
 }
 
 // IntervalEqualFold applies the EqualFold predicate on the "interval" field.
 func IntervalEqualFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEqualFold(FieldInterval, v))
 }
 
 // IntervalContainsFold applies the ContainsFold predicate on the "interval" field.
 func IntervalContainsFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldInterval), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContainsFold(FieldInterval, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldDescription, v))
 }
 
 // DescriptionNEQ applies the NEQ predicate on the "description" field.
 func DescriptionNEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldDescription, v))
 }
 
 // DescriptionIn applies the In predicate on the "description" field.
 func DescriptionIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldDescription), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldDescription, vs...))
 }
 
 // DescriptionNotIn applies the NotIn predicate on the "description" field.
 func DescriptionNotIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldDescription), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldDescription, vs...))
 }
 
 // DescriptionGT applies the GT predicate on the "description" field.
 func DescriptionGT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldDescription, v))
 }
 
 // DescriptionGTE applies the GTE predicate on the "description" field.
 func DescriptionGTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldDescription, v))
 }
 
 // DescriptionLT applies the LT predicate on the "description" field.
 func DescriptionLT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldDescription, v))
 }
 
 // DescriptionLTE applies the LTE predicate on the "description" field.
 func DescriptionLTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldDescription, v))
 }
 
 // DescriptionContains applies the Contains predicate on the "description" field.
 func DescriptionContains(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContains(FieldDescription, v))
 }
 
 // DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
 func DescriptionHasPrefix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasPrefix(FieldDescription, v))
 }
 
 // DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
 func DescriptionHasSuffix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasSuffix(FieldDescription, v))
 }
 
 // DescriptionEqualFold applies the EqualFold predicate on the "description" field.
 func DescriptionEqualFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEqualFold(FieldDescription, v))
 }
 
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldDescription), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContainsFold(FieldDescription, v))
 }
 
 // URLEQ applies the EQ predicate on the "url" field.
 func URLEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldURL, v))
 }
 
 // URLNEQ applies the NEQ predicate on the "url" field.
 func URLNEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldURL, v))
 }
 
 // URLIn applies the In predicate on the "url" field.
 func URLIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldURL), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldURL, vs...))
 }
 
 // URLNotIn applies the NotIn predicate on the "url" field.
 func URLNotIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldURL), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldURL, vs...))
 }
 
 // URLGT applies the GT predicate on the "url" field.
 func URLGT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldURL, v))
 }
 
 // URLGTE applies the GTE predicate on the "url" field.
 func URLGTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldURL, v))
 }
 
 // URLLT applies the LT predicate on the "url" field.
 func URLLT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldURL, v))
 }
 
 // URLLTE applies the LTE predicate on the "url" field.
 func URLLTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldURL, v))
 }
 
 // URLContains applies the Contains predicate on the "url" field.
 func URLContains(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContains(FieldURL, v))
 }
 
 // URLHasPrefix applies the HasPrefix predicate on the "url" field.
 func URLHasPrefix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasPrefix(FieldURL, v))
 }
 
 // URLHasSuffix applies the HasSuffix predicate on the "url" field.
 func URLHasSuffix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasSuffix(FieldURL, v))
 }
 
 // URLEqualFold applies the EqualFold predicate on the "url" field.
 func URLEqualFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEqualFold(FieldURL, v))
 }
 
 // URLContainsFold applies the ContainsFold predicate on the "url" field.
 func URLContainsFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldURL), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContainsFold(FieldURL, v))
 }
 
 // ScriptEQ applies the EQ predicate on the "script" field.
 func ScriptEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldScript, v))
 }
 
 // ScriptNEQ applies the NEQ predicate on the "script" field.
 func ScriptNEQ(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldScript, v))
 }
 
 // ScriptIn applies the In predicate on the "script" field.
 func ScriptIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldScript), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldScript, vs...))
 }
 
 // ScriptNotIn applies the NotIn predicate on the "script" field.
 func ScriptNotIn(vs ...string) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldScript), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldScript, vs...))
 }
 
 // ScriptGT applies the GT predicate on the "script" field.
 func ScriptGT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldScript, v))
 }
 
 // ScriptGTE applies the GTE predicate on the "script" field.
 func ScriptGTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldScript, v))
 }
 
 // ScriptLT applies the LT predicate on the "script" field.
 func ScriptLT(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldScript, v))
 }
 
 // ScriptLTE applies the LTE predicate on the "script" field.
 func ScriptLTE(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldScript, v))
 }
 
 // ScriptContains applies the Contains predicate on the "script" field.
 func ScriptContains(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContains(FieldScript, v))
 }
 
 // ScriptHasPrefix applies the HasPrefix predicate on the "script" field.
 func ScriptHasPrefix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasPrefix(FieldScript, v))
 }
 
 // ScriptHasSuffix applies the HasSuffix predicate on the "script" field.
 func ScriptHasSuffix(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldHasSuffix(FieldScript, v))
 }
 
 // ScriptIsNil applies the IsNil predicate on the "script" field.
 func ScriptIsNil() predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldScript)))
-	})
+	return predicate.HTTPDetector(sql.FieldIsNull(FieldScript))
 }
 
 // ScriptNotNil applies the NotNil predicate on the "script" field.
 func ScriptNotNil() predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldScript)))
-	})
+	return predicate.HTTPDetector(sql.FieldNotNull(FieldScript))
 }
 
 // ScriptEqualFold applies the EqualFold predicate on the "script" field.
 func ScriptEqualFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEqualFold(FieldScript, v))
 }
 
 // ScriptContainsFold applies the ContainsFold predicate on the "script" field.
 func ScriptContainsFold(v string) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldScript), v))
-	})
+	return predicate.HTTPDetector(sql.FieldContainsFold(FieldScript, v))
 }
 
 // ProxiesIsNil applies the IsNil predicate on the "proxies" field.
 func ProxiesIsNil() predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldProxies)))
-	})
+	return predicate.HTTPDetector(sql.FieldIsNull(FieldProxies))
 }
 
 // ProxiesNotNil applies the NotNil predicate on the "proxies" field.
 func ProxiesNotNil() predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldProxies)))
-	})
+	return predicate.HTTPDetector(sql.FieldNotNull(FieldProxies))
 }
 
 // RandomQueryStringEQ applies the EQ predicate on the "randomQueryString" field.
 func RandomQueryStringEQ(v int8) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldRandomQueryString), v))
-	})
+	return predicate.HTTPDetector(sql.FieldEQ(FieldRandomQueryString, v))
 }
 
 // RandomQueryStringNEQ applies the NEQ predicate on the "randomQueryString" field.
 func RandomQueryStringNEQ(v int8) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldRandomQueryString), v))
-	})
+	return predicate.HTTPDetector(sql.FieldNEQ(FieldRandomQueryString, v))
 }
 
 // RandomQueryStringIn applies the In predicate on the "randomQueryString" field.
 func RandomQueryStringIn(vs ...int8) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldRandomQueryString), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldIn(FieldRandomQueryString, vs...))
 }
 
 // RandomQueryStringNotIn applies the NotIn predicate on the "randomQueryString" field.
 func RandomQueryStringNotIn(vs ...int8) predicate.HTTPDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldRandomQueryString), v...))
-	})
+	return predicate.HTTPDetector(sql.FieldNotIn(FieldRandomQueryString, vs...))
 }
 
 // RandomQueryStringGT applies the GT predicate on the "randomQueryString" field.
 func RandomQueryStringGT(v int8) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldRandomQueryString), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGT(FieldRandomQueryString, v))
 }
 
 // RandomQueryStringGTE applies the GTE predicate on the "randomQueryString" field.
 func RandomQueryStringGTE(v int8) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldRandomQueryString), v))
-	})
+	return predicate.HTTPDetector(sql.FieldGTE(FieldRandomQueryString, v))
 }
 
 // RandomQueryStringLT applies the LT predicate on the "randomQueryString" field.
 func RandomQueryStringLT(v int8) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldRandomQueryString), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLT(FieldRandomQueryString, v))
 }
 
 // RandomQueryStringLTE applies the LTE predicate on the "randomQueryString" field.
 func RandomQueryStringLTE(v int8) predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldRandomQueryString), v))
-	})
+	return predicate.HTTPDetector(sql.FieldLTE(FieldRandomQueryString, v))
 }
 
 // RandomQueryStringIsNil applies the IsNil predicate on the "randomQueryString" field.
 func RandomQueryStringIsNil() predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldRandomQueryString)))
-	})
+	return predicate.HTTPDetector(sql.FieldIsNull(FieldRandomQueryString))
 }
 
 // RandomQueryStringNotNil applies the NotNil predicate on the "randomQueryString" field.
 func RandomQueryStringNotNil() predicate.HTTPDetector {
-	return predicate.HTTPDetector(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldRandomQueryString)))
-	})
+	return predicate.HTTPDetector(sql.FieldNotNull(FieldRandomQueryString))
 }
 
 // And groups predicates with the AND operator between them.

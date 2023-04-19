@@ -12,7 +12,7 @@ test:
 	go test -race -cover ./...
 
 install:
-	go get -d entgo.io/ent/cmd/entc@v0.11.4
+	go get -d entgo.io/ent/cmd/entc@v0.12.1
 
 build-web:
 	cd web && npm install && npm run build && rm -rf node_modules && cd .. && rm -rf asset/dist && cp -rf web/dist asset/

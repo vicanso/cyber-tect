@@ -17,11 +17,9 @@ import (
 // DatabaseDetectorQuery is the builder for querying DatabaseDetector entities.
 type DatabaseDetectorQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []databasedetector.OrderOption
+	inters     []Interceptor
 	predicates []predicate.DatabaseDetector
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -35,27 +33,27 @@ func (ddq *DatabaseDetectorQuery) Where(ps ...predicate.DatabaseDetector) *Datab
 	return ddq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (ddq *DatabaseDetectorQuery) Limit(limit int) *DatabaseDetectorQuery {
-	ddq.limit = &limit
+	ddq.ctx.Limit = &limit
 	return ddq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (ddq *DatabaseDetectorQuery) Offset(offset int) *DatabaseDetectorQuery {
-	ddq.offset = &offset
+	ddq.ctx.Offset = &offset
 	return ddq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (ddq *DatabaseDetectorQuery) Unique(unique bool) *DatabaseDetectorQuery {
-	ddq.unique = &unique
+	ddq.ctx.Unique = &unique
 	return ddq
 }
 
-// Order adds an order step to the query.
-func (ddq *DatabaseDetectorQuery) Order(o ...OrderFunc) *DatabaseDetectorQuery {
+// Order specifies how the records should be ordered.
+func (ddq *DatabaseDetectorQuery) Order(o ...databasedetector.OrderOption) *DatabaseDetectorQuery {
 	ddq.order = append(ddq.order, o...)
 	return ddq
 }
@@ -63,7 +61,7 @@ func (ddq *DatabaseDetectorQuery) Order(o ...OrderFunc) *DatabaseDetectorQuery {
 // First returns the first DatabaseDetector entity from the query.
 // Returns a *NotFoundError when no DatabaseDetector was found.
 func (ddq *DatabaseDetectorQuery) First(ctx context.Context) (*DatabaseDetector, error) {
-	nodes, err := ddq.Limit(1).All(ctx)
+	nodes, err := ddq.Limit(1).All(setContextOp(ctx, ddq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +84,7 @@ func (ddq *DatabaseDetectorQuery) FirstX(ctx context.Context) *DatabaseDetector 
 // Returns a *NotFoundError when no DatabaseDetector ID was found.
 func (ddq *DatabaseDetectorQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ddq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = ddq.Limit(1).IDs(setContextOp(ctx, ddq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -109,7 +107,7 @@ func (ddq *DatabaseDetectorQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one DatabaseDetector entity is found.
 // Returns a *NotFoundError when no DatabaseDetector entities are found.
 func (ddq *DatabaseDetectorQuery) Only(ctx context.Context) (*DatabaseDetector, error) {
-	nodes, err := ddq.Limit(2).All(ctx)
+	nodes, err := ddq.Limit(2).All(setContextOp(ctx, ddq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +135,7 @@ func (ddq *DatabaseDetectorQuery) OnlyX(ctx context.Context) *DatabaseDetector {
 // Returns a *NotFoundError when no entities are found.
 func (ddq *DatabaseDetectorQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ddq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = ddq.Limit(2).IDs(setContextOp(ctx, ddq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -162,10 +160,12 @@ func (ddq *DatabaseDetectorQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of DatabaseDetectors.
 func (ddq *DatabaseDetectorQuery) All(ctx context.Context) ([]*DatabaseDetector, error) {
+	ctx = setContextOp(ctx, ddq.ctx, "All")
 	if err := ddq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return ddq.sqlAll(ctx)
+	qr := querierAll[[]*DatabaseDetector, *DatabaseDetectorQuery]()
+	return withInterceptors[[]*DatabaseDetector](ctx, ddq, qr, ddq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -178,9 +178,12 @@ func (ddq *DatabaseDetectorQuery) AllX(ctx context.Context) []*DatabaseDetector 
 }
 
 // IDs executes the query and returns a list of DatabaseDetector IDs.
-func (ddq *DatabaseDetectorQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := ddq.Select(databasedetector.FieldID).Scan(ctx, &ids); err != nil {
+func (ddq *DatabaseDetectorQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if ddq.ctx.Unique == nil && ddq.path != nil {
+		ddq.Unique(true)
+	}
+	ctx = setContextOp(ctx, ddq.ctx, "IDs")
+	if err = ddq.Select(databasedetector.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -197,10 +200,11 @@ func (ddq *DatabaseDetectorQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (ddq *DatabaseDetectorQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, ddq.ctx, "Count")
 	if err := ddq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return ddq.sqlCount(ctx)
+	return withInterceptors[int](ctx, ddq, querierCount[*DatabaseDetectorQuery](), ddq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -214,10 +218,15 @@ func (ddq *DatabaseDetectorQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ddq *DatabaseDetectorQuery) Exist(ctx context.Context) (bool, error) {
-	if err := ddq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, ddq.ctx, "Exist")
+	switch _, err := ddq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return ddq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -237,14 +246,13 @@ func (ddq *DatabaseDetectorQuery) Clone() *DatabaseDetectorQuery {
 	}
 	return &DatabaseDetectorQuery{
 		config:     ddq.config,
-		limit:      ddq.limit,
-		offset:     ddq.offset,
-		order:      append([]OrderFunc{}, ddq.order...),
+		ctx:        ddq.ctx.Clone(),
+		order:      append([]databasedetector.OrderOption{}, ddq.order...),
+		inters:     append([]Interceptor{}, ddq.inters...),
 		predicates: append([]predicate.DatabaseDetector{}, ddq.predicates...),
 		// clone intermediate query.
-		sql:    ddq.sql.Clone(),
-		path:   ddq.path,
-		unique: ddq.unique,
+		sql:  ddq.sql.Clone(),
+		path: ddq.path,
 	}
 }
 
@@ -263,16 +271,11 @@ func (ddq *DatabaseDetectorQuery) Clone() *DatabaseDetectorQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (ddq *DatabaseDetectorQuery) GroupBy(field string, fields ...string) *DatabaseDetectorGroupBy {
-	grbuild := &DatabaseDetectorGroupBy{config: ddq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := ddq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return ddq.sqlQuery(ctx), nil
-	}
+	ddq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &DatabaseDetectorGroupBy{build: ddq}
+	grbuild.flds = &ddq.ctx.Fields
 	grbuild.label = databasedetector.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -289,11 +292,11 @@ func (ddq *DatabaseDetectorQuery) GroupBy(field string, fields ...string) *Datab
 //		Select(databasedetector.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (ddq *DatabaseDetectorQuery) Select(fields ...string) *DatabaseDetectorSelect {
-	ddq.fields = append(ddq.fields, fields...)
-	selbuild := &DatabaseDetectorSelect{DatabaseDetectorQuery: ddq}
-	selbuild.label = databasedetector.Label
-	selbuild.flds, selbuild.scan = &ddq.fields, selbuild.Scan
-	return selbuild
+	ddq.ctx.Fields = append(ddq.ctx.Fields, fields...)
+	sbuild := &DatabaseDetectorSelect{DatabaseDetectorQuery: ddq}
+	sbuild.label = databasedetector.Label
+	sbuild.flds, sbuild.scan = &ddq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a DatabaseDetectorSelect configured with the given aggregations.
@@ -302,7 +305,17 @@ func (ddq *DatabaseDetectorQuery) Aggregate(fns ...AggregateFunc) *DatabaseDetec
 }
 
 func (ddq *DatabaseDetectorQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range ddq.fields {
+	for _, inter := range ddq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, ddq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range ddq.ctx.Fields {
 		if !databasedetector.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -350,41 +363,22 @@ func (ddq *DatabaseDetectorQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(ddq.modifiers) > 0 {
 		_spec.Modifiers = ddq.modifiers
 	}
-	_spec.Node.Columns = ddq.fields
-	if len(ddq.fields) > 0 {
-		_spec.Unique = ddq.unique != nil && *ddq.unique
+	_spec.Node.Columns = ddq.ctx.Fields
+	if len(ddq.ctx.Fields) > 0 {
+		_spec.Unique = ddq.ctx.Unique != nil && *ddq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, ddq.driver, _spec)
 }
 
-func (ddq *DatabaseDetectorQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := ddq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (ddq *DatabaseDetectorQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   databasedetector.Table,
-			Columns: databasedetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: databasedetector.FieldID,
-			},
-		},
-		From:   ddq.sql,
-		Unique: true,
-	}
-	if unique := ddq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(databasedetector.Table, databasedetector.Columns, sqlgraph.NewFieldSpec(databasedetector.FieldID, field.TypeInt))
+	_spec.From = ddq.sql
+	if unique := ddq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ddq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := ddq.fields; len(fields) > 0 {
+	if fields := ddq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, databasedetector.FieldID)
 		for i := range fields {
@@ -400,10 +394,10 @@ func (ddq *DatabaseDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := ddq.limit; limit != nil {
+	if limit := ddq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := ddq.offset; offset != nil {
+	if offset := ddq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := ddq.order; len(ps) > 0 {
@@ -419,7 +413,7 @@ func (ddq *DatabaseDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 func (ddq *DatabaseDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(ddq.driver.Dialect())
 	t1 := builder.Table(databasedetector.Table)
-	columns := ddq.fields
+	columns := ddq.ctx.Fields
 	if len(columns) == 0 {
 		columns = databasedetector.Columns
 	}
@@ -428,7 +422,7 @@ func (ddq *DatabaseDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = ddq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if ddq.unique != nil && *ddq.unique {
+	if ddq.ctx.Unique != nil && *ddq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, m := range ddq.modifiers {
@@ -440,12 +434,12 @@ func (ddq *DatabaseDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range ddq.order {
 		p(selector)
 	}
-	if offset := ddq.offset; offset != nil {
+	if offset := ddq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := ddq.limit; limit != nil {
+	if limit := ddq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -459,13 +453,8 @@ func (ddq *DatabaseDetectorQuery) Modify(modifiers ...func(s *sql.Selector)) *Da
 
 // DatabaseDetectorGroupBy is the group-by builder for DatabaseDetector entities.
 type DatabaseDetectorGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *DatabaseDetectorQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -474,58 +463,46 @@ func (ddgb *DatabaseDetectorGroupBy) Aggregate(fns ...AggregateFunc) *DatabaseDe
 	return ddgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (ddgb *DatabaseDetectorGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := ddgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, ddgb.build.ctx, "GroupBy")
+	if err := ddgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ddgb.sql = query
-	return ddgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*DatabaseDetectorQuery, *DatabaseDetectorGroupBy](ctx, ddgb.build, ddgb, ddgb.build.inters, v)
 }
 
-func (ddgb *DatabaseDetectorGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range ddgb.fields {
-		if !databasedetector.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (ddgb *DatabaseDetectorGroupBy) sqlScan(ctx context.Context, root *DatabaseDetectorQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(ddgb.fns))
+	for _, fn := range ddgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := ddgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*ddgb.flds)+len(ddgb.fns))
+		for _, f := range *ddgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*ddgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := ddgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := ddgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (ddgb *DatabaseDetectorGroupBy) sqlQuery() *sql.Selector {
-	selector := ddgb.sql.Select()
-	aggregation := make([]string, 0, len(ddgb.fns))
-	for _, fn := range ddgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(ddgb.fields)+len(ddgb.fns))
-		for _, f := range ddgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(ddgb.fields...)...)
-}
-
 // DatabaseDetectorSelect is the builder for selecting fields of DatabaseDetector entities.
 type DatabaseDetectorSelect struct {
 	*DatabaseDetectorQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -536,26 +513,27 @@ func (dds *DatabaseDetectorSelect) Aggregate(fns ...AggregateFunc) *DatabaseDete
 
 // Scan applies the selector query and scans the result into the given value.
 func (dds *DatabaseDetectorSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, dds.ctx, "Select")
 	if err := dds.prepareQuery(ctx); err != nil {
 		return err
 	}
-	dds.sql = dds.DatabaseDetectorQuery.sqlQuery(ctx)
-	return dds.sqlScan(ctx, v)
+	return scanWithInterceptors[*DatabaseDetectorQuery, *DatabaseDetectorSelect](ctx, dds.DatabaseDetectorQuery, dds, dds.inters, v)
 }
 
-func (dds *DatabaseDetectorSelect) sqlScan(ctx context.Context, v any) error {
+func (dds *DatabaseDetectorSelect) sqlScan(ctx context.Context, root *DatabaseDetectorQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(dds.fns))
 	for _, fn := range dds.fns {
-		aggregation = append(aggregation, fn(dds.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*dds.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		dds.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		dds.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := dds.sql.Query()
+	query, args := selector.Query()
 	if err := dds.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

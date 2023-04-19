@@ -12,317 +12,205 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLTE(FieldID, id))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // Task applies equality check predicate on the "task" field. It's identical to TaskEQ.
 func Task(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTask), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldTask, v))
 }
 
 // Result applies equality check predicate on the "result" field. It's identical to ResultEQ.
 func Result(v schema.DetectorResult) predicate.TCPDetectorResult {
 	vc := int8(v)
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldResult), vc))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldResult, vc))
 }
 
 // MaxDuration applies equality check predicate on the "maxDuration" field. It's identical to MaxDurationEQ.
 func MaxDuration(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldMaxDuration), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldMaxDuration, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
 func CreatedAtNEQ(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.TCPDetectorResult {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.TCPDetectorResult {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNotIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtGT applies the GT predicate on the "created_at" field.
 func CreatedAtGT(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGT(FieldCreatedAt, v))
 }
 
 // CreatedAtGTE applies the GTE predicate on the "created_at" field.
 func CreatedAtGTE(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGTE(FieldCreatedAt, v))
 }
 
 // CreatedAtLT applies the LT predicate on the "created_at" field.
 func CreatedAtLT(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLT(FieldCreatedAt, v))
 }
 
 // CreatedAtLTE applies the LTE predicate on the "created_at" field.
 func CreatedAtLTE(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLTE(FieldCreatedAt, v))
 }
 
 // UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
 func UpdatedAtEQ(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
 func UpdatedAtNEQ(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNEQ(FieldUpdatedAt, v))
 }
 
 // UpdatedAtIn applies the In predicate on the "updated_at" field.
 func UpdatedAtIn(vs ...time.Time) predicate.TCPDetectorResult {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUpdatedAt), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldIn(FieldUpdatedAt, vs...))
 }
 
 // UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
 func UpdatedAtNotIn(vs ...time.Time) predicate.TCPDetectorResult {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUpdatedAt), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNotIn(FieldUpdatedAt, vs...))
 }
 
 // UpdatedAtGT applies the GT predicate on the "updated_at" field.
 func UpdatedAtGT(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGT(FieldUpdatedAt, v))
 }
 
 // UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
 func UpdatedAtGTE(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGTE(FieldUpdatedAt, v))
 }
 
 // UpdatedAtLT applies the LT predicate on the "updated_at" field.
 func UpdatedAtLT(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLT(FieldUpdatedAt, v))
 }
 
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
 // TaskEQ applies the EQ predicate on the "task" field.
 func TaskEQ(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTask), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldTask, v))
 }
 
 // TaskNEQ applies the NEQ predicate on the "task" field.
 func TaskNEQ(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTask), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNEQ(FieldTask, v))
 }
 
 // TaskIn applies the In predicate on the "task" field.
 func TaskIn(vs ...int) predicate.TCPDetectorResult {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldTask), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldIn(FieldTask, vs...))
 }
 
 // TaskNotIn applies the NotIn predicate on the "task" field.
 func TaskNotIn(vs ...int) predicate.TCPDetectorResult {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldTask), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNotIn(FieldTask, vs...))
 }
 
 // TaskGT applies the GT predicate on the "task" field.
 func TaskGT(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldTask), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGT(FieldTask, v))
 }
 
 // TaskGTE applies the GTE predicate on the "task" field.
 func TaskGTE(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldTask), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGTE(FieldTask, v))
 }
 
 // TaskLT applies the LT predicate on the "task" field.
 func TaskLT(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldTask), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLT(FieldTask, v))
 }
 
 // TaskLTE applies the LTE predicate on the "task" field.
 func TaskLTE(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldTask), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLTE(FieldTask, v))
 }
 
 // ResultEQ applies the EQ predicate on the "result" field.
 func ResultEQ(v schema.DetectorResult) predicate.TCPDetectorResult {
 	vc := int8(v)
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldResult), vc))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldResult, vc))
 }
 
 // ResultNEQ applies the NEQ predicate on the "result" field.
 func ResultNEQ(v schema.DetectorResult) predicate.TCPDetectorResult {
 	vc := int8(v)
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldResult), vc))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNEQ(FieldResult, vc))
 }
 
 // ResultIn applies the In predicate on the "result" field.
@@ -331,9 +219,7 @@ func ResultIn(vs ...schema.DetectorResult) predicate.TCPDetectorResult {
 	for i := range v {
 		v[i] = int8(vs[i])
 	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldResult), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldIn(FieldResult, v...))
 }
 
 // ResultNotIn applies the NotIn predicate on the "result" field.
@@ -342,105 +228,71 @@ func ResultNotIn(vs ...schema.DetectorResult) predicate.TCPDetectorResult {
 	for i := range v {
 		v[i] = int8(vs[i])
 	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldResult), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNotIn(FieldResult, v...))
 }
 
 // ResultGT applies the GT predicate on the "result" field.
 func ResultGT(v schema.DetectorResult) predicate.TCPDetectorResult {
 	vc := int8(v)
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldResult), vc))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGT(FieldResult, vc))
 }
 
 // ResultGTE applies the GTE predicate on the "result" field.
 func ResultGTE(v schema.DetectorResult) predicate.TCPDetectorResult {
 	vc := int8(v)
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldResult), vc))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGTE(FieldResult, vc))
 }
 
 // ResultLT applies the LT predicate on the "result" field.
 func ResultLT(v schema.DetectorResult) predicate.TCPDetectorResult {
 	vc := int8(v)
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldResult), vc))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLT(FieldResult, vc))
 }
 
 // ResultLTE applies the LTE predicate on the "result" field.
 func ResultLTE(v schema.DetectorResult) predicate.TCPDetectorResult {
 	vc := int8(v)
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldResult), vc))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLTE(FieldResult, vc))
 }
 
 // MaxDurationEQ applies the EQ predicate on the "maxDuration" field.
 func MaxDurationEQ(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldMaxDuration), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldEQ(FieldMaxDuration, v))
 }
 
 // MaxDurationNEQ applies the NEQ predicate on the "maxDuration" field.
 func MaxDurationNEQ(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldMaxDuration), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNEQ(FieldMaxDuration, v))
 }
 
 // MaxDurationIn applies the In predicate on the "maxDuration" field.
 func MaxDurationIn(vs ...int) predicate.TCPDetectorResult {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldMaxDuration), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldIn(FieldMaxDuration, vs...))
 }
 
 // MaxDurationNotIn applies the NotIn predicate on the "maxDuration" field.
 func MaxDurationNotIn(vs ...int) predicate.TCPDetectorResult {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldMaxDuration), v...))
-	})
+	return predicate.TCPDetectorResult(sql.FieldNotIn(FieldMaxDuration, vs...))
 }
 
 // MaxDurationGT applies the GT predicate on the "maxDuration" field.
 func MaxDurationGT(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldMaxDuration), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGT(FieldMaxDuration, v))
 }
 
 // MaxDurationGTE applies the GTE predicate on the "maxDuration" field.
 func MaxDurationGTE(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldMaxDuration), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldGTE(FieldMaxDuration, v))
 }
 
 // MaxDurationLT applies the LT predicate on the "maxDuration" field.
 func MaxDurationLT(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldMaxDuration), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLT(FieldMaxDuration, v))
 }
 
 // MaxDurationLTE applies the LTE predicate on the "maxDuration" field.
 func MaxDurationLTE(v int) predicate.TCPDetectorResult {
-	return predicate.TCPDetectorResult(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldMaxDuration), v))
-	})
+	return predicate.TCPDetectorResult(sql.FieldLTE(FieldMaxDuration, v))
 }
 
 // And groups predicates with the AND operator between them.

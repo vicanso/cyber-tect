@@ -17,11 +17,9 @@ import (
 // DNSDetectorResultQuery is the builder for querying DNSDetectorResult entities.
 type DNSDetectorResultQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []dnsdetectorresult.OrderOption
+	inters     []Interceptor
 	predicates []predicate.DNSDetectorResult
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -35,27 +33,27 @@ func (ddrq *DNSDetectorResultQuery) Where(ps ...predicate.DNSDetectorResult) *DN
 	return ddrq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (ddrq *DNSDetectorResultQuery) Limit(limit int) *DNSDetectorResultQuery {
-	ddrq.limit = &limit
+	ddrq.ctx.Limit = &limit
 	return ddrq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (ddrq *DNSDetectorResultQuery) Offset(offset int) *DNSDetectorResultQuery {
-	ddrq.offset = &offset
+	ddrq.ctx.Offset = &offset
 	return ddrq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (ddrq *DNSDetectorResultQuery) Unique(unique bool) *DNSDetectorResultQuery {
-	ddrq.unique = &unique
+	ddrq.ctx.Unique = &unique
 	return ddrq
 }
 
-// Order adds an order step to the query.
-func (ddrq *DNSDetectorResultQuery) Order(o ...OrderFunc) *DNSDetectorResultQuery {
+// Order specifies how the records should be ordered.
+func (ddrq *DNSDetectorResultQuery) Order(o ...dnsdetectorresult.OrderOption) *DNSDetectorResultQuery {
 	ddrq.order = append(ddrq.order, o...)
 	return ddrq
 }
@@ -63,7 +61,7 @@ func (ddrq *DNSDetectorResultQuery) Order(o ...OrderFunc) *DNSDetectorResultQuer
 // First returns the first DNSDetectorResult entity from the query.
 // Returns a *NotFoundError when no DNSDetectorResult was found.
 func (ddrq *DNSDetectorResultQuery) First(ctx context.Context) (*DNSDetectorResult, error) {
-	nodes, err := ddrq.Limit(1).All(ctx)
+	nodes, err := ddrq.Limit(1).All(setContextOp(ctx, ddrq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +84,7 @@ func (ddrq *DNSDetectorResultQuery) FirstX(ctx context.Context) *DNSDetectorResu
 // Returns a *NotFoundError when no DNSDetectorResult ID was found.
 func (ddrq *DNSDetectorResultQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ddrq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = ddrq.Limit(1).IDs(setContextOp(ctx, ddrq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -109,7 +107,7 @@ func (ddrq *DNSDetectorResultQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one DNSDetectorResult entity is found.
 // Returns a *NotFoundError when no DNSDetectorResult entities are found.
 func (ddrq *DNSDetectorResultQuery) Only(ctx context.Context) (*DNSDetectorResult, error) {
-	nodes, err := ddrq.Limit(2).All(ctx)
+	nodes, err := ddrq.Limit(2).All(setContextOp(ctx, ddrq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +135,7 @@ func (ddrq *DNSDetectorResultQuery) OnlyX(ctx context.Context) *DNSDetectorResul
 // Returns a *NotFoundError when no entities are found.
 func (ddrq *DNSDetectorResultQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ddrq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = ddrq.Limit(2).IDs(setContextOp(ctx, ddrq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -162,10 +160,12 @@ func (ddrq *DNSDetectorResultQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of DNSDetectorResults.
 func (ddrq *DNSDetectorResultQuery) All(ctx context.Context) ([]*DNSDetectorResult, error) {
+	ctx = setContextOp(ctx, ddrq.ctx, "All")
 	if err := ddrq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return ddrq.sqlAll(ctx)
+	qr := querierAll[[]*DNSDetectorResult, *DNSDetectorResultQuery]()
+	return withInterceptors[[]*DNSDetectorResult](ctx, ddrq, qr, ddrq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -178,9 +178,12 @@ func (ddrq *DNSDetectorResultQuery) AllX(ctx context.Context) []*DNSDetectorResu
 }
 
 // IDs executes the query and returns a list of DNSDetectorResult IDs.
-func (ddrq *DNSDetectorResultQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := ddrq.Select(dnsdetectorresult.FieldID).Scan(ctx, &ids); err != nil {
+func (ddrq *DNSDetectorResultQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if ddrq.ctx.Unique == nil && ddrq.path != nil {
+		ddrq.Unique(true)
+	}
+	ctx = setContextOp(ctx, ddrq.ctx, "IDs")
+	if err = ddrq.Select(dnsdetectorresult.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -197,10 +200,11 @@ func (ddrq *DNSDetectorResultQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (ddrq *DNSDetectorResultQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, ddrq.ctx, "Count")
 	if err := ddrq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return ddrq.sqlCount(ctx)
+	return withInterceptors[int](ctx, ddrq, querierCount[*DNSDetectorResultQuery](), ddrq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -214,10 +218,15 @@ func (ddrq *DNSDetectorResultQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ddrq *DNSDetectorResultQuery) Exist(ctx context.Context) (bool, error) {
-	if err := ddrq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, ddrq.ctx, "Exist")
+	switch _, err := ddrq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return ddrq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -237,14 +246,13 @@ func (ddrq *DNSDetectorResultQuery) Clone() *DNSDetectorResultQuery {
 	}
 	return &DNSDetectorResultQuery{
 		config:     ddrq.config,
-		limit:      ddrq.limit,
-		offset:     ddrq.offset,
-		order:      append([]OrderFunc{}, ddrq.order...),
+		ctx:        ddrq.ctx.Clone(),
+		order:      append([]dnsdetectorresult.OrderOption{}, ddrq.order...),
+		inters:     append([]Interceptor{}, ddrq.inters...),
 		predicates: append([]predicate.DNSDetectorResult{}, ddrq.predicates...),
 		// clone intermediate query.
-		sql:    ddrq.sql.Clone(),
-		path:   ddrq.path,
-		unique: ddrq.unique,
+		sql:  ddrq.sql.Clone(),
+		path: ddrq.path,
 	}
 }
 
@@ -263,16 +271,11 @@ func (ddrq *DNSDetectorResultQuery) Clone() *DNSDetectorResultQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (ddrq *DNSDetectorResultQuery) GroupBy(field string, fields ...string) *DNSDetectorResultGroupBy {
-	grbuild := &DNSDetectorResultGroupBy{config: ddrq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := ddrq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return ddrq.sqlQuery(ctx), nil
-	}
+	ddrq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &DNSDetectorResultGroupBy{build: ddrq}
+	grbuild.flds = &ddrq.ctx.Fields
 	grbuild.label = dnsdetectorresult.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -289,11 +292,11 @@ func (ddrq *DNSDetectorResultQuery) GroupBy(field string, fields ...string) *DNS
 //		Select(dnsdetectorresult.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (ddrq *DNSDetectorResultQuery) Select(fields ...string) *DNSDetectorResultSelect {
-	ddrq.fields = append(ddrq.fields, fields...)
-	selbuild := &DNSDetectorResultSelect{DNSDetectorResultQuery: ddrq}
-	selbuild.label = dnsdetectorresult.Label
-	selbuild.flds, selbuild.scan = &ddrq.fields, selbuild.Scan
-	return selbuild
+	ddrq.ctx.Fields = append(ddrq.ctx.Fields, fields...)
+	sbuild := &DNSDetectorResultSelect{DNSDetectorResultQuery: ddrq}
+	sbuild.label = dnsdetectorresult.Label
+	sbuild.flds, sbuild.scan = &ddrq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a DNSDetectorResultSelect configured with the given aggregations.
@@ -302,7 +305,17 @@ func (ddrq *DNSDetectorResultQuery) Aggregate(fns ...AggregateFunc) *DNSDetector
 }
 
 func (ddrq *DNSDetectorResultQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range ddrq.fields {
+	for _, inter := range ddrq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, ddrq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range ddrq.ctx.Fields {
 		if !dnsdetectorresult.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -350,41 +363,22 @@ func (ddrq *DNSDetectorResultQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(ddrq.modifiers) > 0 {
 		_spec.Modifiers = ddrq.modifiers
 	}
-	_spec.Node.Columns = ddrq.fields
-	if len(ddrq.fields) > 0 {
-		_spec.Unique = ddrq.unique != nil && *ddrq.unique
+	_spec.Node.Columns = ddrq.ctx.Fields
+	if len(ddrq.ctx.Fields) > 0 {
+		_spec.Unique = ddrq.ctx.Unique != nil && *ddrq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, ddrq.driver, _spec)
 }
 
-func (ddrq *DNSDetectorResultQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := ddrq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (ddrq *DNSDetectorResultQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   dnsdetectorresult.Table,
-			Columns: dnsdetectorresult.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: dnsdetectorresult.FieldID,
-			},
-		},
-		From:   ddrq.sql,
-		Unique: true,
-	}
-	if unique := ddrq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(dnsdetectorresult.Table, dnsdetectorresult.Columns, sqlgraph.NewFieldSpec(dnsdetectorresult.FieldID, field.TypeInt))
+	_spec.From = ddrq.sql
+	if unique := ddrq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ddrq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := ddrq.fields; len(fields) > 0 {
+	if fields := ddrq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, dnsdetectorresult.FieldID)
 		for i := range fields {
@@ -400,10 +394,10 @@ func (ddrq *DNSDetectorResultQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := ddrq.limit; limit != nil {
+	if limit := ddrq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := ddrq.offset; offset != nil {
+	if offset := ddrq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := ddrq.order; len(ps) > 0 {
@@ -419,7 +413,7 @@ func (ddrq *DNSDetectorResultQuery) querySpec() *sqlgraph.QuerySpec {
 func (ddrq *DNSDetectorResultQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(ddrq.driver.Dialect())
 	t1 := builder.Table(dnsdetectorresult.Table)
-	columns := ddrq.fields
+	columns := ddrq.ctx.Fields
 	if len(columns) == 0 {
 		columns = dnsdetectorresult.Columns
 	}
@@ -428,7 +422,7 @@ func (ddrq *DNSDetectorResultQuery) sqlQuery(ctx context.Context) *sql.Selector 
 		selector = ddrq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if ddrq.unique != nil && *ddrq.unique {
+	if ddrq.ctx.Unique != nil && *ddrq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, m := range ddrq.modifiers {
@@ -440,12 +434,12 @@ func (ddrq *DNSDetectorResultQuery) sqlQuery(ctx context.Context) *sql.Selector 
 	for _, p := range ddrq.order {
 		p(selector)
 	}
-	if offset := ddrq.offset; offset != nil {
+	if offset := ddrq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := ddrq.limit; limit != nil {
+	if limit := ddrq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -459,13 +453,8 @@ func (ddrq *DNSDetectorResultQuery) Modify(modifiers ...func(s *sql.Selector)) *
 
 // DNSDetectorResultGroupBy is the group-by builder for DNSDetectorResult entities.
 type DNSDetectorResultGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *DNSDetectorResultQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -474,58 +463,46 @@ func (ddrgb *DNSDetectorResultGroupBy) Aggregate(fns ...AggregateFunc) *DNSDetec
 	return ddrgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (ddrgb *DNSDetectorResultGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := ddrgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, ddrgb.build.ctx, "GroupBy")
+	if err := ddrgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ddrgb.sql = query
-	return ddrgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*DNSDetectorResultQuery, *DNSDetectorResultGroupBy](ctx, ddrgb.build, ddrgb, ddrgb.build.inters, v)
 }
 
-func (ddrgb *DNSDetectorResultGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range ddrgb.fields {
-		if !dnsdetectorresult.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (ddrgb *DNSDetectorResultGroupBy) sqlScan(ctx context.Context, root *DNSDetectorResultQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(ddrgb.fns))
+	for _, fn := range ddrgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := ddrgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*ddrgb.flds)+len(ddrgb.fns))
+		for _, f := range *ddrgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*ddrgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := ddrgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := ddrgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (ddrgb *DNSDetectorResultGroupBy) sqlQuery() *sql.Selector {
-	selector := ddrgb.sql.Select()
-	aggregation := make([]string, 0, len(ddrgb.fns))
-	for _, fn := range ddrgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(ddrgb.fields)+len(ddrgb.fns))
-		for _, f := range ddrgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(ddrgb.fields...)...)
-}
-
 // DNSDetectorResultSelect is the builder for selecting fields of DNSDetectorResult entities.
 type DNSDetectorResultSelect struct {
 	*DNSDetectorResultQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -536,26 +513,27 @@ func (ddrs *DNSDetectorResultSelect) Aggregate(fns ...AggregateFunc) *DNSDetecto
 
 // Scan applies the selector query and scans the result into the given value.
 func (ddrs *DNSDetectorResultSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, ddrs.ctx, "Select")
 	if err := ddrs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ddrs.sql = ddrs.DNSDetectorResultQuery.sqlQuery(ctx)
-	return ddrs.sqlScan(ctx, v)
+	return scanWithInterceptors[*DNSDetectorResultQuery, *DNSDetectorResultSelect](ctx, ddrs.DNSDetectorResultQuery, ddrs, ddrs.inters, v)
 }
 
-func (ddrs *DNSDetectorResultSelect) sqlScan(ctx context.Context, v any) error {
+func (ddrs *DNSDetectorResultSelect) sqlScan(ctx context.Context, root *DNSDetectorResultQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(ddrs.fns))
 	for _, fn := range ddrs.fns {
-		aggregation = append(aggregation, fn(ddrs.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*ddrs.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		ddrs.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		ddrs.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := ddrs.sql.Query()
+	query, args := selector.Query()
 	if err := ddrs.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

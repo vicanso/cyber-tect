@@ -160,8 +160,10 @@ func (listParams *httpDetectorListParams) count(ctx context.Context) (int, error
 func (listParams *httpDetectorListParams) queryAll(ctx context.Context) ([]*ent.HTTPDetector, error) {
 	query := getHTTPDetectorClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
 	listParams.where(query)
 	return query.All(ctx)
 }
@@ -199,8 +201,10 @@ func (listParams *httpDetectorResultListParams) count(ctx context.Context) (int,
 func (listParams *httpDetectorResultListParams) queryAll(ctx context.Context) (ent.HTTPDetectorResults, error) {
 	query := getHTTPDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
 	listParams.where(query)
 	fields := listParams.GetFields()
 	if len(fields) != 0 {

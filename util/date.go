@@ -15,7 +15,6 @@
 package util
 
 import (
-	"math/rand"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -128,7 +127,6 @@ func IsBetween(begin, end time.Time) bool {
 
 // NewTimeWithRandomNS 根据timestamp并添加随机的ns生成时间
 func NewTimeWithRandomNS(timestamp int64) time.Time {
-	rand.Seed(time.Now().UnixNano())
 	sec := timestamp / 1000
 	ms := timestamp % 1000
 	ns := ms*10e6 + time.Now().UnixNano()%10e6

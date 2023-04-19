@@ -17,11 +17,9 @@ import (
 // UserLoginQuery is the builder for querying UserLogin entities.
 type UserLoginQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []userlogin.OrderOption
+	inters     []Interceptor
 	predicates []predicate.UserLogin
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -35,27 +33,27 @@ func (ulq *UserLoginQuery) Where(ps ...predicate.UserLogin) *UserLoginQuery {
 	return ulq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (ulq *UserLoginQuery) Limit(limit int) *UserLoginQuery {
-	ulq.limit = &limit
+	ulq.ctx.Limit = &limit
 	return ulq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (ulq *UserLoginQuery) Offset(offset int) *UserLoginQuery {
-	ulq.offset = &offset
+	ulq.ctx.Offset = &offset
 	return ulq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (ulq *UserLoginQuery) Unique(unique bool) *UserLoginQuery {
-	ulq.unique = &unique
+	ulq.ctx.Unique = &unique
 	return ulq
 }
 
-// Order adds an order step to the query.
-func (ulq *UserLoginQuery) Order(o ...OrderFunc) *UserLoginQuery {
+// Order specifies how the records should be ordered.
+func (ulq *UserLoginQuery) Order(o ...userlogin.OrderOption) *UserLoginQuery {
 	ulq.order = append(ulq.order, o...)
 	return ulq
 }
@@ -63,7 +61,7 @@ func (ulq *UserLoginQuery) Order(o ...OrderFunc) *UserLoginQuery {
 // First returns the first UserLogin entity from the query.
 // Returns a *NotFoundError when no UserLogin was found.
 func (ulq *UserLoginQuery) First(ctx context.Context) (*UserLogin, error) {
-	nodes, err := ulq.Limit(1).All(ctx)
+	nodes, err := ulq.Limit(1).All(setContextOp(ctx, ulq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +84,7 @@ func (ulq *UserLoginQuery) FirstX(ctx context.Context) *UserLogin {
 // Returns a *NotFoundError when no UserLogin ID was found.
 func (ulq *UserLoginQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ulq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = ulq.Limit(1).IDs(setContextOp(ctx, ulq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -109,7 +107,7 @@ func (ulq *UserLoginQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one UserLogin entity is found.
 // Returns a *NotFoundError when no UserLogin entities are found.
 func (ulq *UserLoginQuery) Only(ctx context.Context) (*UserLogin, error) {
-	nodes, err := ulq.Limit(2).All(ctx)
+	nodes, err := ulq.Limit(2).All(setContextOp(ctx, ulq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +135,7 @@ func (ulq *UserLoginQuery) OnlyX(ctx context.Context) *UserLogin {
 // Returns a *NotFoundError when no entities are found.
 func (ulq *UserLoginQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = ulq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = ulq.Limit(2).IDs(setContextOp(ctx, ulq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -162,10 +160,12 @@ func (ulq *UserLoginQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of UserLogins.
 func (ulq *UserLoginQuery) All(ctx context.Context) ([]*UserLogin, error) {
+	ctx = setContextOp(ctx, ulq.ctx, "All")
 	if err := ulq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return ulq.sqlAll(ctx)
+	qr := querierAll[[]*UserLogin, *UserLoginQuery]()
+	return withInterceptors[[]*UserLogin](ctx, ulq, qr, ulq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -178,9 +178,12 @@ func (ulq *UserLoginQuery) AllX(ctx context.Context) []*UserLogin {
 }
 
 // IDs executes the query and returns a list of UserLogin IDs.
-func (ulq *UserLoginQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := ulq.Select(userlogin.FieldID).Scan(ctx, &ids); err != nil {
+func (ulq *UserLoginQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if ulq.ctx.Unique == nil && ulq.path != nil {
+		ulq.Unique(true)
+	}
+	ctx = setContextOp(ctx, ulq.ctx, "IDs")
+	if err = ulq.Select(userlogin.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -197,10 +200,11 @@ func (ulq *UserLoginQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (ulq *UserLoginQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, ulq.ctx, "Count")
 	if err := ulq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return ulq.sqlCount(ctx)
+	return withInterceptors[int](ctx, ulq, querierCount[*UserLoginQuery](), ulq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -214,10 +218,15 @@ func (ulq *UserLoginQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (ulq *UserLoginQuery) Exist(ctx context.Context) (bool, error) {
-	if err := ulq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, ulq.ctx, "Exist")
+	switch _, err := ulq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return ulq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -237,14 +246,13 @@ func (ulq *UserLoginQuery) Clone() *UserLoginQuery {
 	}
 	return &UserLoginQuery{
 		config:     ulq.config,
-		limit:      ulq.limit,
-		offset:     ulq.offset,
-		order:      append([]OrderFunc{}, ulq.order...),
+		ctx:        ulq.ctx.Clone(),
+		order:      append([]userlogin.OrderOption{}, ulq.order...),
+		inters:     append([]Interceptor{}, ulq.inters...),
 		predicates: append([]predicate.UserLogin{}, ulq.predicates...),
 		// clone intermediate query.
-		sql:    ulq.sql.Clone(),
-		path:   ulq.path,
-		unique: ulq.unique,
+		sql:  ulq.sql.Clone(),
+		path: ulq.path,
 	}
 }
 
@@ -263,16 +271,11 @@ func (ulq *UserLoginQuery) Clone() *UserLoginQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (ulq *UserLoginQuery) GroupBy(field string, fields ...string) *UserLoginGroupBy {
-	grbuild := &UserLoginGroupBy{config: ulq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := ulq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return ulq.sqlQuery(ctx), nil
-	}
+	ulq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &UserLoginGroupBy{build: ulq}
+	grbuild.flds = &ulq.ctx.Fields
 	grbuild.label = userlogin.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -289,11 +292,11 @@ func (ulq *UserLoginQuery) GroupBy(field string, fields ...string) *UserLoginGro
 //		Select(userlogin.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (ulq *UserLoginQuery) Select(fields ...string) *UserLoginSelect {
-	ulq.fields = append(ulq.fields, fields...)
-	selbuild := &UserLoginSelect{UserLoginQuery: ulq}
-	selbuild.label = userlogin.Label
-	selbuild.flds, selbuild.scan = &ulq.fields, selbuild.Scan
-	return selbuild
+	ulq.ctx.Fields = append(ulq.ctx.Fields, fields...)
+	sbuild := &UserLoginSelect{UserLoginQuery: ulq}
+	sbuild.label = userlogin.Label
+	sbuild.flds, sbuild.scan = &ulq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a UserLoginSelect configured with the given aggregations.
@@ -302,7 +305,17 @@ func (ulq *UserLoginQuery) Aggregate(fns ...AggregateFunc) *UserLoginSelect {
 }
 
 func (ulq *UserLoginQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range ulq.fields {
+	for _, inter := range ulq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, ulq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range ulq.ctx.Fields {
 		if !userlogin.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -350,41 +363,22 @@ func (ulq *UserLoginQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(ulq.modifiers) > 0 {
 		_spec.Modifiers = ulq.modifiers
 	}
-	_spec.Node.Columns = ulq.fields
-	if len(ulq.fields) > 0 {
-		_spec.Unique = ulq.unique != nil && *ulq.unique
+	_spec.Node.Columns = ulq.ctx.Fields
+	if len(ulq.ctx.Fields) > 0 {
+		_spec.Unique = ulq.ctx.Unique != nil && *ulq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, ulq.driver, _spec)
 }
 
-func (ulq *UserLoginQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := ulq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (ulq *UserLoginQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   userlogin.Table,
-			Columns: userlogin.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: userlogin.FieldID,
-			},
-		},
-		From:   ulq.sql,
-		Unique: true,
-	}
-	if unique := ulq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(userlogin.Table, userlogin.Columns, sqlgraph.NewFieldSpec(userlogin.FieldID, field.TypeInt))
+	_spec.From = ulq.sql
+	if unique := ulq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if ulq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := ulq.fields; len(fields) > 0 {
+	if fields := ulq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, userlogin.FieldID)
 		for i := range fields {
@@ -400,10 +394,10 @@ func (ulq *UserLoginQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := ulq.limit; limit != nil {
+	if limit := ulq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := ulq.offset; offset != nil {
+	if offset := ulq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := ulq.order; len(ps) > 0 {
@@ -419,7 +413,7 @@ func (ulq *UserLoginQuery) querySpec() *sqlgraph.QuerySpec {
 func (ulq *UserLoginQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(ulq.driver.Dialect())
 	t1 := builder.Table(userlogin.Table)
-	columns := ulq.fields
+	columns := ulq.ctx.Fields
 	if len(columns) == 0 {
 		columns = userlogin.Columns
 	}
@@ -428,7 +422,7 @@ func (ulq *UserLoginQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = ulq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if ulq.unique != nil && *ulq.unique {
+	if ulq.ctx.Unique != nil && *ulq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, m := range ulq.modifiers {
@@ -440,12 +434,12 @@ func (ulq *UserLoginQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range ulq.order {
 		p(selector)
 	}
-	if offset := ulq.offset; offset != nil {
+	if offset := ulq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := ulq.limit; limit != nil {
+	if limit := ulq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -459,13 +453,8 @@ func (ulq *UserLoginQuery) Modify(modifiers ...func(s *sql.Selector)) *UserLogin
 
 // UserLoginGroupBy is the group-by builder for UserLogin entities.
 type UserLoginGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *UserLoginQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -474,58 +463,46 @@ func (ulgb *UserLoginGroupBy) Aggregate(fns ...AggregateFunc) *UserLoginGroupBy 
 	return ulgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (ulgb *UserLoginGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := ulgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, ulgb.build.ctx, "GroupBy")
+	if err := ulgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	ulgb.sql = query
-	return ulgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*UserLoginQuery, *UserLoginGroupBy](ctx, ulgb.build, ulgb, ulgb.build.inters, v)
 }
 
-func (ulgb *UserLoginGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range ulgb.fields {
-		if !userlogin.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (ulgb *UserLoginGroupBy) sqlScan(ctx context.Context, root *UserLoginQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(ulgb.fns))
+	for _, fn := range ulgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := ulgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*ulgb.flds)+len(ulgb.fns))
+		for _, f := range *ulgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*ulgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := ulgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := ulgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (ulgb *UserLoginGroupBy) sqlQuery() *sql.Selector {
-	selector := ulgb.sql.Select()
-	aggregation := make([]string, 0, len(ulgb.fns))
-	for _, fn := range ulgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(ulgb.fields)+len(ulgb.fns))
-		for _, f := range ulgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(ulgb.fields...)...)
-}
-
 // UserLoginSelect is the builder for selecting fields of UserLogin entities.
 type UserLoginSelect struct {
 	*UserLoginQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -536,26 +513,27 @@ func (uls *UserLoginSelect) Aggregate(fns ...AggregateFunc) *UserLoginSelect {
 
 // Scan applies the selector query and scans the result into the given value.
 func (uls *UserLoginSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, uls.ctx, "Select")
 	if err := uls.prepareQuery(ctx); err != nil {
 		return err
 	}
-	uls.sql = uls.UserLoginQuery.sqlQuery(ctx)
-	return uls.sqlScan(ctx, v)
+	return scanWithInterceptors[*UserLoginQuery, *UserLoginSelect](ctx, uls.UserLoginQuery, uls, uls.inters, v)
 }
 
-func (uls *UserLoginSelect) sqlScan(ctx context.Context, v any) error {
+func (uls *UserLoginSelect) sqlScan(ctx context.Context, root *UserLoginQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(uls.fns))
 	for _, fn := range uls.fns {
-		aggregation = append(aggregation, fn(uls.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*uls.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		uls.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		uls.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := uls.sql.Query()
+	query, args := selector.Query()
 	if err := uls.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

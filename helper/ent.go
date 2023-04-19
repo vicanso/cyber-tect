@@ -146,17 +146,21 @@ func (params *EntListParams) GetOffset() int {
 }
 
 // GetOrders 获取排序的函数列表
-func (params *EntListParams) GetOrders() []ent.OrderFunc {
+func (params *EntListParams) GetOrders() []func(*entsql.Selector) {
 	if params.Order == "" {
 		return nil
 	}
 	arr := strings.Split(params.Order, ",")
-	funcs := make([]ent.OrderFunc, len(arr))
+	funcs := make([]func(*entsql.Selector), len(arr))
 	for index, item := range arr {
 		if item[0] == '-' {
-			funcs[index] = ent.Desc(strcase.ToSnake(item[1:]))
+			funcs[index] = entsql.OrderByField(strcase.ToSnake(item[1:]), entsql.OrderDesc()).ToFunc()
+			// funcs[index] = entsql.OrderByField(strcase.ToSnake(item[1:]).ToFunc())
+
+			// funcs[index] = ent.Desc(strcase.ToSnake(item[1:]))
 		} else {
-			funcs[index] = ent.Asc(strcase.ToSnake(item))
+			funcs[index] = entsql.OrderByField(strcase.ToSnake(item), entsql.OrderAsc()).ToFunc()
+			// funcs[index] = ent.Asc(strcase.ToSnake(item))
 		}
 	}
 	return funcs

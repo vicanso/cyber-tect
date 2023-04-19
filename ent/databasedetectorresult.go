@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/databasedetectorresult"
 	"github.com/vicanso/cybertect/schema"
@@ -33,7 +34,8 @@ type DatabaseDetectorResult struct {
 	// 检测的redis连接地址
 	Uris []string `json:"uris,omitempty"`
 	// 检测结果列表
-	Results schema.DatabaseDetectorSubResults `json:"results,omitempty"`
+	Results      schema.DatabaseDetectorSubResults `json:"results,omitempty"`
+	selectValues sql.SelectValues
 
 	// 状态描述
 	TaskName string `json:"taskName,omitempty"`
@@ -51,7 +53,7 @@ func (*DatabaseDetectorResult) scanValues(columns []string) ([]any, error) {
 		case databasedetectorresult.FieldCreatedAt, databasedetectorresult.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type DatabaseDetectorResult", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -125,16 +127,24 @@ func (ddr *DatabaseDetectorResult) assignValues(columns []string, values []any) 
 					return fmt.Errorf("unmarshal field results: %w", err)
 				}
 			}
+		default:
+			ddr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the DatabaseDetectorResult.
+// This includes values selected through modifiers, order, etc.
+func (ddr *DatabaseDetectorResult) Value(name string) (ent.Value, error) {
+	return ddr.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this DatabaseDetectorResult.
 // Note that you need to call DatabaseDetectorResult.Unwrap() before calling this method if this DatabaseDetectorResult
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ddr *DatabaseDetectorResult) Update() *DatabaseDetectorResultUpdateOne {
-	return (&DatabaseDetectorResultClient{config: ddr.config}).UpdateOne(ddr)
+	return NewDatabaseDetectorResultClient(ddr.config).UpdateOne(ddr)
 }
 
 // Unwrap unwraps the DatabaseDetectorResult entity that was returned from a transaction after it was closed,
@@ -182,9 +192,3 @@ func (ddr *DatabaseDetectorResult) String() string {
 
 // DatabaseDetectorResults is a parsable slice of DatabaseDetectorResult.
 type DatabaseDetectorResults []*DatabaseDetectorResult
-
-func (ddr DatabaseDetectorResults) config(cfg config) {
-	for _i := range ddr {
-		ddr[_i].config = cfg
-	}
-}

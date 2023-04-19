@@ -148,50 +148,8 @@ func (ddc *DatabaseDetectorCreate) Mutation() *DatabaseDetectorMutation {
 
 // Save creates the DatabaseDetector in the database.
 func (ddc *DatabaseDetectorCreate) Save(ctx context.Context) (*DatabaseDetector, error) {
-	var (
-		err  error
-		node *DatabaseDetector
-	)
 	ddc.defaults()
-	if len(ddc.hooks) == 0 {
-		if err = ddc.check(); err != nil {
-			return nil, err
-		}
-		node, err = ddc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DatabaseDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ddc.check(); err != nil {
-				return nil, err
-			}
-			ddc.mutation = mutation
-			if node, err = ddc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ddc.hooks) - 1; i >= 0; i-- {
-			if ddc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ddc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ddc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*DatabaseDetector)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from DatabaseDetectorMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*DatabaseDetector, DatabaseDetectorMutation](ctx, ddc.sqlSave, ddc.mutation, ddc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -280,6 +238,9 @@ func (ddc *DatabaseDetectorCreate) check() error {
 }
 
 func (ddc *DatabaseDetectorCreate) sqlSave(ctx context.Context) (*DatabaseDetector, error) {
+	if err := ddc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ddc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ddc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -289,19 +250,15 @@ func (ddc *DatabaseDetectorCreate) sqlSave(ctx context.Context) (*DatabaseDetect
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	ddc.mutation.id = &_node.ID
+	ddc.mutation.done = true
 	return _node, nil
 }
 
 func (ddc *DatabaseDetectorCreate) createSpec() (*DatabaseDetector, *sqlgraph.CreateSpec) {
 	var (
 		_node = &DatabaseDetector{config: ddc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: databasedetector.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: databasedetector.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(databasedetector.Table, sqlgraph.NewFieldSpec(databasedetector.FieldID, field.TypeInt))
 	)
 	if value, ok := ddc.mutation.CreatedAt(); ok {
 		_spec.SetField(databasedetector.FieldCreatedAt, field.TypeTime, value)
@@ -378,8 +335,8 @@ func (ddcb *DatabaseDetectorCreateBulk) Save(ctx context.Context) ([]*DatabaseDe
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ddcb.builders[i+1].mutation)
 				} else {

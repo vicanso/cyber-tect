@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/dnsdetectorresult"
 	"github.com/vicanso/cybertect/schema"
@@ -33,7 +34,8 @@ type DNSDetectorResult struct {
 	// 检测Host
 	Host string `json:"host,omitempty"`
 	// 检测结果列表
-	Results schema.DNSDetectorSubResults `json:"results,omitempty"`
+	Results      schema.DNSDetectorSubResults `json:"results,omitempty"`
+	selectValues sql.SelectValues
 
 	// 状态描述
 	TaskName string `json:"taskName,omitempty"`
@@ -53,7 +55,7 @@ func (*DNSDetectorResult) scanValues(columns []string) ([]any, error) {
 		case dnsdetectorresult.FieldCreatedAt, dnsdetectorresult.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type DNSDetectorResult", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -125,16 +127,24 @@ func (ddr *DNSDetectorResult) assignValues(columns []string, values []any) error
 					return fmt.Errorf("unmarshal field results: %w", err)
 				}
 			}
+		default:
+			ddr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the DNSDetectorResult.
+// This includes values selected through modifiers, order, etc.
+func (ddr *DNSDetectorResult) Value(name string) (ent.Value, error) {
+	return ddr.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this DNSDetectorResult.
 // Note that you need to call DNSDetectorResult.Unwrap() before calling this method if this DNSDetectorResult
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ddr *DNSDetectorResult) Update() *DNSDetectorResultUpdateOne {
-	return (&DNSDetectorResultClient{config: ddr.config}).UpdateOne(ddr)
+	return NewDNSDetectorResultClient(ddr.config).UpdateOne(ddr)
 }
 
 // Unwrap unwraps the DNSDetectorResult entity that was returned from a transaction after it was closed,
@@ -182,9 +192,3 @@ func (ddr *DNSDetectorResult) String() string {
 
 // DNSDetectorResults is a parsable slice of DNSDetectorResult.
 type DNSDetectorResults []*DNSDetectorResult
-
-func (ddr DNSDetectorResults) config(cfg config) {
-	for _i := range ddr {
-		ddr[_i].config = cfg
-	}
-}

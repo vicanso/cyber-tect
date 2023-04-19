@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/userlogin"
 )
@@ -39,7 +40,8 @@ type UserLogin struct {
 	// 用户登录IP定位的城市
 	City string `json:"city,omitempty"`
 	// 用户登录IP的网络服务商
-	Isp string `json:"isp,omitempty"`
+	Isp          string `json:"isp,omitempty"`
+	selectValues sql.SelectValues
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -54,7 +56,7 @@ func (*UserLogin) scanValues(columns []string) ([]any, error) {
 		case userlogin.FieldCreatedAt, userlogin.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type UserLogin", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -146,16 +148,24 @@ func (ul *UserLogin) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				ul.Isp = value.String
 			}
+		default:
+			ul.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the UserLogin.
+// This includes values selected through modifiers, order, etc.
+func (ul *UserLogin) Value(name string) (ent.Value, error) {
+	return ul.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this UserLogin.
 // Note that you need to call UserLogin.Unwrap() before calling this method if this UserLogin
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (ul *UserLogin) Update() *UserLoginUpdateOne {
-	return (&UserLoginClient{config: ul.config}).UpdateOne(ul)
+	return NewUserLoginClient(ul.config).UpdateOne(ul)
 }
 
 // Unwrap unwraps the UserLogin entity that was returned from a transaction after it was closed,
@@ -215,9 +225,3 @@ func (ul *UserLogin) String() string {
 
 // UserLogins is a parsable slice of UserLogin.
 type UserLogins []*UserLogin
-
-func (ul UserLogins) config(cfg config) {
-	for _i := range ul {
-		ul[_i].config = cfg
-	}
-}

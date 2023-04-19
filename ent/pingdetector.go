@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/pingdetector"
 	"github.com/vicanso/cybertect/schema"
@@ -37,7 +38,8 @@ type PingDetector struct {
 	// 配置描述
 	Description string `json:"description,omitempty"`
 	// 检测IP列表
-	Ips []string `json:"ips,omitempty"`
+	Ips          []string `json:"ips,omitempty"`
+	selectValues sql.SelectValues
 
 	// 状态描述
 	StatusDesc string `json:"statusDesc,omitempty"`
@@ -57,7 +59,7 @@ func (*PingDetector) scanValues(columns []string) ([]any, error) {
 		case pingdetector.FieldCreatedAt, pingdetector.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type PingDetector", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -143,16 +145,24 @@ func (pd *PingDetector) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field ips: %w", err)
 				}
 			}
+		default:
+			pd.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the PingDetector.
+// This includes values selected through modifiers, order, etc.
+func (pd *PingDetector) Value(name string) (ent.Value, error) {
+	return pd.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this PingDetector.
 // Note that you need to call PingDetector.Unwrap() before calling this method if this PingDetector
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pd *PingDetector) Update() *PingDetectorUpdateOne {
-	return (&PingDetectorClient{config: pd.config}).UpdateOne(pd)
+	return NewPingDetectorClient(pd.config).UpdateOne(pd)
 }
 
 // Unwrap unwraps the PingDetector entity that was returned from a transaction after it was closed,
@@ -206,9 +216,3 @@ func (pd *PingDetector) String() string {
 
 // PingDetectors is a parsable slice of PingDetector.
 type PingDetectors []*PingDetector
-
-func (pd PingDetectors) config(cfg config) {
-	for _i := range pd {
-		pd[_i].config = cfg
-	}
-}

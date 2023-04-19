@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/httpdetector"
 	"github.com/vicanso/cybertect/schema"
@@ -46,6 +47,7 @@ type HTTPDetector struct {
 	Proxies []string `json:"proxies,omitempty"`
 	// 随机query string
 	RandomQueryString int8 `json:"randomQueryString,omitempty"`
+	selectValues      sql.SelectValues
 
 	// 状态描述
 	StatusDesc string `json:"statusDesc,omitempty"`
@@ -65,7 +67,7 @@ func (*HTTPDetector) scanValues(columns []string) ([]any, error) {
 		case httpdetector.FieldCreatedAt, httpdetector.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type HTTPDetector", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -177,16 +179,24 @@ func (hd *HTTPDetector) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				hd.RandomQueryString = int8(value.Int64)
 			}
+		default:
+			hd.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the HTTPDetector.
+// This includes values selected through modifiers, order, etc.
+func (hd *HTTPDetector) Value(name string) (ent.Value, error) {
+	return hd.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this HTTPDetector.
 // Note that you need to call HTTPDetector.Unwrap() before calling this method if this HTTPDetector
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (hd *HTTPDetector) Update() *HTTPDetectorUpdateOne {
-	return (&HTTPDetectorClient{config: hd.config}).UpdateOne(hd)
+	return NewHTTPDetectorClient(hd.config).UpdateOne(hd)
 }
 
 // Unwrap unwraps the HTTPDetector entity that was returned from a transaction after it was closed,
@@ -252,9 +262,3 @@ func (hd *HTTPDetector) String() string {
 
 // HTTPDetectors is a parsable slice of HTTPDetector.
 type HTTPDetectors []*HTTPDetector
-
-func (hd HTTPDetectors) config(cfg config) {
-	for _i := range hd {
-		hd[_i].config = cfg
-	}
-}

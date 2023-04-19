@@ -148,8 +148,10 @@ func (listParams *dnsDetectorListParams) count(ctx context.Context) (int, error)
 func (listParams *dnsDetectorListParams) queryAll(ctx context.Context) ([]*ent.DNSDetector, error) {
 	query := getDNSDetectorClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
 	listParams.where(query)
 	return query.All(ctx)
 }
@@ -186,8 +188,10 @@ func (listParams *dnsDetectorResultListParams) count(ctx context.Context) (int, 
 func (listParams *dnsDetectorResultListParams) queryAll(ctx context.Context) (ent.DNSDetectorResults, error) {
 	query := getDNSDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
 	listParams.where(query)
 	fields := listParams.GetFields()
 	if len(fields) != 0 {

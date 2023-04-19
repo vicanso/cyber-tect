@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/dnsdetector"
 	"github.com/vicanso/cybertect/schema"
@@ -41,7 +42,8 @@ type DNSDetector struct {
 	// 域名配置的IP列表
 	Ips []string `json:"ips,omitempty"`
 	// DNS服务器列表
-	Servers []string `json:"servers,omitempty"`
+	Servers      []string `json:"servers,omitempty"`
+	selectValues sql.SelectValues
 
 	// 状态描述
 	StatusDesc string `json:"statusDesc,omitempty"`
@@ -61,7 +63,7 @@ func (*DNSDetector) scanValues(columns []string) ([]any, error) {
 		case dnsdetector.FieldCreatedAt, dnsdetector.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type DNSDetector", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -161,16 +163,24 @@ func (dd *DNSDetector) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field servers: %w", err)
 				}
 			}
+		default:
+			dd.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the DNSDetector.
+// This includes values selected through modifiers, order, etc.
+func (dd *DNSDetector) Value(name string) (ent.Value, error) {
+	return dd.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this DNSDetector.
 // Note that you need to call DNSDetector.Unwrap() before calling this method if this DNSDetector
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (dd *DNSDetector) Update() *DNSDetectorUpdateOne {
-	return (&DNSDetectorClient{config: dd.config}).UpdateOne(dd)
+	return NewDNSDetectorClient(dd.config).UpdateOne(dd)
 }
 
 // Unwrap unwraps the DNSDetector entity that was returned from a transaction after it was closed,
@@ -230,9 +240,3 @@ func (dd *DNSDetector) String() string {
 
 // DNSDetectors is a parsable slice of DNSDetector.
 type DNSDetectors []*DNSDetector
-
-func (dd DNSDetectors) config(cfg config) {
-	for _i := range dd {
-		dd[_i].config = cfg
-	}
-}

@@ -5,6 +5,7 @@ package databasedetector
 import (
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/schema"
 )
 
@@ -84,3 +85,56 @@ var (
 	// TimeoutValidator is a validator for the "timeout" field. It is called by the builders before save.
 	TimeoutValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the DatabaseDetector queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByTimeout orders the results by the timeout field.
+func ByTimeout(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTimeout, opts...).ToFunc()
+}
+
+// ByInterval orders the results by the interval field.
+func ByInterval(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInterval, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByCertPem orders the results by the certPem field.
+func ByCertPem(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCertPem, opts...).ToFunc()
+}
+
+// ByKeyPem orders the results by the keyPem field.
+func ByKeyPem(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldKeyPem, opts...).ToFunc()
+}

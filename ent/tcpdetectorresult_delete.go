@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,34 +27,7 @@ func (tdrd *TCPDetectorResultDelete) Where(ps ...predicate.TCPDetectorResult) *T
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (tdrd *TCPDetectorResultDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(tdrd.hooks) == 0 {
-		affected, err = tdrd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TCPDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			tdrd.mutation = mutation
-			affected, err = tdrd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(tdrd.hooks) - 1; i >= 0; i-- {
-			if tdrd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tdrd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, tdrd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, TCPDetectorResultMutation](ctx, tdrd.sqlExec, tdrd.mutation, tdrd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (tdrd *TCPDetectorResultDelete) ExecX(ctx context.Context) int {
 }
 
 func (tdrd *TCPDetectorResultDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: tcpdetectorresult.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: tcpdetectorresult.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(tcpdetectorresult.Table, sqlgraph.NewFieldSpec(tcpdetectorresult.FieldID, field.TypeInt))
 	if ps := tdrd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (tdrd *TCPDetectorResultDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	tdrd.mutation.done = true
 	return affected, err
 }
 
 // TCPDetectorResultDeleteOne is the builder for deleting a single TCPDetectorResult entity.
 type TCPDetectorResultDeleteOne struct {
 	tdrd *TCPDetectorResultDelete
+}
+
+// Where appends a list predicates to the TCPDetectorResultDelete builder.
+func (tdrdo *TCPDetectorResultDeleteOne) Where(ps ...predicate.TCPDetectorResult) *TCPDetectorResultDeleteOne {
+	tdrdo.tdrd.mutation.Where(ps...)
+	return tdrdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (tdrdo *TCPDetectorResultDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (tdrdo *TCPDetectorResultDeleteOne) ExecX(ctx context.Context) {
-	tdrdo.tdrd.ExecX(ctx)
+	if err := tdrdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

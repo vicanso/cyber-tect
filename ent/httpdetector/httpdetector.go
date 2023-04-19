@@ -5,6 +5,7 @@ package httpdetector
 import (
 	"time"
 
+	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/schema"
 )
 
@@ -92,3 +93,61 @@ var (
 	// URLValidator is a validator for the "url" field. It is called by the builders before save.
 	URLValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the HTTPDetector queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByTimeout orders the results by the timeout field.
+func ByTimeout(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTimeout, opts...).ToFunc()
+}
+
+// ByInterval orders the results by the interval field.
+func ByInterval(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldInterval, opts...).ToFunc()
+}
+
+// ByDescription orders the results by the description field.
+func ByDescription(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDescription, opts...).ToFunc()
+}
+
+// ByURL orders the results by the url field.
+func ByURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldURL, opts...).ToFunc()
+}
+
+// ByScript orders the results by the script field.
+func ByScript(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScript, opts...).ToFunc()
+}
+
+// ByRandomQueryString orders the results by the randomQueryString field.
+func ByRandomQueryString(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRandomQueryString, opts...).ToFunc()
+}

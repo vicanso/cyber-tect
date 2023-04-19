@@ -142,8 +142,10 @@ func (listParams *tcpDetectorListParams) count(ctx context.Context) (int, error)
 func (listParams *tcpDetectorListParams) queryAll(ctx context.Context) ([]*ent.TCPDetector, error) {
 	query := getTCPDetectorClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
 	listParams.where(query)
 	return query.All(ctx)
 }
@@ -180,8 +182,10 @@ func (listParams *tcpDetectorResultListParams) count(ctx context.Context) (int, 
 func (listParams *tcpDetectorResultListParams) queryAll(ctx context.Context) (ent.TCPDetectorResults, error) {
 	query := getTCPDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
 	listParams.where(query)
 	fields := listParams.GetFields()
 	if len(fields) != 0 {

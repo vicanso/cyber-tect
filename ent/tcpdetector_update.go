@@ -132,41 +132,8 @@ func (tdu *TCPDetectorUpdate) Mutation() *TCPDetectorMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tdu *TCPDetectorUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
 	tdu.defaults()
-	if len(tdu.hooks) == 0 {
-		if err = tdu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = tdu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TCPDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = tdu.check(); err != nil {
-				return 0, err
-			}
-			tdu.mutation = mutation
-			affected, err = tdu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(tdu.hooks) - 1; i >= 0; i-- {
-			if tdu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tdu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, tdu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, TCPDetectorMutation](ctx, tdu.sqlSave, tdu.mutation, tdu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -226,16 +193,10 @@ func (tdu *TCPDetectorUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *T
 }
 
 func (tdu *TCPDetectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   tcpdetector.Table,
-			Columns: tcpdetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: tcpdetector.FieldID,
-			},
-		},
+	if err := tdu.check(); err != nil {
+		return n, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(tcpdetector.Table, tcpdetector.Columns, sqlgraph.NewFieldSpec(tcpdetector.FieldID, field.TypeInt))
 	if ps := tdu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -300,6 +261,7 @@ func (tdu *TCPDetectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	tdu.mutation.done = true
 	return n, nil
 }
 
@@ -412,6 +374,12 @@ func (tduo *TCPDetectorUpdateOne) Mutation() *TCPDetectorMutation {
 	return tduo.mutation
 }
 
+// Where appends a list predicates to the TCPDetectorUpdate builder.
+func (tduo *TCPDetectorUpdateOne) Where(ps ...predicate.TCPDetector) *TCPDetectorUpdateOne {
+	tduo.mutation.Where(ps...)
+	return tduo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (tduo *TCPDetectorUpdateOne) Select(field string, fields ...string) *TCPDetectorUpdateOne {
@@ -421,47 +389,8 @@ func (tduo *TCPDetectorUpdateOne) Select(field string, fields ...string) *TCPDet
 
 // Save executes the query and returns the updated TCPDetector entity.
 func (tduo *TCPDetectorUpdateOne) Save(ctx context.Context) (*TCPDetector, error) {
-	var (
-		err  error
-		node *TCPDetector
-	)
 	tduo.defaults()
-	if len(tduo.hooks) == 0 {
-		if err = tduo.check(); err != nil {
-			return nil, err
-		}
-		node, err = tduo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TCPDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = tduo.check(); err != nil {
-				return nil, err
-			}
-			tduo.mutation = mutation
-			node, err = tduo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(tduo.hooks) - 1; i >= 0; i-- {
-			if tduo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tduo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, tduo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*TCPDetector)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from TCPDetectorMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*TCPDetector, TCPDetectorMutation](ctx, tduo.sqlSave, tduo.mutation, tduo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -521,16 +450,10 @@ func (tduo *TCPDetectorUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)
 }
 
 func (tduo *TCPDetectorUpdateOne) sqlSave(ctx context.Context) (_node *TCPDetector, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   tcpdetector.Table,
-			Columns: tcpdetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: tcpdetector.FieldID,
-			},
-		},
+	if err := tduo.check(); err != nil {
+		return _node, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(tcpdetector.Table, tcpdetector.Columns, sqlgraph.NewFieldSpec(tcpdetector.FieldID, field.TypeInt))
 	id, ok := tduo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "TCPDetector.id" for update`)}
@@ -615,5 +538,6 @@ func (tduo *TCPDetectorUpdateOne) sqlSave(ctx context.Context) (_node *TCPDetect
 		}
 		return nil, err
 	}
+	tduo.mutation.done = true
 	return _node, nil
 }

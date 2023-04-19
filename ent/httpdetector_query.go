@@ -17,11 +17,9 @@ import (
 // HTTPDetectorQuery is the builder for querying HTTPDetector entities.
 type HTTPDetectorQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []httpdetector.OrderOption
+	inters     []Interceptor
 	predicates []predicate.HTTPDetector
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -35,27 +33,27 @@ func (hdq *HTTPDetectorQuery) Where(ps ...predicate.HTTPDetector) *HTTPDetectorQ
 	return hdq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (hdq *HTTPDetectorQuery) Limit(limit int) *HTTPDetectorQuery {
-	hdq.limit = &limit
+	hdq.ctx.Limit = &limit
 	return hdq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (hdq *HTTPDetectorQuery) Offset(offset int) *HTTPDetectorQuery {
-	hdq.offset = &offset
+	hdq.ctx.Offset = &offset
 	return hdq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (hdq *HTTPDetectorQuery) Unique(unique bool) *HTTPDetectorQuery {
-	hdq.unique = &unique
+	hdq.ctx.Unique = &unique
 	return hdq
 }
 
-// Order adds an order step to the query.
-func (hdq *HTTPDetectorQuery) Order(o ...OrderFunc) *HTTPDetectorQuery {
+// Order specifies how the records should be ordered.
+func (hdq *HTTPDetectorQuery) Order(o ...httpdetector.OrderOption) *HTTPDetectorQuery {
 	hdq.order = append(hdq.order, o...)
 	return hdq
 }
@@ -63,7 +61,7 @@ func (hdq *HTTPDetectorQuery) Order(o ...OrderFunc) *HTTPDetectorQuery {
 // First returns the first HTTPDetector entity from the query.
 // Returns a *NotFoundError when no HTTPDetector was found.
 func (hdq *HTTPDetectorQuery) First(ctx context.Context) (*HTTPDetector, error) {
-	nodes, err := hdq.Limit(1).All(ctx)
+	nodes, err := hdq.Limit(1).All(setContextOp(ctx, hdq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +84,7 @@ func (hdq *HTTPDetectorQuery) FirstX(ctx context.Context) *HTTPDetector {
 // Returns a *NotFoundError when no HTTPDetector ID was found.
 func (hdq *HTTPDetectorQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = hdq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = hdq.Limit(1).IDs(setContextOp(ctx, hdq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -109,7 +107,7 @@ func (hdq *HTTPDetectorQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one HTTPDetector entity is found.
 // Returns a *NotFoundError when no HTTPDetector entities are found.
 func (hdq *HTTPDetectorQuery) Only(ctx context.Context) (*HTTPDetector, error) {
-	nodes, err := hdq.Limit(2).All(ctx)
+	nodes, err := hdq.Limit(2).All(setContextOp(ctx, hdq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +135,7 @@ func (hdq *HTTPDetectorQuery) OnlyX(ctx context.Context) *HTTPDetector {
 // Returns a *NotFoundError when no entities are found.
 func (hdq *HTTPDetectorQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = hdq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = hdq.Limit(2).IDs(setContextOp(ctx, hdq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -162,10 +160,12 @@ func (hdq *HTTPDetectorQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of HTTPDetectors.
 func (hdq *HTTPDetectorQuery) All(ctx context.Context) ([]*HTTPDetector, error) {
+	ctx = setContextOp(ctx, hdq.ctx, "All")
 	if err := hdq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return hdq.sqlAll(ctx)
+	qr := querierAll[[]*HTTPDetector, *HTTPDetectorQuery]()
+	return withInterceptors[[]*HTTPDetector](ctx, hdq, qr, hdq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -178,9 +178,12 @@ func (hdq *HTTPDetectorQuery) AllX(ctx context.Context) []*HTTPDetector {
 }
 
 // IDs executes the query and returns a list of HTTPDetector IDs.
-func (hdq *HTTPDetectorQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := hdq.Select(httpdetector.FieldID).Scan(ctx, &ids); err != nil {
+func (hdq *HTTPDetectorQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if hdq.ctx.Unique == nil && hdq.path != nil {
+		hdq.Unique(true)
+	}
+	ctx = setContextOp(ctx, hdq.ctx, "IDs")
+	if err = hdq.Select(httpdetector.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -197,10 +200,11 @@ func (hdq *HTTPDetectorQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (hdq *HTTPDetectorQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, hdq.ctx, "Count")
 	if err := hdq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return hdq.sqlCount(ctx)
+	return withInterceptors[int](ctx, hdq, querierCount[*HTTPDetectorQuery](), hdq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -214,10 +218,15 @@ func (hdq *HTTPDetectorQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (hdq *HTTPDetectorQuery) Exist(ctx context.Context) (bool, error) {
-	if err := hdq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, hdq.ctx, "Exist")
+	switch _, err := hdq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return hdq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -237,14 +246,13 @@ func (hdq *HTTPDetectorQuery) Clone() *HTTPDetectorQuery {
 	}
 	return &HTTPDetectorQuery{
 		config:     hdq.config,
-		limit:      hdq.limit,
-		offset:     hdq.offset,
-		order:      append([]OrderFunc{}, hdq.order...),
+		ctx:        hdq.ctx.Clone(),
+		order:      append([]httpdetector.OrderOption{}, hdq.order...),
+		inters:     append([]Interceptor{}, hdq.inters...),
 		predicates: append([]predicate.HTTPDetector{}, hdq.predicates...),
 		// clone intermediate query.
-		sql:    hdq.sql.Clone(),
-		path:   hdq.path,
-		unique: hdq.unique,
+		sql:  hdq.sql.Clone(),
+		path: hdq.path,
 	}
 }
 
@@ -263,16 +271,11 @@ func (hdq *HTTPDetectorQuery) Clone() *HTTPDetectorQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (hdq *HTTPDetectorQuery) GroupBy(field string, fields ...string) *HTTPDetectorGroupBy {
-	grbuild := &HTTPDetectorGroupBy{config: hdq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := hdq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return hdq.sqlQuery(ctx), nil
-	}
+	hdq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &HTTPDetectorGroupBy{build: hdq}
+	grbuild.flds = &hdq.ctx.Fields
 	grbuild.label = httpdetector.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -289,11 +292,11 @@ func (hdq *HTTPDetectorQuery) GroupBy(field string, fields ...string) *HTTPDetec
 //		Select(httpdetector.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (hdq *HTTPDetectorQuery) Select(fields ...string) *HTTPDetectorSelect {
-	hdq.fields = append(hdq.fields, fields...)
-	selbuild := &HTTPDetectorSelect{HTTPDetectorQuery: hdq}
-	selbuild.label = httpdetector.Label
-	selbuild.flds, selbuild.scan = &hdq.fields, selbuild.Scan
-	return selbuild
+	hdq.ctx.Fields = append(hdq.ctx.Fields, fields...)
+	sbuild := &HTTPDetectorSelect{HTTPDetectorQuery: hdq}
+	sbuild.label = httpdetector.Label
+	sbuild.flds, sbuild.scan = &hdq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a HTTPDetectorSelect configured with the given aggregations.
@@ -302,7 +305,17 @@ func (hdq *HTTPDetectorQuery) Aggregate(fns ...AggregateFunc) *HTTPDetectorSelec
 }
 
 func (hdq *HTTPDetectorQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range hdq.fields {
+	for _, inter := range hdq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, hdq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range hdq.ctx.Fields {
 		if !httpdetector.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -350,41 +363,22 @@ func (hdq *HTTPDetectorQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(hdq.modifiers) > 0 {
 		_spec.Modifiers = hdq.modifiers
 	}
-	_spec.Node.Columns = hdq.fields
-	if len(hdq.fields) > 0 {
-		_spec.Unique = hdq.unique != nil && *hdq.unique
+	_spec.Node.Columns = hdq.ctx.Fields
+	if len(hdq.ctx.Fields) > 0 {
+		_spec.Unique = hdq.ctx.Unique != nil && *hdq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, hdq.driver, _spec)
 }
 
-func (hdq *HTTPDetectorQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := hdq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (hdq *HTTPDetectorQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   httpdetector.Table,
-			Columns: httpdetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: httpdetector.FieldID,
-			},
-		},
-		From:   hdq.sql,
-		Unique: true,
-	}
-	if unique := hdq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(httpdetector.Table, httpdetector.Columns, sqlgraph.NewFieldSpec(httpdetector.FieldID, field.TypeInt))
+	_spec.From = hdq.sql
+	if unique := hdq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if hdq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := hdq.fields; len(fields) > 0 {
+	if fields := hdq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, httpdetector.FieldID)
 		for i := range fields {
@@ -400,10 +394,10 @@ func (hdq *HTTPDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := hdq.limit; limit != nil {
+	if limit := hdq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := hdq.offset; offset != nil {
+	if offset := hdq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := hdq.order; len(ps) > 0 {
@@ -419,7 +413,7 @@ func (hdq *HTTPDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 func (hdq *HTTPDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(hdq.driver.Dialect())
 	t1 := builder.Table(httpdetector.Table)
-	columns := hdq.fields
+	columns := hdq.ctx.Fields
 	if len(columns) == 0 {
 		columns = httpdetector.Columns
 	}
@@ -428,7 +422,7 @@ func (hdq *HTTPDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = hdq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if hdq.unique != nil && *hdq.unique {
+	if hdq.ctx.Unique != nil && *hdq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, m := range hdq.modifiers {
@@ -440,12 +434,12 @@ func (hdq *HTTPDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range hdq.order {
 		p(selector)
 	}
-	if offset := hdq.offset; offset != nil {
+	if offset := hdq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := hdq.limit; limit != nil {
+	if limit := hdq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -459,13 +453,8 @@ func (hdq *HTTPDetectorQuery) Modify(modifiers ...func(s *sql.Selector)) *HTTPDe
 
 // HTTPDetectorGroupBy is the group-by builder for HTTPDetector entities.
 type HTTPDetectorGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *HTTPDetectorQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -474,58 +463,46 @@ func (hdgb *HTTPDetectorGroupBy) Aggregate(fns ...AggregateFunc) *HTTPDetectorGr
 	return hdgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (hdgb *HTTPDetectorGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := hdgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, hdgb.build.ctx, "GroupBy")
+	if err := hdgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	hdgb.sql = query
-	return hdgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*HTTPDetectorQuery, *HTTPDetectorGroupBy](ctx, hdgb.build, hdgb, hdgb.build.inters, v)
 }
 
-func (hdgb *HTTPDetectorGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range hdgb.fields {
-		if !httpdetector.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (hdgb *HTTPDetectorGroupBy) sqlScan(ctx context.Context, root *HTTPDetectorQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(hdgb.fns))
+	for _, fn := range hdgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := hdgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*hdgb.flds)+len(hdgb.fns))
+		for _, f := range *hdgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*hdgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := hdgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := hdgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (hdgb *HTTPDetectorGroupBy) sqlQuery() *sql.Selector {
-	selector := hdgb.sql.Select()
-	aggregation := make([]string, 0, len(hdgb.fns))
-	for _, fn := range hdgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(hdgb.fields)+len(hdgb.fns))
-		for _, f := range hdgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(hdgb.fields...)...)
-}
-
 // HTTPDetectorSelect is the builder for selecting fields of HTTPDetector entities.
 type HTTPDetectorSelect struct {
 	*HTTPDetectorQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -536,26 +513,27 @@ func (hds *HTTPDetectorSelect) Aggregate(fns ...AggregateFunc) *HTTPDetectorSele
 
 // Scan applies the selector query and scans the result into the given value.
 func (hds *HTTPDetectorSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, hds.ctx, "Select")
 	if err := hds.prepareQuery(ctx); err != nil {
 		return err
 	}
-	hds.sql = hds.HTTPDetectorQuery.sqlQuery(ctx)
-	return hds.sqlScan(ctx, v)
+	return scanWithInterceptors[*HTTPDetectorQuery, *HTTPDetectorSelect](ctx, hds.HTTPDetectorQuery, hds, hds.inters, v)
 }
 
-func (hds *HTTPDetectorSelect) sqlScan(ctx context.Context, v any) error {
+func (hds *HTTPDetectorSelect) sqlScan(ctx context.Context, root *HTTPDetectorQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(hds.fns))
 	for _, fn := range hds.fns {
-		aggregation = append(aggregation, fn(hds.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*hds.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		hds.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		hds.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := hds.sql.Query()
+	query, args := selector.Query()
 	if err := hds.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

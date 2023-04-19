@@ -187,50 +187,8 @@ func (ulc *UserLoginCreate) Mutation() *UserLoginMutation {
 
 // Save creates the UserLogin in the database.
 func (ulc *UserLoginCreate) Save(ctx context.Context) (*UserLogin, error) {
-	var (
-		err  error
-		node *UserLogin
-	)
 	ulc.defaults()
-	if len(ulc.hooks) == 0 {
-		if err = ulc.check(); err != nil {
-			return nil, err
-		}
-		node, err = ulc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserLoginMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ulc.check(); err != nil {
-				return nil, err
-			}
-			ulc.mutation = mutation
-			if node, err = ulc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ulc.hooks) - 1; i >= 0; i-- {
-			if ulc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ulc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ulc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*UserLogin)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from UserLoginMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*UserLogin, UserLoginMutation](ctx, ulc.sqlSave, ulc.mutation, ulc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -287,6 +245,9 @@ func (ulc *UserLoginCreate) check() error {
 }
 
 func (ulc *UserLoginCreate) sqlSave(ctx context.Context) (*UserLogin, error) {
+	if err := ulc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ulc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ulc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -296,19 +257,15 @@ func (ulc *UserLoginCreate) sqlSave(ctx context.Context) (*UserLogin, error) {
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	ulc.mutation.id = &_node.ID
+	ulc.mutation.done = true
 	return _node, nil
 }
 
 func (ulc *UserLoginCreate) createSpec() (*UserLogin, *sqlgraph.CreateSpec) {
 	var (
 		_node = &UserLogin{config: ulc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: userlogin.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: userlogin.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(userlogin.Table, sqlgraph.NewFieldSpec(userlogin.FieldID, field.TypeInt))
 	)
 	if value, ok := ulc.mutation.CreatedAt(); ok {
 		_spec.SetField(userlogin.FieldCreatedAt, field.TypeTime, value)
@@ -385,8 +342,8 @@ func (ulcb *UserLoginCreateBulk) Save(ctx context.Context) ([]*UserLogin, error)
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ulcb.builders[i+1].mutation)
 				} else {

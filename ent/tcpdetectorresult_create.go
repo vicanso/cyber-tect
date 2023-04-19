@@ -92,50 +92,8 @@ func (tdrc *TCPDetectorResultCreate) Mutation() *TCPDetectorResultMutation {
 
 // Save creates the TCPDetectorResult in the database.
 func (tdrc *TCPDetectorResultCreate) Save(ctx context.Context) (*TCPDetectorResult, error) {
-	var (
-		err  error
-		node *TCPDetectorResult
-	)
 	tdrc.defaults()
-	if len(tdrc.hooks) == 0 {
-		if err = tdrc.check(); err != nil {
-			return nil, err
-		}
-		node, err = tdrc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*TCPDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = tdrc.check(); err != nil {
-				return nil, err
-			}
-			tdrc.mutation = mutation
-			if node, err = tdrc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(tdrc.hooks) - 1; i >= 0; i-- {
-			if tdrc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = tdrc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, tdrc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*TCPDetectorResult)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from TCPDetectorResultMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*TCPDetectorResult, TCPDetectorResultMutation](ctx, tdrc.sqlSave, tdrc.mutation, tdrc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -207,6 +165,9 @@ func (tdrc *TCPDetectorResultCreate) check() error {
 }
 
 func (tdrc *TCPDetectorResultCreate) sqlSave(ctx context.Context) (*TCPDetectorResult, error) {
+	if err := tdrc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := tdrc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, tdrc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -216,19 +177,15 @@ func (tdrc *TCPDetectorResultCreate) sqlSave(ctx context.Context) (*TCPDetectorR
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	tdrc.mutation.id = &_node.ID
+	tdrc.mutation.done = true
 	return _node, nil
 }
 
 func (tdrc *TCPDetectorResultCreate) createSpec() (*TCPDetectorResult, *sqlgraph.CreateSpec) {
 	var (
 		_node = &TCPDetectorResult{config: tdrc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: tcpdetectorresult.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: tcpdetectorresult.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(tcpdetectorresult.Table, sqlgraph.NewFieldSpec(tcpdetectorresult.FieldID, field.TypeInt))
 	)
 	if value, ok := tdrc.mutation.CreatedAt(); ok {
 		_spec.SetField(tcpdetectorresult.FieldCreatedAt, field.TypeTime, value)
@@ -289,8 +246,8 @@ func (tdrcb *TCPDetectorResultCreateBulk) Save(ctx context.Context) ([]*TCPDetec
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, tdrcb.builders[i+1].mutation)
 				} else {

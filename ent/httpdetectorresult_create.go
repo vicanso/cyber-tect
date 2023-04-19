@@ -92,50 +92,8 @@ func (hdrc *HTTPDetectorResultCreate) Mutation() *HTTPDetectorResultMutation {
 
 // Save creates the HTTPDetectorResult in the database.
 func (hdrc *HTTPDetectorResultCreate) Save(ctx context.Context) (*HTTPDetectorResult, error) {
-	var (
-		err  error
-		node *HTTPDetectorResult
-	)
 	hdrc.defaults()
-	if len(hdrc.hooks) == 0 {
-		if err = hdrc.check(); err != nil {
-			return nil, err
-		}
-		node, err = hdrc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*HTTPDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = hdrc.check(); err != nil {
-				return nil, err
-			}
-			hdrc.mutation = mutation
-			if node, err = hdrc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(hdrc.hooks) - 1; i >= 0; i-- {
-			if hdrc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = hdrc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, hdrc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*HTTPDetectorResult)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from HTTPDetectorResultMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*HTTPDetectorResult, HTTPDetectorResultMutation](ctx, hdrc.sqlSave, hdrc.mutation, hdrc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -207,6 +165,9 @@ func (hdrc *HTTPDetectorResultCreate) check() error {
 }
 
 func (hdrc *HTTPDetectorResultCreate) sqlSave(ctx context.Context) (*HTTPDetectorResult, error) {
+	if err := hdrc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := hdrc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, hdrc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -216,19 +177,15 @@ func (hdrc *HTTPDetectorResultCreate) sqlSave(ctx context.Context) (*HTTPDetecto
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	hdrc.mutation.id = &_node.ID
+	hdrc.mutation.done = true
 	return _node, nil
 }
 
 func (hdrc *HTTPDetectorResultCreate) createSpec() (*HTTPDetectorResult, *sqlgraph.CreateSpec) {
 	var (
 		_node = &HTTPDetectorResult{config: hdrc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: httpdetectorresult.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: httpdetectorresult.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(httpdetectorresult.Table, sqlgraph.NewFieldSpec(httpdetectorresult.FieldID, field.TypeInt))
 	)
 	if value, ok := hdrc.mutation.CreatedAt(); ok {
 		_spec.SetField(httpdetectorresult.FieldCreatedAt, field.TypeTime, value)
@@ -289,8 +246,8 @@ func (hdrcb *HTTPDetectorResultCreateBulk) Save(ctx context.Context) ([]*HTTPDet
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, hdrcb.builders[i+1].mutation)
 				} else {

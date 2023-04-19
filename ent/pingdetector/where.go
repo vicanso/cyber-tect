@@ -12,267 +12,175 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.PingDetector(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.PingDetector(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.PingDetector(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.PingDetector(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.PingDetector(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.PingDetector(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.PingDetector(sql.FieldLTE(FieldID, id))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v schema.Status) predicate.PingDetector {
 	vc := int8(v)
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldStatus), vc))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldStatus, vc))
 }
 
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldName, v))
 }
 
 // Timeout applies equality check predicate on the "timeout" field. It's identical to TimeoutEQ.
 func Timeout(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldTimeout, v))
 }
 
 // Interval applies equality check predicate on the "interval" field. It's identical to IntervalEQ.
 func Interval(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldInterval, v))
 }
 
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldDescription, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
 func CreatedAtNEQ(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldNEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.PingDetector(sql.FieldIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.PingDetector(sql.FieldNotIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtGT applies the GT predicate on the "created_at" field.
 func CreatedAtGT(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldGT(FieldCreatedAt, v))
 }
 
 // CreatedAtGTE applies the GTE predicate on the "created_at" field.
 func CreatedAtGTE(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldGTE(FieldCreatedAt, v))
 }
 
 // CreatedAtLT applies the LT predicate on the "created_at" field.
 func CreatedAtLT(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldLT(FieldCreatedAt, v))
 }
 
 // CreatedAtLTE applies the LTE predicate on the "created_at" field.
 func CreatedAtLTE(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldLTE(FieldCreatedAt, v))
 }
 
 // UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
 func UpdatedAtEQ(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
 func UpdatedAtNEQ(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldNEQ(FieldUpdatedAt, v))
 }
 
 // UpdatedAtIn applies the In predicate on the "updated_at" field.
 func UpdatedAtIn(vs ...time.Time) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUpdatedAt), v...))
-	})
+	return predicate.PingDetector(sql.FieldIn(FieldUpdatedAt, vs...))
 }
 
 // UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
 func UpdatedAtNotIn(vs ...time.Time) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUpdatedAt), v...))
-	})
+	return predicate.PingDetector(sql.FieldNotIn(FieldUpdatedAt, vs...))
 }
 
 // UpdatedAtGT applies the GT predicate on the "updated_at" field.
 func UpdatedAtGT(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldGT(FieldUpdatedAt, v))
 }
 
 // UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
 func UpdatedAtGTE(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldGTE(FieldUpdatedAt, v))
 }
 
 // UpdatedAtLT applies the LT predicate on the "updated_at" field.
 func UpdatedAtLT(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldLT(FieldUpdatedAt, v))
 }
 
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.PingDetector(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v schema.Status) predicate.PingDetector {
 	vc := int8(v)
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldStatus), vc))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldStatus, vc))
 }
 
 // StatusNEQ applies the NEQ predicate on the "status" field.
 func StatusNEQ(v schema.Status) predicate.PingDetector {
 	vc := int8(v)
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldStatus), vc))
-	})
+	return predicate.PingDetector(sql.FieldNEQ(FieldStatus, vc))
 }
 
 // StatusIn applies the In predicate on the "status" field.
@@ -281,9 +189,7 @@ func StatusIn(vs ...schema.Status) predicate.PingDetector {
 	for i := range v {
 		v[i] = int8(vs[i])
 	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldStatus), v...))
-	})
+	return predicate.PingDetector(sql.FieldIn(FieldStatus, v...))
 }
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
@@ -292,451 +198,301 @@ func StatusNotIn(vs ...schema.Status) predicate.PingDetector {
 	for i := range v {
 		v[i] = int8(vs[i])
 	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldStatus), v...))
-	})
+	return predicate.PingDetector(sql.FieldNotIn(FieldStatus, v...))
 }
 
 // StatusGT applies the GT predicate on the "status" field.
 func StatusGT(v schema.Status) predicate.PingDetector {
 	vc := int8(v)
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldStatus), vc))
-	})
+	return predicate.PingDetector(sql.FieldGT(FieldStatus, vc))
 }
 
 // StatusGTE applies the GTE predicate on the "status" field.
 func StatusGTE(v schema.Status) predicate.PingDetector {
 	vc := int8(v)
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldStatus), vc))
-	})
+	return predicate.PingDetector(sql.FieldGTE(FieldStatus, vc))
 }
 
 // StatusLT applies the LT predicate on the "status" field.
 func StatusLT(v schema.Status) predicate.PingDetector {
 	vc := int8(v)
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldStatus), vc))
-	})
+	return predicate.PingDetector(sql.FieldLT(FieldStatus, vc))
 }
 
 // StatusLTE applies the LTE predicate on the "status" field.
 func StatusLTE(v schema.Status) predicate.PingDetector {
 	vc := int8(v)
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldStatus), vc))
-	})
+	return predicate.PingDetector(sql.FieldLTE(FieldStatus, vc))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
 func NameEQ(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldName, v))
 }
 
 // NameNEQ applies the NEQ predicate on the "name" field.
 func NameNEQ(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldNEQ(FieldName, v))
 }
 
 // NameIn applies the In predicate on the "name" field.
 func NameIn(vs ...string) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldName), v...))
-	})
+	return predicate.PingDetector(sql.FieldIn(FieldName, vs...))
 }
 
 // NameNotIn applies the NotIn predicate on the "name" field.
 func NameNotIn(vs ...string) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldName), v...))
-	})
+	return predicate.PingDetector(sql.FieldNotIn(FieldName, vs...))
 }
 
 // NameGT applies the GT predicate on the "name" field.
 func NameGT(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldGT(FieldName, v))
 }
 
 // NameGTE applies the GTE predicate on the "name" field.
 func NameGTE(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldGTE(FieldName, v))
 }
 
 // NameLT applies the LT predicate on the "name" field.
 func NameLT(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldLT(FieldName, v))
 }
 
 // NameLTE applies the LTE predicate on the "name" field.
 func NameLTE(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldLTE(FieldName, v))
 }
 
 // NameContains applies the Contains predicate on the "name" field.
 func NameContains(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldContains(FieldName, v))
 }
 
 // NameHasPrefix applies the HasPrefix predicate on the "name" field.
 func NameHasPrefix(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldHasPrefix(FieldName, v))
 }
 
 // NameHasSuffix applies the HasSuffix predicate on the "name" field.
 func NameHasSuffix(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldHasSuffix(FieldName, v))
 }
 
 // NameEqualFold applies the EqualFold predicate on the "name" field.
 func NameEqualFold(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldEqualFold(FieldName, v))
 }
 
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
 func NameContainsFold(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldName), v))
-	})
+	return predicate.PingDetector(sql.FieldContainsFold(FieldName, v))
 }
 
 // TimeoutEQ applies the EQ predicate on the "timeout" field.
 func TimeoutEQ(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldTimeout, v))
 }
 
 // TimeoutNEQ applies the NEQ predicate on the "timeout" field.
 func TimeoutNEQ(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldNEQ(FieldTimeout, v))
 }
 
 // TimeoutIn applies the In predicate on the "timeout" field.
 func TimeoutIn(vs ...string) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldTimeout), v...))
-	})
+	return predicate.PingDetector(sql.FieldIn(FieldTimeout, vs...))
 }
 
 // TimeoutNotIn applies the NotIn predicate on the "timeout" field.
 func TimeoutNotIn(vs ...string) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldTimeout), v...))
-	})
+	return predicate.PingDetector(sql.FieldNotIn(FieldTimeout, vs...))
 }
 
 // TimeoutGT applies the GT predicate on the "timeout" field.
 func TimeoutGT(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldGT(FieldTimeout, v))
 }
 
 // TimeoutGTE applies the GTE predicate on the "timeout" field.
 func TimeoutGTE(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldGTE(FieldTimeout, v))
 }
 
 // TimeoutLT applies the LT predicate on the "timeout" field.
 func TimeoutLT(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldLT(FieldTimeout, v))
 }
 
 // TimeoutLTE applies the LTE predicate on the "timeout" field.
 func TimeoutLTE(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldLTE(FieldTimeout, v))
 }
 
 // TimeoutContains applies the Contains predicate on the "timeout" field.
 func TimeoutContains(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldContains(FieldTimeout, v))
 }
 
 // TimeoutHasPrefix applies the HasPrefix predicate on the "timeout" field.
 func TimeoutHasPrefix(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldHasPrefix(FieldTimeout, v))
 }
 
 // TimeoutHasSuffix applies the HasSuffix predicate on the "timeout" field.
 func TimeoutHasSuffix(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldHasSuffix(FieldTimeout, v))
 }
 
 // TimeoutEqualFold applies the EqualFold predicate on the "timeout" field.
 func TimeoutEqualFold(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldEqualFold(FieldTimeout, v))
 }
 
 // TimeoutContainsFold applies the ContainsFold predicate on the "timeout" field.
 func TimeoutContainsFold(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldTimeout), v))
-	})
+	return predicate.PingDetector(sql.FieldContainsFold(FieldTimeout, v))
 }
 
 // IntervalEQ applies the EQ predicate on the "interval" field.
 func IntervalEQ(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldInterval, v))
 }
 
 // IntervalNEQ applies the NEQ predicate on the "interval" field.
 func IntervalNEQ(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldNEQ(FieldInterval, v))
 }
 
 // IntervalIn applies the In predicate on the "interval" field.
 func IntervalIn(vs ...string) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldInterval), v...))
-	})
+	return predicate.PingDetector(sql.FieldIn(FieldInterval, vs...))
 }
 
 // IntervalNotIn applies the NotIn predicate on the "interval" field.
 func IntervalNotIn(vs ...string) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldInterval), v...))
-	})
+	return predicate.PingDetector(sql.FieldNotIn(FieldInterval, vs...))
 }
 
 // IntervalGT applies the GT predicate on the "interval" field.
 func IntervalGT(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldGT(FieldInterval, v))
 }
 
 // IntervalGTE applies the GTE predicate on the "interval" field.
 func IntervalGTE(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldGTE(FieldInterval, v))
 }
 
 // IntervalLT applies the LT predicate on the "interval" field.
 func IntervalLT(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldLT(FieldInterval, v))
 }
 
 // IntervalLTE applies the LTE predicate on the "interval" field.
 func IntervalLTE(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldLTE(FieldInterval, v))
 }
 
 // IntervalContains applies the Contains predicate on the "interval" field.
 func IntervalContains(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldContains(FieldInterval, v))
 }
 
 // IntervalHasPrefix applies the HasPrefix predicate on the "interval" field.
 func IntervalHasPrefix(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldHasPrefix(FieldInterval, v))
 }
 
 // IntervalHasSuffix applies the HasSuffix predicate on the "interval" field.
 func IntervalHasSuffix(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldHasSuffix(FieldInterval, v))
 }
 
 // IntervalIsNil applies the IsNil predicate on the "interval" field.
 func IntervalIsNil() predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldInterval)))
-	})
+	return predicate.PingDetector(sql.FieldIsNull(FieldInterval))
 }
 
 // IntervalNotNil applies the NotNil predicate on the "interval" field.
 func IntervalNotNil() predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldInterval)))
-	})
+	return predicate.PingDetector(sql.FieldNotNull(FieldInterval))
 }
 
 // IntervalEqualFold applies the EqualFold predicate on the "interval" field.
 func IntervalEqualFold(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldEqualFold(FieldInterval, v))
 }
 
 // IntervalContainsFold applies the ContainsFold predicate on the "interval" field.
 func IntervalContainsFold(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldInterval), v))
-	})
+	return predicate.PingDetector(sql.FieldContainsFold(FieldInterval, v))
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.
 func DescriptionEQ(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldEQ(FieldDescription, v))
 }
 
 // DescriptionNEQ applies the NEQ predicate on the "description" field.
 func DescriptionNEQ(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldNEQ(FieldDescription, v))
 }
 
 // DescriptionIn applies the In predicate on the "description" field.
 func DescriptionIn(vs ...string) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldDescription), v...))
-	})
+	return predicate.PingDetector(sql.FieldIn(FieldDescription, vs...))
 }
 
 // DescriptionNotIn applies the NotIn predicate on the "description" field.
 func DescriptionNotIn(vs ...string) predicate.PingDetector {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldDescription), v...))
-	})
+	return predicate.PingDetector(sql.FieldNotIn(FieldDescription, vs...))
 }
 
 // DescriptionGT applies the GT predicate on the "description" field.
 func DescriptionGT(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldGT(FieldDescription, v))
 }
 
 // DescriptionGTE applies the GTE predicate on the "description" field.
 func DescriptionGTE(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldGTE(FieldDescription, v))
 }
 
 // DescriptionLT applies the LT predicate on the "description" field.
 func DescriptionLT(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldLT(FieldDescription, v))
 }
 
 // DescriptionLTE applies the LTE predicate on the "description" field.
 func DescriptionLTE(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldLTE(FieldDescription, v))
 }
 
 // DescriptionContains applies the Contains predicate on the "description" field.
 func DescriptionContains(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldContains(FieldDescription, v))
 }
 
 // DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
 func DescriptionHasPrefix(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldHasPrefix(FieldDescription, v))
 }
 
 // DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
 func DescriptionHasSuffix(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldHasSuffix(FieldDescription, v))
 }
 
 // DescriptionEqualFold applies the EqualFold predicate on the "description" field.
 func DescriptionEqualFold(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldEqualFold(FieldDescription, v))
 }
 
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
 func DescriptionContainsFold(v string) predicate.PingDetector {
-	return predicate.PingDetector(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldDescription), v))
-	})
+	return predicate.PingDetector(sql.FieldContainsFold(FieldDescription, v))
 }
 
 // And groups predicates with the AND operator between them.

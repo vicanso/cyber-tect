@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"entgo.io/ent"
+	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/configuration"
 	"github.com/vicanso/cybertect/ent/databasedetector"
 	"github.com/vicanso/cybertect/ent/databasedetectorresult"
@@ -24,8 +26,6 @@ import (
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/ent/userlogin"
 	"github.com/vicanso/cybertect/schema"
-
-	"entgo.io/ent"
 )
 
 const (
@@ -571,9 +571,24 @@ func (m *ConfigurationMutation) Where(ps ...predicate.Configuration) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the ConfigurationMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ConfigurationMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Configuration, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *ConfigurationMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ConfigurationMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (Configuration).
@@ -1564,9 +1579,24 @@ func (m *DNSDetectorMutation) Where(ps ...predicate.DNSDetector) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the DNSDetectorMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DNSDetectorMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DNSDetector, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *DNSDetectorMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DNSDetectorMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (DNSDetector).
@@ -2440,9 +2470,24 @@ func (m *DNSDetectorResultMutation) Where(ps ...predicate.DNSDetectorResult) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the DNSDetectorResultMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DNSDetectorResultMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DNSDetectorResult, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *DNSDetectorResultMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DNSDetectorResultMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (DNSDetectorResult).
@@ -3424,9 +3469,24 @@ func (m *DatabaseDetectorMutation) Where(ps ...predicate.DatabaseDetector) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the DatabaseDetectorMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DatabaseDetectorMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DatabaseDetector, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *DatabaseDetectorMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DatabaseDetectorMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (DatabaseDetector).
@@ -4328,9 +4388,24 @@ func (m *DatabaseDetectorResultMutation) Where(ps ...predicate.DatabaseDetectorR
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the DatabaseDetectorResultMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *DatabaseDetectorResultMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.DatabaseDetectorResult, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *DatabaseDetectorResultMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *DatabaseDetectorResultMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (DatabaseDetectorResult).
@@ -5438,9 +5513,24 @@ func (m *HTTPDetectorMutation) Where(ps ...predicate.HTTPDetector) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the HTTPDetectorMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *HTTPDetectorMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.HTTPDetector, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *HTTPDetectorMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *HTTPDetectorMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (HTTPDetector).
@@ -6378,9 +6468,24 @@ func (m *HTTPDetectorResultMutation) Where(ps ...predicate.HTTPDetectorResult) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the HTTPDetectorResultMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *HTTPDetectorResultMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.HTTPDetectorResult, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *HTTPDetectorResultMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *HTTPDetectorResultMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (HTTPDetectorResult).
@@ -7262,9 +7367,24 @@ func (m *PingDetectorMutation) Where(ps ...predicate.PingDetector) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the PingDetectorMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PingDetectorMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PingDetector, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *PingDetectorMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PingDetectorMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (PingDetector).
@@ -8120,9 +8240,24 @@ func (m *PingDetectorResultMutation) Where(ps ...predicate.PingDetectorResult) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the PingDetectorResultMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *PingDetectorResultMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.PingDetectorResult, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *PingDetectorResultMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *PingDetectorResultMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (PingDetectorResult).
@@ -9004,9 +9139,24 @@ func (m *TCPDetectorMutation) Where(ps ...predicate.TCPDetector) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the TCPDetectorMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TCPDetectorMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TCPDetector, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *TCPDetectorMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TCPDetectorMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (TCPDetector).
@@ -9862,9 +10012,24 @@ func (m *TCPDetectorResultMutation) Where(ps ...predicate.TCPDetectorResult) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the TCPDetectorResultMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TCPDetectorResultMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.TCPDetectorResult, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *TCPDetectorResultMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TCPDetectorResultMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (TCPDetectorResult).
@@ -10784,9 +10949,24 @@ func (m *UserMutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the UserMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.User, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *UserMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (User).
@@ -11820,9 +12000,24 @@ func (m *UserLoginMutation) Where(ps ...predicate.UserLogin) {
 	m.predicates = append(m.predicates, ps...)
 }
 
+// WhereP appends storage-level predicates to the UserLoginMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserLoginMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UserLogin, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
 // Op returns the operation name.
 func (m *UserLoginMutation) Op() Op {
 	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserLoginMutation) SetOp(op Op) {
+	m.op = op
 }
 
 // Type returns the node type of this mutation (UserLogin).

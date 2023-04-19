@@ -141,8 +141,11 @@ func (listParams *pingDetectorListParams) count(ctx context.Context) (int, error
 func (listParams *pingDetectorListParams) queryAll(ctx context.Context) ([]*ent.PingDetector, error) {
 	query := getPingDetectorClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
+
 	listParams.where(query)
 	return query.All(ctx)
 }
@@ -180,8 +183,10 @@ func (listParams *pingDetectorResultListParams) count(ctx context.Context) (int,
 func (listParams *pingDetectorResultListParams) queryAll(ctx context.Context) (ent.PingDetectorResults, error) {
 	query := getPingDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
 	listParams.where(query)
 	fields := listParams.GetFields()
 	if len(fields) != 0 {

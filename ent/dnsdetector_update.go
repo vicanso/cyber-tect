@@ -150,41 +150,8 @@ func (ddu *DNSDetectorUpdate) Mutation() *DNSDetectorMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ddu *DNSDetectorUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
 	ddu.defaults()
-	if len(ddu.hooks) == 0 {
-		if err = ddu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = ddu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DNSDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ddu.check(); err != nil {
-				return 0, err
-			}
-			ddu.mutation = mutation
-			affected, err = ddu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ddu.hooks) - 1; i >= 0; i-- {
-			if ddu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ddu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ddu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, DNSDetectorMutation](ctx, ddu.sqlSave, ddu.mutation, ddu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -249,16 +216,10 @@ func (ddu *DNSDetectorUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *D
 }
 
 func (ddu *DNSDetectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   dnsdetector.Table,
-			Columns: dnsdetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: dnsdetector.FieldID,
-			},
-		},
+	if err := ddu.check(); err != nil {
+		return n, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(dnsdetector.Table, dnsdetector.Columns, sqlgraph.NewFieldSpec(dnsdetector.FieldID, field.TypeInt))
 	if ps := ddu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -334,6 +295,7 @@ func (ddu *DNSDetectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	ddu.mutation.done = true
 	return n, nil
 }
 
@@ -464,6 +426,12 @@ func (dduo *DNSDetectorUpdateOne) Mutation() *DNSDetectorMutation {
 	return dduo.mutation
 }
 
+// Where appends a list predicates to the DNSDetectorUpdate builder.
+func (dduo *DNSDetectorUpdateOne) Where(ps ...predicate.DNSDetector) *DNSDetectorUpdateOne {
+	dduo.mutation.Where(ps...)
+	return dduo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (dduo *DNSDetectorUpdateOne) Select(field string, fields ...string) *DNSDetectorUpdateOne {
@@ -473,47 +441,8 @@ func (dduo *DNSDetectorUpdateOne) Select(field string, fields ...string) *DNSDet
 
 // Save executes the query and returns the updated DNSDetector entity.
 func (dduo *DNSDetectorUpdateOne) Save(ctx context.Context) (*DNSDetector, error) {
-	var (
-		err  error
-		node *DNSDetector
-	)
 	dduo.defaults()
-	if len(dduo.hooks) == 0 {
-		if err = dduo.check(); err != nil {
-			return nil, err
-		}
-		node, err = dduo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DNSDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = dduo.check(); err != nil {
-				return nil, err
-			}
-			dduo.mutation = mutation
-			node, err = dduo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(dduo.hooks) - 1; i >= 0; i-- {
-			if dduo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = dduo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, dduo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*DNSDetector)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from DNSDetectorMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*DNSDetector, DNSDetectorMutation](ctx, dduo.sqlSave, dduo.mutation, dduo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -578,16 +507,10 @@ func (dduo *DNSDetectorUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)
 }
 
 func (dduo *DNSDetectorUpdateOne) sqlSave(ctx context.Context) (_node *DNSDetector, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   dnsdetector.Table,
-			Columns: dnsdetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: dnsdetector.FieldID,
-			},
-		},
+	if err := dduo.check(); err != nil {
+		return _node, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(dnsdetector.Table, dnsdetector.Columns, sqlgraph.NewFieldSpec(dnsdetector.FieldID, field.TypeInt))
 	id, ok := dduo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "DNSDetector.id" for update`)}
@@ -683,5 +606,6 @@ func (dduo *DNSDetectorUpdateOne) sqlSave(ctx context.Context) (_node *DNSDetect
 		}
 		return nil, err
 	}
+	dduo.mutation.done = true
 	return _node, nil
 }

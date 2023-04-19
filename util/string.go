@@ -24,7 +24,6 @@ import (
 	"io"
 	"math/rand"
 	"strings"
-	"time"
 
 	"github.com/mozillazg/go-pinyin"
 	"github.com/rs/xid"
@@ -41,7 +40,6 @@ const digitBytes = "0123456789"
 
 // randomString 生成随机的字符串
 func randomString(baseLetters string, n int) string {
-	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, n)
 	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
 	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {

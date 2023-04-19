@@ -4,6 +4,8 @@ package httpdetectorresult
 
 import (
 	"time"
+
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -64,3 +66,41 @@ var (
 	// ResultValidator is a validator for the "result" field. It is called by the builders before save.
 	ResultValidator func(int8) error
 )
+
+// OrderOption defines the ordering options for the HTTPDetectorResult queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByTask orders the results by the task field.
+func ByTask(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTask, opts...).ToFunc()
+}
+
+// ByResult orders the results by the result field.
+func ByResult(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldResult, opts...).ToFunc()
+}
+
+// ByMaxDuration orders the results by the maxDuration field.
+func ByMaxDuration(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldMaxDuration, opts...).ToFunc()
+}
+
+// ByURL orders the results by the url field.
+func ByURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldURL, opts...).ToFunc()
+}

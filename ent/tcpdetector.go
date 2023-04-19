@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/tcpdetector"
 	"github.com/vicanso/cybertect/schema"
@@ -37,7 +38,8 @@ type TCPDetector struct {
 	// 配置描述
 	Description string `json:"description,omitempty"`
 	// 检测地址列表
-	Addrs []string `json:"addrs,omitempty"`
+	Addrs        []string `json:"addrs,omitempty"`
+	selectValues sql.SelectValues
 
 	// 状态描述
 	StatusDesc string `json:"statusDesc,omitempty"`
@@ -57,7 +59,7 @@ func (*TCPDetector) scanValues(columns []string) ([]any, error) {
 		case tcpdetector.FieldCreatedAt, tcpdetector.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type TCPDetector", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -143,16 +145,24 @@ func (td *TCPDetector) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field addrs: %w", err)
 				}
 			}
+		default:
+			td.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the TCPDetector.
+// This includes values selected through modifiers, order, etc.
+func (td *TCPDetector) Value(name string) (ent.Value, error) {
+	return td.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this TCPDetector.
 // Note that you need to call TCPDetector.Unwrap() before calling this method if this TCPDetector
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (td *TCPDetector) Update() *TCPDetectorUpdateOne {
-	return (&TCPDetectorClient{config: td.config}).UpdateOne(td)
+	return NewTCPDetectorClient(td.config).UpdateOne(td)
 }
 
 // Unwrap unwraps the TCPDetector entity that was returned from a transaction after it was closed,
@@ -206,9 +216,3 @@ func (td *TCPDetector) String() string {
 
 // TCPDetectors is a parsable slice of TCPDetector.
 type TCPDetectors []*TCPDetector
-
-func (td TCPDetectors) config(cfg config) {
-	for _i := range td {
-		td[_i].config = cfg
-	}
-}

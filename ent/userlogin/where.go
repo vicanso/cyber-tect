@@ -11,1401 +11,927 @@ import (
 
 // ID filters vertices based on their ID field.
 func ID(id int) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
 func IDEQ(id int) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldID), id))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
 func IDNEQ(id int) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldID), id))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
 func IDIn(ids ...int) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.In(s.C(FieldID), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
 func IDNotIn(ids ...int) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		v := make([]any, len(ids))
-		for i := range v {
-			v[i] = ids[i]
-		}
-		s.Where(sql.NotIn(s.C(FieldID), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
 func IDGT(id int) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldID), id))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
 func IDGTE(id int) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldID), id))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
 func IDLT(id int) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldID), id))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
 func IDLTE(id int) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldID), id))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldID, id))
 }
 
 // CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
 func CreatedAt(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
 func UpdatedAt(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // Account applies equality check predicate on the "account" field. It's identical to AccountEQ.
 func Account(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldAccount, v))
 }
 
 // UserAgent applies equality check predicate on the "user_agent" field. It's identical to UserAgentEQ.
 func UserAgent(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldUserAgent, v))
 }
 
 // IP applies equality check predicate on the "ip" field. It's identical to IPEQ.
 func IP(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldIP, v))
 }
 
 // TrackID applies equality check predicate on the "track_id" field. It's identical to TrackIDEQ.
 func TrackID(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldTrackID, v))
 }
 
 // SessionID applies equality check predicate on the "session_id" field. It's identical to SessionIDEQ.
 func SessionID(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldSessionID, v))
 }
 
 // XForwardedFor applies equality check predicate on the "x_forwarded_for" field. It's identical to XForwardedForEQ.
 func XForwardedFor(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldXForwardedFor, v))
 }
 
 // Country applies equality check predicate on the "country" field. It's identical to CountryEQ.
 func Country(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldCountry, v))
 }
 
 // Province applies equality check predicate on the "province" field. It's identical to ProvinceEQ.
 func Province(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldProvince, v))
 }
 
 // City applies equality check predicate on the "city" field. It's identical to CityEQ.
 func City(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldCity, v))
 }
 
 // Isp applies equality check predicate on the "isp" field. It's identical to IspEQ.
 func Isp(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldIsp, v))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
 func CreatedAtNEQ(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldCreatedAt, v))
 }
 
 // CreatedAtIn applies the In predicate on the "created_at" field.
 func CreatedAtIn(vs ...time.Time) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
 func CreatedAtNotIn(vs ...time.Time) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCreatedAt), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldCreatedAt, vs...))
 }
 
 // CreatedAtGT applies the GT predicate on the "created_at" field.
 func CreatedAtGT(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldCreatedAt, v))
 }
 
 // CreatedAtGTE applies the GTE predicate on the "created_at" field.
 func CreatedAtGTE(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldCreatedAt, v))
 }
 
 // CreatedAtLT applies the LT predicate on the "created_at" field.
 func CreatedAtLT(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldCreatedAt, v))
 }
 
 // CreatedAtLTE applies the LTE predicate on the "created_at" field.
 func CreatedAtLTE(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldCreatedAt, v))
 }
 
 // UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
 func UpdatedAtEQ(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldUpdatedAt, v))
 }
 
 // UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
 func UpdatedAtNEQ(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldUpdatedAt, v))
 }
 
 // UpdatedAtIn applies the In predicate on the "updated_at" field.
 func UpdatedAtIn(vs ...time.Time) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUpdatedAt), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldUpdatedAt, vs...))
 }
 
 // UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
 func UpdatedAtNotIn(vs ...time.Time) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUpdatedAt), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldUpdatedAt, vs...))
 }
 
 // UpdatedAtGT applies the GT predicate on the "updated_at" field.
 func UpdatedAtGT(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldUpdatedAt, v))
 }
 
 // UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
 func UpdatedAtGTE(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldUpdatedAt, v))
 }
 
 // UpdatedAtLT applies the LT predicate on the "updated_at" field.
 func UpdatedAtLT(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldUpdatedAt, v))
 }
 
 // UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
 func UpdatedAtLTE(v time.Time) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUpdatedAt), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
 // AccountEQ applies the EQ predicate on the "account" field.
 func AccountEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldAccount, v))
 }
 
 // AccountNEQ applies the NEQ predicate on the "account" field.
 func AccountNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldAccount, v))
 }
 
 // AccountIn applies the In predicate on the "account" field.
 func AccountIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldAccount), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldAccount, vs...))
 }
 
 // AccountNotIn applies the NotIn predicate on the "account" field.
 func AccountNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldAccount), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldAccount, vs...))
 }
 
 // AccountGT applies the GT predicate on the "account" field.
 func AccountGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldAccount, v))
 }
 
 // AccountGTE applies the GTE predicate on the "account" field.
 func AccountGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldAccount, v))
 }
 
 // AccountLT applies the LT predicate on the "account" field.
 func AccountLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldAccount, v))
 }
 
 // AccountLTE applies the LTE predicate on the "account" field.
 func AccountLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldAccount, v))
 }
 
 // AccountContains applies the Contains predicate on the "account" field.
 func AccountContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldAccount, v))
 }
 
 // AccountHasPrefix applies the HasPrefix predicate on the "account" field.
 func AccountHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldAccount, v))
 }
 
 // AccountHasSuffix applies the HasSuffix predicate on the "account" field.
 func AccountHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldAccount, v))
 }
 
 // AccountEqualFold applies the EqualFold predicate on the "account" field.
 func AccountEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldAccount, v))
 }
 
 // AccountContainsFold applies the ContainsFold predicate on the "account" field.
 func AccountContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldAccount), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldAccount, v))
 }
 
 // UserAgentEQ applies the EQ predicate on the "user_agent" field.
 func UserAgentEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldUserAgent, v))
 }
 
 // UserAgentNEQ applies the NEQ predicate on the "user_agent" field.
 func UserAgentNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldUserAgent, v))
 }
 
 // UserAgentIn applies the In predicate on the "user_agent" field.
 func UserAgentIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldUserAgent), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldUserAgent, vs...))
 }
 
 // UserAgentNotIn applies the NotIn predicate on the "user_agent" field.
 func UserAgentNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldUserAgent), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldUserAgent, vs...))
 }
 
 // UserAgentGT applies the GT predicate on the "user_agent" field.
 func UserAgentGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldUserAgent, v))
 }
 
 // UserAgentGTE applies the GTE predicate on the "user_agent" field.
 func UserAgentGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldUserAgent, v))
 }
 
 // UserAgentLT applies the LT predicate on the "user_agent" field.
 func UserAgentLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldUserAgent, v))
 }
 
 // UserAgentLTE applies the LTE predicate on the "user_agent" field.
 func UserAgentLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldUserAgent, v))
 }
 
 // UserAgentContains applies the Contains predicate on the "user_agent" field.
 func UserAgentContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldUserAgent, v))
 }
 
 // UserAgentHasPrefix applies the HasPrefix predicate on the "user_agent" field.
 func UserAgentHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldUserAgent, v))
 }
 
 // UserAgentHasSuffix applies the HasSuffix predicate on the "user_agent" field.
 func UserAgentHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldUserAgent, v))
 }
 
 // UserAgentIsNil applies the IsNil predicate on the "user_agent" field.
 func UserAgentIsNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldUserAgent)))
-	})
+	return predicate.UserLogin(sql.FieldIsNull(FieldUserAgent))
 }
 
 // UserAgentNotNil applies the NotNil predicate on the "user_agent" field.
 func UserAgentNotNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldUserAgent)))
-	})
+	return predicate.UserLogin(sql.FieldNotNull(FieldUserAgent))
 }
 
 // UserAgentEqualFold applies the EqualFold predicate on the "user_agent" field.
 func UserAgentEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldUserAgent, v))
 }
 
 // UserAgentContainsFold applies the ContainsFold predicate on the "user_agent" field.
 func UserAgentContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldUserAgent), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldUserAgent, v))
 }
 
 // IPEQ applies the EQ predicate on the "ip" field.
 func IPEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldIP, v))
 }
 
 // IPNEQ applies the NEQ predicate on the "ip" field.
 func IPNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldIP, v))
 }
 
 // IPIn applies the In predicate on the "ip" field.
 func IPIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldIP), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldIP, vs...))
 }
 
 // IPNotIn applies the NotIn predicate on the "ip" field.
 func IPNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldIP), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldIP, vs...))
 }
 
 // IPGT applies the GT predicate on the "ip" field.
 func IPGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldIP, v))
 }
 
 // IPGTE applies the GTE predicate on the "ip" field.
 func IPGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldIP, v))
 }
 
 // IPLT applies the LT predicate on the "ip" field.
 func IPLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldIP, v))
 }
 
 // IPLTE applies the LTE predicate on the "ip" field.
 func IPLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldIP, v))
 }
 
 // IPContains applies the Contains predicate on the "ip" field.
 func IPContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldIP, v))
 }
 
 // IPHasPrefix applies the HasPrefix predicate on the "ip" field.
 func IPHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldIP, v))
 }
 
 // IPHasSuffix applies the HasSuffix predicate on the "ip" field.
 func IPHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldIP, v))
 }
 
 // IPIsNil applies the IsNil predicate on the "ip" field.
 func IPIsNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldIP)))
-	})
+	return predicate.UserLogin(sql.FieldIsNull(FieldIP))
 }
 
 // IPNotNil applies the NotNil predicate on the "ip" field.
 func IPNotNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldIP)))
-	})
+	return predicate.UserLogin(sql.FieldNotNull(FieldIP))
 }
 
 // IPEqualFold applies the EqualFold predicate on the "ip" field.
 func IPEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldIP, v))
 }
 
 // IPContainsFold applies the ContainsFold predicate on the "ip" field.
 func IPContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldIP), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldIP, v))
 }
 
 // TrackIDEQ applies the EQ predicate on the "track_id" field.
 func TrackIDEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldTrackID, v))
 }
 
 // TrackIDNEQ applies the NEQ predicate on the "track_id" field.
 func TrackIDNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldTrackID, v))
 }
 
 // TrackIDIn applies the In predicate on the "track_id" field.
 func TrackIDIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldTrackID), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldTrackID, vs...))
 }
 
 // TrackIDNotIn applies the NotIn predicate on the "track_id" field.
 func TrackIDNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldTrackID), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldTrackID, vs...))
 }
 
 // TrackIDGT applies the GT predicate on the "track_id" field.
 func TrackIDGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldTrackID, v))
 }
 
 // TrackIDGTE applies the GTE predicate on the "track_id" field.
 func TrackIDGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldTrackID, v))
 }
 
 // TrackIDLT applies the LT predicate on the "track_id" field.
 func TrackIDLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldTrackID, v))
 }
 
 // TrackIDLTE applies the LTE predicate on the "track_id" field.
 func TrackIDLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldTrackID, v))
 }
 
 // TrackIDContains applies the Contains predicate on the "track_id" field.
 func TrackIDContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldTrackID, v))
 }
 
 // TrackIDHasPrefix applies the HasPrefix predicate on the "track_id" field.
 func TrackIDHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldTrackID, v))
 }
 
 // TrackIDHasSuffix applies the HasSuffix predicate on the "track_id" field.
 func TrackIDHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldTrackID, v))
 }
 
 // TrackIDIsNil applies the IsNil predicate on the "track_id" field.
 func TrackIDIsNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldTrackID)))
-	})
+	return predicate.UserLogin(sql.FieldIsNull(FieldTrackID))
 }
 
 // TrackIDNotNil applies the NotNil predicate on the "track_id" field.
 func TrackIDNotNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldTrackID)))
-	})
+	return predicate.UserLogin(sql.FieldNotNull(FieldTrackID))
 }
 
 // TrackIDEqualFold applies the EqualFold predicate on the "track_id" field.
 func TrackIDEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldTrackID, v))
 }
 
 // TrackIDContainsFold applies the ContainsFold predicate on the "track_id" field.
 func TrackIDContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldTrackID), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldTrackID, v))
 }
 
 // SessionIDEQ applies the EQ predicate on the "session_id" field.
 func SessionIDEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldSessionID, v))
 }
 
 // SessionIDNEQ applies the NEQ predicate on the "session_id" field.
 func SessionIDNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldSessionID, v))
 }
 
 // SessionIDIn applies the In predicate on the "session_id" field.
 func SessionIDIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldSessionID), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldSessionID, vs...))
 }
 
 // SessionIDNotIn applies the NotIn predicate on the "session_id" field.
 func SessionIDNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldSessionID), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldSessionID, vs...))
 }
 
 // SessionIDGT applies the GT predicate on the "session_id" field.
 func SessionIDGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldSessionID, v))
 }
 
 // SessionIDGTE applies the GTE predicate on the "session_id" field.
 func SessionIDGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldSessionID, v))
 }
 
 // SessionIDLT applies the LT predicate on the "session_id" field.
 func SessionIDLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldSessionID, v))
 }
 
 // SessionIDLTE applies the LTE predicate on the "session_id" field.
 func SessionIDLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldSessionID, v))
 }
 
 // SessionIDContains applies the Contains predicate on the "session_id" field.
 func SessionIDContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldSessionID, v))
 }
 
 // SessionIDHasPrefix applies the HasPrefix predicate on the "session_id" field.
 func SessionIDHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldSessionID, v))
 }
 
 // SessionIDHasSuffix applies the HasSuffix predicate on the "session_id" field.
 func SessionIDHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldSessionID, v))
 }
 
 // SessionIDIsNil applies the IsNil predicate on the "session_id" field.
 func SessionIDIsNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldSessionID)))
-	})
+	return predicate.UserLogin(sql.FieldIsNull(FieldSessionID))
 }
 
 // SessionIDNotNil applies the NotNil predicate on the "session_id" field.
 func SessionIDNotNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldSessionID)))
-	})
+	return predicate.UserLogin(sql.FieldNotNull(FieldSessionID))
 }
 
 // SessionIDEqualFold applies the EqualFold predicate on the "session_id" field.
 func SessionIDEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldSessionID, v))
 }
 
 // SessionIDContainsFold applies the ContainsFold predicate on the "session_id" field.
 func SessionIDContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldSessionID), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldSessionID, v))
 }
 
 // XForwardedForEQ applies the EQ predicate on the "x_forwarded_for" field.
 func XForwardedForEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldXForwardedFor, v))
 }
 
 // XForwardedForNEQ applies the NEQ predicate on the "x_forwarded_for" field.
 func XForwardedForNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldXForwardedFor, v))
 }
 
 // XForwardedForIn applies the In predicate on the "x_forwarded_for" field.
 func XForwardedForIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldXForwardedFor), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldXForwardedFor, vs...))
 }
 
 // XForwardedForNotIn applies the NotIn predicate on the "x_forwarded_for" field.
 func XForwardedForNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldXForwardedFor), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldXForwardedFor, vs...))
 }
 
 // XForwardedForGT applies the GT predicate on the "x_forwarded_for" field.
 func XForwardedForGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldXForwardedFor, v))
 }
 
 // XForwardedForGTE applies the GTE predicate on the "x_forwarded_for" field.
 func XForwardedForGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldXForwardedFor, v))
 }
 
 // XForwardedForLT applies the LT predicate on the "x_forwarded_for" field.
 func XForwardedForLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldXForwardedFor, v))
 }
 
 // XForwardedForLTE applies the LTE predicate on the "x_forwarded_for" field.
 func XForwardedForLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldXForwardedFor, v))
 }
 
 // XForwardedForContains applies the Contains predicate on the "x_forwarded_for" field.
 func XForwardedForContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldXForwardedFor, v))
 }
 
 // XForwardedForHasPrefix applies the HasPrefix predicate on the "x_forwarded_for" field.
 func XForwardedForHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldXForwardedFor, v))
 }
 
 // XForwardedForHasSuffix applies the HasSuffix predicate on the "x_forwarded_for" field.
 func XForwardedForHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldXForwardedFor, v))
 }
 
 // XForwardedForIsNil applies the IsNil predicate on the "x_forwarded_for" field.
 func XForwardedForIsNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldXForwardedFor)))
-	})
+	return predicate.UserLogin(sql.FieldIsNull(FieldXForwardedFor))
 }
 
 // XForwardedForNotNil applies the NotNil predicate on the "x_forwarded_for" field.
 func XForwardedForNotNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldXForwardedFor)))
-	})
+	return predicate.UserLogin(sql.FieldNotNull(FieldXForwardedFor))
 }
 
 // XForwardedForEqualFold applies the EqualFold predicate on the "x_forwarded_for" field.
 func XForwardedForEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldXForwardedFor, v))
 }
 
 // XForwardedForContainsFold applies the ContainsFold predicate on the "x_forwarded_for" field.
 func XForwardedForContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldXForwardedFor), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldXForwardedFor, v))
 }
 
 // CountryEQ applies the EQ predicate on the "country" field.
 func CountryEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldCountry, v))
 }
 
 // CountryNEQ applies the NEQ predicate on the "country" field.
 func CountryNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldCountry, v))
 }
 
 // CountryIn applies the In predicate on the "country" field.
 func CountryIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCountry), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldCountry, vs...))
 }
 
 // CountryNotIn applies the NotIn predicate on the "country" field.
 func CountryNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCountry), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldCountry, vs...))
 }
 
 // CountryGT applies the GT predicate on the "country" field.
 func CountryGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldCountry, v))
 }
 
 // CountryGTE applies the GTE predicate on the "country" field.
 func CountryGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldCountry, v))
 }
 
 // CountryLT applies the LT predicate on the "country" field.
 func CountryLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldCountry, v))
 }
 
 // CountryLTE applies the LTE predicate on the "country" field.
 func CountryLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldCountry, v))
 }
 
 // CountryContains applies the Contains predicate on the "country" field.
 func CountryContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldCountry, v))
 }
 
 // CountryHasPrefix applies the HasPrefix predicate on the "country" field.
 func CountryHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldCountry, v))
 }
 
 // CountryHasSuffix applies the HasSuffix predicate on the "country" field.
 func CountryHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldCountry, v))
 }
 
 // CountryIsNil applies the IsNil predicate on the "country" field.
 func CountryIsNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldCountry)))
-	})
+	return predicate.UserLogin(sql.FieldIsNull(FieldCountry))
 }
 
 // CountryNotNil applies the NotNil predicate on the "country" field.
 func CountryNotNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldCountry)))
-	})
+	return predicate.UserLogin(sql.FieldNotNull(FieldCountry))
 }
 
 // CountryEqualFold applies the EqualFold predicate on the "country" field.
 func CountryEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldCountry, v))
 }
 
 // CountryContainsFold applies the ContainsFold predicate on the "country" field.
 func CountryContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldCountry), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldCountry, v))
 }
 
 // ProvinceEQ applies the EQ predicate on the "province" field.
 func ProvinceEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldProvince, v))
 }
 
 // ProvinceNEQ applies the NEQ predicate on the "province" field.
 func ProvinceNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldProvince, v))
 }
 
 // ProvinceIn applies the In predicate on the "province" field.
 func ProvinceIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldProvince), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldProvince, vs...))
 }
 
 // ProvinceNotIn applies the NotIn predicate on the "province" field.
 func ProvinceNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldProvince), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldProvince, vs...))
 }
 
 // ProvinceGT applies the GT predicate on the "province" field.
 func ProvinceGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldProvince, v))
 }
 
 // ProvinceGTE applies the GTE predicate on the "province" field.
 func ProvinceGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldProvince, v))
 }
 
 // ProvinceLT applies the LT predicate on the "province" field.
 func ProvinceLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldProvince, v))
 }
 
 // ProvinceLTE applies the LTE predicate on the "province" field.
 func ProvinceLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldProvince, v))
 }
 
 // ProvinceContains applies the Contains predicate on the "province" field.
 func ProvinceContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldProvince, v))
 }
 
 // ProvinceHasPrefix applies the HasPrefix predicate on the "province" field.
 func ProvinceHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldProvince, v))
 }
 
 // ProvinceHasSuffix applies the HasSuffix predicate on the "province" field.
 func ProvinceHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldProvince, v))
 }
 
 // ProvinceIsNil applies the IsNil predicate on the "province" field.
 func ProvinceIsNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldProvince)))
-	})
+	return predicate.UserLogin(sql.FieldIsNull(FieldProvince))
 }
 
 // ProvinceNotNil applies the NotNil predicate on the "province" field.
 func ProvinceNotNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldProvince)))
-	})
+	return predicate.UserLogin(sql.FieldNotNull(FieldProvince))
 }
 
 // ProvinceEqualFold applies the EqualFold predicate on the "province" field.
 func ProvinceEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldProvince, v))
 }
 
 // ProvinceContainsFold applies the ContainsFold predicate on the "province" field.
 func ProvinceContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldProvince), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldProvince, v))
 }
 
 // CityEQ applies the EQ predicate on the "city" field.
 func CityEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldCity, v))
 }
 
 // CityNEQ applies the NEQ predicate on the "city" field.
 func CityNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldCity, v))
 }
 
 // CityIn applies the In predicate on the "city" field.
 func CityIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldCity), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldCity, vs...))
 }
 
 // CityNotIn applies the NotIn predicate on the "city" field.
 func CityNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldCity), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldCity, vs...))
 }
 
 // CityGT applies the GT predicate on the "city" field.
 func CityGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldCity, v))
 }
 
 // CityGTE applies the GTE predicate on the "city" field.
 func CityGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldCity, v))
 }
 
 // CityLT applies the LT predicate on the "city" field.
 func CityLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldCity, v))
 }
 
 // CityLTE applies the LTE predicate on the "city" field.
 func CityLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldCity, v))
 }
 
 // CityContains applies the Contains predicate on the "city" field.
 func CityContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldCity, v))
 }
 
 // CityHasPrefix applies the HasPrefix predicate on the "city" field.
 func CityHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldCity, v))
 }
 
 // CityHasSuffix applies the HasSuffix predicate on the "city" field.
 func CityHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldCity, v))
 }
 
 // CityIsNil applies the IsNil predicate on the "city" field.
 func CityIsNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldCity)))
-	})
+	return predicate.UserLogin(sql.FieldIsNull(FieldCity))
 }
 
 // CityNotNil applies the NotNil predicate on the "city" field.
 func CityNotNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldCity)))
-	})
+	return predicate.UserLogin(sql.FieldNotNull(FieldCity))
 }
 
 // CityEqualFold applies the EqualFold predicate on the "city" field.
 func CityEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldCity, v))
 }
 
 // CityContainsFold applies the ContainsFold predicate on the "city" field.
 func CityContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldCity), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldCity, v))
 }
 
 // IspEQ applies the EQ predicate on the "isp" field.
 func IspEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldEQ(FieldIsp, v))
 }
 
 // IspNEQ applies the NEQ predicate on the "isp" field.
 func IspNEQ(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldNEQ(FieldIsp, v))
 }
 
 // IspIn applies the In predicate on the "isp" field.
 func IspIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.In(s.C(FieldIsp), v...))
-	})
+	return predicate.UserLogin(sql.FieldIn(FieldIsp, vs...))
 }
 
 // IspNotIn applies the NotIn predicate on the "isp" field.
 func IspNotIn(vs ...string) predicate.UserLogin {
-	v := make([]any, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotIn(s.C(FieldIsp), v...))
-	})
+	return predicate.UserLogin(sql.FieldNotIn(FieldIsp, vs...))
 }
 
 // IspGT applies the GT predicate on the "isp" field.
 func IspGT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldGT(FieldIsp, v))
 }
 
 // IspGTE applies the GTE predicate on the "isp" field.
 func IspGTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldGTE(FieldIsp, v))
 }
 
 // IspLT applies the LT predicate on the "isp" field.
 func IspLT(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldLT(FieldIsp, v))
 }
 
 // IspLTE applies the LTE predicate on the "isp" field.
 func IspLTE(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldLTE(FieldIsp, v))
 }
 
 // IspContains applies the Contains predicate on the "isp" field.
 func IspContains(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldContains(FieldIsp, v))
 }
 
 // IspHasPrefix applies the HasPrefix predicate on the "isp" field.
 func IspHasPrefix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldHasPrefix(FieldIsp, v))
 }
 
 // IspHasSuffix applies the HasSuffix predicate on the "isp" field.
 func IspHasSuffix(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldHasSuffix(FieldIsp, v))
 }
 
 // IspIsNil applies the IsNil predicate on the "isp" field.
 func IspIsNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.IsNull(s.C(FieldIsp)))
-	})
+	return predicate.UserLogin(sql.FieldIsNull(FieldIsp))
 }
 
 // IspNotNil applies the NotNil predicate on the "isp" field.
 func IspNotNil() predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.NotNull(s.C(FieldIsp)))
-	})
+	return predicate.UserLogin(sql.FieldNotNull(FieldIsp))
 }
 
 // IspEqualFold applies the EqualFold predicate on the "isp" field.
 func IspEqualFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldEqualFold(FieldIsp, v))
 }
 
 // IspContainsFold applies the ContainsFold predicate on the "isp" field.
 func IspContainsFold(v string) predicate.UserLogin {
-	return predicate.UserLogin(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldIsp), v))
-	})
+	return predicate.UserLogin(sql.FieldContainsFold(FieldIsp, v))
 }
 
 // And groups predicates with the AND operator between them.

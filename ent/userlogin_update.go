@@ -215,35 +215,8 @@ func (ulu *UserLoginUpdate) Mutation() *UserLoginMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ulu *UserLoginUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
 	ulu.defaults()
-	if len(ulu.hooks) == 0 {
-		affected, err = ulu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserLoginMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ulu.mutation = mutation
-			affected, err = ulu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ulu.hooks) - 1; i >= 0; i-- {
-			if ulu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ulu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ulu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, UserLoginMutation](ctx, ulu.sqlSave, ulu.mutation, ulu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -283,16 +256,7 @@ func (ulu *UserLoginUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *Use
 }
 
 func (ulu *UserLoginUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   userlogin.Table,
-			Columns: userlogin.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: userlogin.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(userlogin.Table, userlogin.Columns, sqlgraph.NewFieldSpec(userlogin.FieldID, field.TypeInt))
 	if ps := ulu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -366,6 +330,7 @@ func (ulu *UserLoginUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	ulu.mutation.done = true
 	return n, nil
 }
 
@@ -563,6 +528,12 @@ func (uluo *UserLoginUpdateOne) Mutation() *UserLoginMutation {
 	return uluo.mutation
 }
 
+// Where appends a list predicates to the UserLoginUpdate builder.
+func (uluo *UserLoginUpdateOne) Where(ps ...predicate.UserLogin) *UserLoginUpdateOne {
+	uluo.mutation.Where(ps...)
+	return uluo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (uluo *UserLoginUpdateOne) Select(field string, fields ...string) *UserLoginUpdateOne {
@@ -572,41 +543,8 @@ func (uluo *UserLoginUpdateOne) Select(field string, fields ...string) *UserLogi
 
 // Save executes the query and returns the updated UserLogin entity.
 func (uluo *UserLoginUpdateOne) Save(ctx context.Context) (*UserLogin, error) {
-	var (
-		err  error
-		node *UserLogin
-	)
 	uluo.defaults()
-	if len(uluo.hooks) == 0 {
-		node, err = uluo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserLoginMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			uluo.mutation = mutation
-			node, err = uluo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(uluo.hooks) - 1; i >= 0; i-- {
-			if uluo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = uluo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, uluo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*UserLogin)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from UserLoginMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*UserLogin, UserLoginMutation](ctx, uluo.sqlSave, uluo.mutation, uluo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -646,16 +584,7 @@ func (uluo *UserLoginUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder)) 
 }
 
 func (uluo *UserLoginUpdateOne) sqlSave(ctx context.Context) (_node *UserLogin, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   userlogin.Table,
-			Columns: userlogin.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: userlogin.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewUpdateSpec(userlogin.Table, userlogin.Columns, sqlgraph.NewFieldSpec(userlogin.FieldID, field.TypeInt))
 	id, ok := uluo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "UserLogin.id" for update`)}
@@ -749,5 +678,6 @@ func (uluo *UserLoginUpdateOne) sqlSave(ctx context.Context) (_node *UserLogin, 
 		}
 		return nil, err
 	}
+	uluo.mutation.done = true
 	return _node, nil
 }

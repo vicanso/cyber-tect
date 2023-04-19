@@ -17,11 +17,9 @@ import (
 // PingDetectorQuery is the builder for querying PingDetector entities.
 type PingDetectorQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []pingdetector.OrderOption
+	inters     []Interceptor
 	predicates []predicate.PingDetector
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -35,27 +33,27 @@ func (pdq *PingDetectorQuery) Where(ps ...predicate.PingDetector) *PingDetectorQ
 	return pdq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (pdq *PingDetectorQuery) Limit(limit int) *PingDetectorQuery {
-	pdq.limit = &limit
+	pdq.ctx.Limit = &limit
 	return pdq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (pdq *PingDetectorQuery) Offset(offset int) *PingDetectorQuery {
-	pdq.offset = &offset
+	pdq.ctx.Offset = &offset
 	return pdq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (pdq *PingDetectorQuery) Unique(unique bool) *PingDetectorQuery {
-	pdq.unique = &unique
+	pdq.ctx.Unique = &unique
 	return pdq
 }
 
-// Order adds an order step to the query.
-func (pdq *PingDetectorQuery) Order(o ...OrderFunc) *PingDetectorQuery {
+// Order specifies how the records should be ordered.
+func (pdq *PingDetectorQuery) Order(o ...pingdetector.OrderOption) *PingDetectorQuery {
 	pdq.order = append(pdq.order, o...)
 	return pdq
 }
@@ -63,7 +61,7 @@ func (pdq *PingDetectorQuery) Order(o ...OrderFunc) *PingDetectorQuery {
 // First returns the first PingDetector entity from the query.
 // Returns a *NotFoundError when no PingDetector was found.
 func (pdq *PingDetectorQuery) First(ctx context.Context) (*PingDetector, error) {
-	nodes, err := pdq.Limit(1).All(ctx)
+	nodes, err := pdq.Limit(1).All(setContextOp(ctx, pdq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +84,7 @@ func (pdq *PingDetectorQuery) FirstX(ctx context.Context) *PingDetector {
 // Returns a *NotFoundError when no PingDetector ID was found.
 func (pdq *PingDetectorQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pdq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = pdq.Limit(1).IDs(setContextOp(ctx, pdq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -109,7 +107,7 @@ func (pdq *PingDetectorQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one PingDetector entity is found.
 // Returns a *NotFoundError when no PingDetector entities are found.
 func (pdq *PingDetectorQuery) Only(ctx context.Context) (*PingDetector, error) {
-	nodes, err := pdq.Limit(2).All(ctx)
+	nodes, err := pdq.Limit(2).All(setContextOp(ctx, pdq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +135,7 @@ func (pdq *PingDetectorQuery) OnlyX(ctx context.Context) *PingDetector {
 // Returns a *NotFoundError when no entities are found.
 func (pdq *PingDetectorQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = pdq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = pdq.Limit(2).IDs(setContextOp(ctx, pdq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -162,10 +160,12 @@ func (pdq *PingDetectorQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of PingDetectors.
 func (pdq *PingDetectorQuery) All(ctx context.Context) ([]*PingDetector, error) {
+	ctx = setContextOp(ctx, pdq.ctx, "All")
 	if err := pdq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return pdq.sqlAll(ctx)
+	qr := querierAll[[]*PingDetector, *PingDetectorQuery]()
+	return withInterceptors[[]*PingDetector](ctx, pdq, qr, pdq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -178,9 +178,12 @@ func (pdq *PingDetectorQuery) AllX(ctx context.Context) []*PingDetector {
 }
 
 // IDs executes the query and returns a list of PingDetector IDs.
-func (pdq *PingDetectorQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := pdq.Select(pingdetector.FieldID).Scan(ctx, &ids); err != nil {
+func (pdq *PingDetectorQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if pdq.ctx.Unique == nil && pdq.path != nil {
+		pdq.Unique(true)
+	}
+	ctx = setContextOp(ctx, pdq.ctx, "IDs")
+	if err = pdq.Select(pingdetector.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -197,10 +200,11 @@ func (pdq *PingDetectorQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (pdq *PingDetectorQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, pdq.ctx, "Count")
 	if err := pdq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return pdq.sqlCount(ctx)
+	return withInterceptors[int](ctx, pdq, querierCount[*PingDetectorQuery](), pdq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -214,10 +218,15 @@ func (pdq *PingDetectorQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (pdq *PingDetectorQuery) Exist(ctx context.Context) (bool, error) {
-	if err := pdq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, pdq.ctx, "Exist")
+	switch _, err := pdq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return pdq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -237,14 +246,13 @@ func (pdq *PingDetectorQuery) Clone() *PingDetectorQuery {
 	}
 	return &PingDetectorQuery{
 		config:     pdq.config,
-		limit:      pdq.limit,
-		offset:     pdq.offset,
-		order:      append([]OrderFunc{}, pdq.order...),
+		ctx:        pdq.ctx.Clone(),
+		order:      append([]pingdetector.OrderOption{}, pdq.order...),
+		inters:     append([]Interceptor{}, pdq.inters...),
 		predicates: append([]predicate.PingDetector{}, pdq.predicates...),
 		// clone intermediate query.
-		sql:    pdq.sql.Clone(),
-		path:   pdq.path,
-		unique: pdq.unique,
+		sql:  pdq.sql.Clone(),
+		path: pdq.path,
 	}
 }
 
@@ -263,16 +271,11 @@ func (pdq *PingDetectorQuery) Clone() *PingDetectorQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (pdq *PingDetectorQuery) GroupBy(field string, fields ...string) *PingDetectorGroupBy {
-	grbuild := &PingDetectorGroupBy{config: pdq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := pdq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return pdq.sqlQuery(ctx), nil
-	}
+	pdq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &PingDetectorGroupBy{build: pdq}
+	grbuild.flds = &pdq.ctx.Fields
 	grbuild.label = pingdetector.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -289,11 +292,11 @@ func (pdq *PingDetectorQuery) GroupBy(field string, fields ...string) *PingDetec
 //		Select(pingdetector.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (pdq *PingDetectorQuery) Select(fields ...string) *PingDetectorSelect {
-	pdq.fields = append(pdq.fields, fields...)
-	selbuild := &PingDetectorSelect{PingDetectorQuery: pdq}
-	selbuild.label = pingdetector.Label
-	selbuild.flds, selbuild.scan = &pdq.fields, selbuild.Scan
-	return selbuild
+	pdq.ctx.Fields = append(pdq.ctx.Fields, fields...)
+	sbuild := &PingDetectorSelect{PingDetectorQuery: pdq}
+	sbuild.label = pingdetector.Label
+	sbuild.flds, sbuild.scan = &pdq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a PingDetectorSelect configured with the given aggregations.
@@ -302,7 +305,17 @@ func (pdq *PingDetectorQuery) Aggregate(fns ...AggregateFunc) *PingDetectorSelec
 }
 
 func (pdq *PingDetectorQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range pdq.fields {
+	for _, inter := range pdq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, pdq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range pdq.ctx.Fields {
 		if !pingdetector.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -350,41 +363,22 @@ func (pdq *PingDetectorQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(pdq.modifiers) > 0 {
 		_spec.Modifiers = pdq.modifiers
 	}
-	_spec.Node.Columns = pdq.fields
-	if len(pdq.fields) > 0 {
-		_spec.Unique = pdq.unique != nil && *pdq.unique
+	_spec.Node.Columns = pdq.ctx.Fields
+	if len(pdq.ctx.Fields) > 0 {
+		_spec.Unique = pdq.ctx.Unique != nil && *pdq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, pdq.driver, _spec)
 }
 
-func (pdq *PingDetectorQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := pdq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (pdq *PingDetectorQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pingdetector.Table,
-			Columns: pingdetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pingdetector.FieldID,
-			},
-		},
-		From:   pdq.sql,
-		Unique: true,
-	}
-	if unique := pdq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(pingdetector.Table, pingdetector.Columns, sqlgraph.NewFieldSpec(pingdetector.FieldID, field.TypeInt))
+	_spec.From = pdq.sql
+	if unique := pdq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if pdq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := pdq.fields; len(fields) > 0 {
+	if fields := pdq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, pingdetector.FieldID)
 		for i := range fields {
@@ -400,10 +394,10 @@ func (pdq *PingDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := pdq.limit; limit != nil {
+	if limit := pdq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := pdq.offset; offset != nil {
+	if offset := pdq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := pdq.order; len(ps) > 0 {
@@ -419,7 +413,7 @@ func (pdq *PingDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 func (pdq *PingDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(pdq.driver.Dialect())
 	t1 := builder.Table(pingdetector.Table)
-	columns := pdq.fields
+	columns := pdq.ctx.Fields
 	if len(columns) == 0 {
 		columns = pingdetector.Columns
 	}
@@ -428,7 +422,7 @@ func (pdq *PingDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = pdq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if pdq.unique != nil && *pdq.unique {
+	if pdq.ctx.Unique != nil && *pdq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, m := range pdq.modifiers {
@@ -440,12 +434,12 @@ func (pdq *PingDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range pdq.order {
 		p(selector)
 	}
-	if offset := pdq.offset; offset != nil {
+	if offset := pdq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := pdq.limit; limit != nil {
+	if limit := pdq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -459,13 +453,8 @@ func (pdq *PingDetectorQuery) Modify(modifiers ...func(s *sql.Selector)) *PingDe
 
 // PingDetectorGroupBy is the group-by builder for PingDetector entities.
 type PingDetectorGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *PingDetectorQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -474,58 +463,46 @@ func (pdgb *PingDetectorGroupBy) Aggregate(fns ...AggregateFunc) *PingDetectorGr
 	return pdgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (pdgb *PingDetectorGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := pdgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, pdgb.build.ctx, "GroupBy")
+	if err := pdgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	pdgb.sql = query
-	return pdgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*PingDetectorQuery, *PingDetectorGroupBy](ctx, pdgb.build, pdgb, pdgb.build.inters, v)
 }
 
-func (pdgb *PingDetectorGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range pdgb.fields {
-		if !pingdetector.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (pdgb *PingDetectorGroupBy) sqlScan(ctx context.Context, root *PingDetectorQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(pdgb.fns))
+	for _, fn := range pdgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := pdgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*pdgb.flds)+len(pdgb.fns))
+		for _, f := range *pdgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*pdgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := pdgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := pdgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (pdgb *PingDetectorGroupBy) sqlQuery() *sql.Selector {
-	selector := pdgb.sql.Select()
-	aggregation := make([]string, 0, len(pdgb.fns))
-	for _, fn := range pdgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(pdgb.fields)+len(pdgb.fns))
-		for _, f := range pdgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(pdgb.fields...)...)
-}
-
 // PingDetectorSelect is the builder for selecting fields of PingDetector entities.
 type PingDetectorSelect struct {
 	*PingDetectorQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -536,26 +513,27 @@ func (pds *PingDetectorSelect) Aggregate(fns ...AggregateFunc) *PingDetectorSele
 
 // Scan applies the selector query and scans the result into the given value.
 func (pds *PingDetectorSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, pds.ctx, "Select")
 	if err := pds.prepareQuery(ctx); err != nil {
 		return err
 	}
-	pds.sql = pds.PingDetectorQuery.sqlQuery(ctx)
-	return pds.sqlScan(ctx, v)
+	return scanWithInterceptors[*PingDetectorQuery, *PingDetectorSelect](ctx, pds.PingDetectorQuery, pds, pds.inters, v)
 }
 
-func (pds *PingDetectorSelect) sqlScan(ctx context.Context, v any) error {
+func (pds *PingDetectorSelect) sqlScan(ctx context.Context, root *PingDetectorQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(pds.fns))
 	for _, fn := range pds.fns {
-		aggregation = append(aggregation, fn(pds.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*pds.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		pds.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		pds.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := pds.sql.Query()
+	query, args := selector.Query()
 	if err := pds.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

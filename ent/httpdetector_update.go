@@ -203,41 +203,8 @@ func (hdu *HTTPDetectorUpdate) Mutation() *HTTPDetectorMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (hdu *HTTPDetectorUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
 	hdu.defaults()
-	if len(hdu.hooks) == 0 {
-		if err = hdu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = hdu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*HTTPDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = hdu.check(); err != nil {
-				return 0, err
-			}
-			hdu.mutation = mutation
-			affected, err = hdu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(hdu.hooks) - 1; i >= 0; i-- {
-			if hdu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = hdu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, hdu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, HTTPDetectorMutation](ctx, hdu.sqlSave, hdu.mutation, hdu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -302,16 +269,10 @@ func (hdu *HTTPDetectorUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder)) *
 }
 
 func (hdu *HTTPDetectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   httpdetector.Table,
-			Columns: httpdetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: httpdetector.FieldID,
-			},
-		},
+	if err := hdu.check(); err != nil {
+		return n, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(httpdetector.Table, httpdetector.Columns, sqlgraph.NewFieldSpec(httpdetector.FieldID, field.TypeInt))
 	if ps := hdu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -405,6 +366,7 @@ func (hdu *HTTPDetectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		return 0, err
 	}
+	hdu.mutation.done = true
 	return n, nil
 }
 
@@ -588,6 +550,12 @@ func (hduo *HTTPDetectorUpdateOne) Mutation() *HTTPDetectorMutation {
 	return hduo.mutation
 }
 
+// Where appends a list predicates to the HTTPDetectorUpdate builder.
+func (hduo *HTTPDetectorUpdateOne) Where(ps ...predicate.HTTPDetector) *HTTPDetectorUpdateOne {
+	hduo.mutation.Where(ps...)
+	return hduo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (hduo *HTTPDetectorUpdateOne) Select(field string, fields ...string) *HTTPDetectorUpdateOne {
@@ -597,47 +565,8 @@ func (hduo *HTTPDetectorUpdateOne) Select(field string, fields ...string) *HTTPD
 
 // Save executes the query and returns the updated HTTPDetector entity.
 func (hduo *HTTPDetectorUpdateOne) Save(ctx context.Context) (*HTTPDetector, error) {
-	var (
-		err  error
-		node *HTTPDetector
-	)
 	hduo.defaults()
-	if len(hduo.hooks) == 0 {
-		if err = hduo.check(); err != nil {
-			return nil, err
-		}
-		node, err = hduo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*HTTPDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = hduo.check(); err != nil {
-				return nil, err
-			}
-			hduo.mutation = mutation
-			node, err = hduo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(hduo.hooks) - 1; i >= 0; i-- {
-			if hduo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = hduo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, hduo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*HTTPDetector)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from HTTPDetectorMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*HTTPDetector, HTTPDetectorMutation](ctx, hduo.sqlSave, hduo.mutation, hduo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -702,16 +631,10 @@ func (hduo *HTTPDetectorUpdateOne) Modify(modifiers ...func(u *sql.UpdateBuilder
 }
 
 func (hduo *HTTPDetectorUpdateOne) sqlSave(ctx context.Context) (_node *HTTPDetector, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   httpdetector.Table,
-			Columns: httpdetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: httpdetector.FieldID,
-			},
-		},
+	if err := hduo.check(); err != nil {
+		return _node, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(httpdetector.Table, httpdetector.Columns, sqlgraph.NewFieldSpec(httpdetector.FieldID, field.TypeInt))
 	id, ok := hduo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "HTTPDetector.id" for update`)}
@@ -825,5 +748,6 @@ func (hduo *HTTPDetectorUpdateOne) sqlSave(ctx context.Context) (_node *HTTPDete
 		}
 		return nil, err
 	}
+	hduo.mutation.done = true
 	return _node, nil
 }

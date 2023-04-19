@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,34 +27,7 @@ func (ddrd *DatabaseDetectorResultDelete) Where(ps ...predicate.DatabaseDetector
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ddrd *DatabaseDetectorResultDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(ddrd.hooks) == 0 {
-		affected, err = ddrd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DatabaseDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			ddrd.mutation = mutation
-			affected, err = ddrd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ddrd.hooks) - 1; i >= 0; i-- {
-			if ddrd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ddrd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ddrd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, DatabaseDetectorResultMutation](ctx, ddrd.sqlExec, ddrd.mutation, ddrd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (ddrd *DatabaseDetectorResultDelete) ExecX(ctx context.Context) int {
 }
 
 func (ddrd *DatabaseDetectorResultDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: databasedetectorresult.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: databasedetectorresult.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(databasedetectorresult.Table, sqlgraph.NewFieldSpec(databasedetectorresult.FieldID, field.TypeInt))
 	if ps := ddrd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (ddrd *DatabaseDetectorResultDelete) sqlExec(ctx context.Context) (int, err
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	ddrd.mutation.done = true
 	return affected, err
 }
 
 // DatabaseDetectorResultDeleteOne is the builder for deleting a single DatabaseDetectorResult entity.
 type DatabaseDetectorResultDeleteOne struct {
 	ddrd *DatabaseDetectorResultDelete
+}
+
+// Where appends a list predicates to the DatabaseDetectorResultDelete builder.
+func (ddrdo *DatabaseDetectorResultDeleteOne) Where(ps ...predicate.DatabaseDetectorResult) *DatabaseDetectorResultDeleteOne {
+	ddrdo.ddrd.mutation.Where(ps...)
+	return ddrdo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (ddrdo *DatabaseDetectorResultDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (ddrdo *DatabaseDetectorResultDeleteOne) ExecX(ctx context.Context) {
-	ddrdo.ddrd.ExecX(ctx)
+	if err := ddrdo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

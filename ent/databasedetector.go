@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/databasedetector"
 	"github.com/vicanso/cybertect/schema"
@@ -41,7 +42,8 @@ type DatabaseDetector struct {
 	// cert pem block数据
 	CertPem string `json:"certPem,omitempty"`
 	// key pem block数据
-	KeyPem string `json:"keyPem,omitempty"`
+	KeyPem       string `json:"keyPem,omitempty"`
+	selectValues sql.SelectValues
 
 	// 状态描述
 	StatusDesc string `json:"statusDesc,omitempty"`
@@ -61,7 +63,7 @@ func (*DatabaseDetector) scanValues(columns []string) ([]any, error) {
 		case databasedetector.FieldCreatedAt, databasedetector.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type DatabaseDetector", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -159,16 +161,24 @@ func (dd *DatabaseDetector) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				dd.KeyPem = value.String
 			}
+		default:
+			dd.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the DatabaseDetector.
+// This includes values selected through modifiers, order, etc.
+func (dd *DatabaseDetector) Value(name string) (ent.Value, error) {
+	return dd.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this DatabaseDetector.
 // Note that you need to call DatabaseDetector.Unwrap() before calling this method if this DatabaseDetector
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (dd *DatabaseDetector) Update() *DatabaseDetectorUpdateOne {
-	return (&DatabaseDetectorClient{config: dd.config}).UpdateOne(dd)
+	return NewDatabaseDetectorClient(dd.config).UpdateOne(dd)
 }
 
 // Unwrap unwraps the DatabaseDetector entity that was returned from a transaction after it was closed,
@@ -228,9 +238,3 @@ func (dd *DatabaseDetector) String() string {
 
 // DatabaseDetectors is a parsable slice of DatabaseDetector.
 type DatabaseDetectors []*DatabaseDetector
-
-func (dd DatabaseDetectors) config(cfg config) {
-	for _i := range dd {
-		dd[_i].config = cfg
-	}
-}

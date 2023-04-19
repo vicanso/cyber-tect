@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/configuration"
 	"github.com/vicanso/cybertect/schema"
@@ -36,7 +37,8 @@ type Configuration struct {
 	// 配置停用时间
 	EndedAt time.Time `json:"endedAt"`
 	// 配置说明
-	Description string `json:"description,omitempty"`
+	Description  string `json:"description,omitempty"`
+	selectValues sql.SelectValues
 
 	// 状态描述
 	StatusDesc string `json:"statusDesc,omitempty"`
@@ -54,7 +56,7 @@ func (*Configuration) scanValues(columns []string) ([]any, error) {
 		case configuration.FieldCreatedAt, configuration.FieldUpdatedAt, configuration.FieldStartedAt, configuration.FieldEndedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type Configuration", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -134,16 +136,24 @@ func (c *Configuration) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				c.Description = value.String
 			}
+		default:
+			c.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the Configuration.
+// This includes values selected through modifiers, order, etc.
+func (c *Configuration) Value(name string) (ent.Value, error) {
+	return c.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this Configuration.
 // Note that you need to call Configuration.Unwrap() before calling this method if this Configuration
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (c *Configuration) Update() *ConfigurationUpdateOne {
-	return (&ConfigurationClient{config: c.config}).UpdateOne(c)
+	return NewConfigurationClient(c.config).UpdateOne(c)
 }
 
 // Unwrap unwraps the Configuration entity that was returned from a transaction after it was closed,
@@ -197,9 +207,3 @@ func (c *Configuration) String() string {
 
 // Configurations is a parsable slice of Configuration.
 type Configurations []*Configuration
-
-func (c Configurations) config(cfg config) {
-	for _i := range c {
-		c[_i].config = cfg
-	}
-}

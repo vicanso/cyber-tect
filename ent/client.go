@@ -10,6 +10,9 @@ import (
 
 	"github.com/vicanso/cybertect/ent/migrate"
 
+	"entgo.io/ent"
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/configuration"
 	"github.com/vicanso/cybertect/ent/databasedetector"
 	"github.com/vicanso/cybertect/ent/databasedetectorresult"
@@ -23,9 +26,6 @@ import (
 	"github.com/vicanso/cybertect/ent/tcpdetectorresult"
 	"github.com/vicanso/cybertect/ent/user"
 	"github.com/vicanso/cybertect/ent/userlogin"
-
-	"entgo.io/ent/dialect"
-	"entgo.io/ent/dialect/sql"
 )
 
 // Client is the client that holds all ent builders.
@@ -63,7 +63,7 @@ type Client struct {
 
 // NewClient creates a new client configured with the given options.
 func NewClient(opts ...Option) *Client {
-	cfg := config{log: log.Println, hooks: &hooks{}}
+	cfg := config{log: log.Println, hooks: &hooks{}, inters: &inters{}}
 	cfg.options(opts...)
 	client := &Client{config: cfg}
 	client.init()
@@ -85,6 +85,55 @@ func (c *Client) init() {
 	c.TCPDetectorResult = NewTCPDetectorResultClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserLogin = NewUserLoginClient(c.config)
+}
+
+type (
+	// config is the configuration for the client and its builder.
+	config struct {
+		// driver used for executing database requests.
+		driver dialect.Driver
+		// debug enable a debug logging.
+		debug bool
+		// log used for logging on debug mode.
+		log func(...any)
+		// hooks to execute on mutations.
+		hooks *hooks
+		// interceptors to execute on queries.
+		inters *inters
+	}
+	// Option function to configure the client.
+	Option func(*config)
+)
+
+// options applies the options on the config object.
+func (c *config) options(opts ...Option) {
+	for _, opt := range opts {
+		opt(c)
+	}
+	if c.debug {
+		c.driver = dialect.Debug(c.driver, c.log)
+	}
+}
+
+// Debug enables debug logging on the ent.Driver.
+func Debug() Option {
+	return func(c *config) {
+		c.debug = true
+	}
+}
+
+// Log sets the logging function for debug mode.
+func Log(fn func(...any)) Option {
+	return func(c *config) {
+		c.log = fn
+	}
+}
+
+// Driver configures the client driver.
+func Driver(driver dialect.Driver) Option {
+	return func(c *config) {
+		c.driver = driver
+	}
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -191,19 +240,59 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Configuration.Use(hooks...)
-	c.DNSDetector.Use(hooks...)
-	c.DNSDetectorResult.Use(hooks...)
-	c.DatabaseDetector.Use(hooks...)
-	c.DatabaseDetectorResult.Use(hooks...)
-	c.HTTPDetector.Use(hooks...)
-	c.HTTPDetectorResult.Use(hooks...)
-	c.PingDetector.Use(hooks...)
-	c.PingDetectorResult.Use(hooks...)
-	c.TCPDetector.Use(hooks...)
-	c.TCPDetectorResult.Use(hooks...)
-	c.User.Use(hooks...)
-	c.UserLogin.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.Configuration, c.DNSDetector, c.DNSDetectorResult, c.DatabaseDetector,
+		c.DatabaseDetectorResult, c.HTTPDetector, c.HTTPDetectorResult, c.PingDetector,
+		c.PingDetectorResult, c.TCPDetector, c.TCPDetectorResult, c.User, c.UserLogin,
+	} {
+		n.Use(hooks...)
+	}
+}
+
+// Intercept adds the query interceptors to all the entity clients.
+// In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
+func (c *Client) Intercept(interceptors ...Interceptor) {
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.Configuration, c.DNSDetector, c.DNSDetectorResult, c.DatabaseDetector,
+		c.DatabaseDetectorResult, c.HTTPDetector, c.HTTPDetectorResult, c.PingDetector,
+		c.PingDetectorResult, c.TCPDetector, c.TCPDetectorResult, c.User, c.UserLogin,
+	} {
+		n.Intercept(interceptors...)
+	}
+}
+
+// Mutate implements the ent.Mutator interface.
+func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
+	switch m := m.(type) {
+	case *ConfigurationMutation:
+		return c.Configuration.mutate(ctx, m)
+	case *DNSDetectorMutation:
+		return c.DNSDetector.mutate(ctx, m)
+	case *DNSDetectorResultMutation:
+		return c.DNSDetectorResult.mutate(ctx, m)
+	case *DatabaseDetectorMutation:
+		return c.DatabaseDetector.mutate(ctx, m)
+	case *DatabaseDetectorResultMutation:
+		return c.DatabaseDetectorResult.mutate(ctx, m)
+	case *HTTPDetectorMutation:
+		return c.HTTPDetector.mutate(ctx, m)
+	case *HTTPDetectorResultMutation:
+		return c.HTTPDetectorResult.mutate(ctx, m)
+	case *PingDetectorMutation:
+		return c.PingDetector.mutate(ctx, m)
+	case *PingDetectorResultMutation:
+		return c.PingDetectorResult.mutate(ctx, m)
+	case *TCPDetectorMutation:
+		return c.TCPDetector.mutate(ctx, m)
+	case *TCPDetectorResultMutation:
+		return c.TCPDetectorResult.mutate(ctx, m)
+	case *UserMutation:
+		return c.User.mutate(ctx, m)
+	case *UserLoginMutation:
+		return c.UserLogin.mutate(ctx, m)
+	default:
+		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
 }
 
 // ConfigurationClient is a client for the Configuration schema.
@@ -220,6 +309,12 @@ func NewConfigurationClient(c config) *ConfigurationClient {
 // A call to `Use(f, g, h)` equals to `configuration.Hooks(f(g(h())))`.
 func (c *ConfigurationClient) Use(hooks ...Hook) {
 	c.hooks.Configuration = append(c.hooks.Configuration, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `configuration.Intercept(f(g(h())))`.
+func (c *ConfigurationClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Configuration = append(c.inters.Configuration, interceptors...)
 }
 
 // Create returns a builder for creating a Configuration entity.
@@ -274,6 +369,8 @@ func (c *ConfigurationClient) DeleteOneID(id int) *ConfigurationDeleteOne {
 func (c *ConfigurationClient) Query() *ConfigurationQuery {
 	return &ConfigurationQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeConfiguration},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -296,6 +393,26 @@ func (c *ConfigurationClient) Hooks() []Hook {
 	return c.hooks.Configuration
 }
 
+// Interceptors returns the client interceptors.
+func (c *ConfigurationClient) Interceptors() []Interceptor {
+	return c.inters.Configuration
+}
+
+func (c *ConfigurationClient) mutate(ctx context.Context, m *ConfigurationMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ConfigurationCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ConfigurationUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ConfigurationUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ConfigurationDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Configuration mutation op: %q", m.Op())
+	}
+}
+
 // DNSDetectorClient is a client for the DNSDetector schema.
 type DNSDetectorClient struct {
 	config
@@ -310,6 +427,12 @@ func NewDNSDetectorClient(c config) *DNSDetectorClient {
 // A call to `Use(f, g, h)` equals to `dnsdetector.Hooks(f(g(h())))`.
 func (c *DNSDetectorClient) Use(hooks ...Hook) {
 	c.hooks.DNSDetector = append(c.hooks.DNSDetector, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dnsdetector.Intercept(f(g(h())))`.
+func (c *DNSDetectorClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DNSDetector = append(c.inters.DNSDetector, interceptors...)
 }
 
 // Create returns a builder for creating a DNSDetector entity.
@@ -364,6 +487,8 @@ func (c *DNSDetectorClient) DeleteOneID(id int) *DNSDetectorDeleteOne {
 func (c *DNSDetectorClient) Query() *DNSDetectorQuery {
 	return &DNSDetectorQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeDNSDetector},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -386,6 +511,26 @@ func (c *DNSDetectorClient) Hooks() []Hook {
 	return c.hooks.DNSDetector
 }
 
+// Interceptors returns the client interceptors.
+func (c *DNSDetectorClient) Interceptors() []Interceptor {
+	return c.inters.DNSDetector
+}
+
+func (c *DNSDetectorClient) mutate(ctx context.Context, m *DNSDetectorMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DNSDetectorCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DNSDetectorUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DNSDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DNSDetectorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DNSDetector mutation op: %q", m.Op())
+	}
+}
+
 // DNSDetectorResultClient is a client for the DNSDetectorResult schema.
 type DNSDetectorResultClient struct {
 	config
@@ -400,6 +545,12 @@ func NewDNSDetectorResultClient(c config) *DNSDetectorResultClient {
 // A call to `Use(f, g, h)` equals to `dnsdetectorresult.Hooks(f(g(h())))`.
 func (c *DNSDetectorResultClient) Use(hooks ...Hook) {
 	c.hooks.DNSDetectorResult = append(c.hooks.DNSDetectorResult, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `dnsdetectorresult.Intercept(f(g(h())))`.
+func (c *DNSDetectorResultClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DNSDetectorResult = append(c.inters.DNSDetectorResult, interceptors...)
 }
 
 // Create returns a builder for creating a DNSDetectorResult entity.
@@ -454,6 +605,8 @@ func (c *DNSDetectorResultClient) DeleteOneID(id int) *DNSDetectorResultDeleteOn
 func (c *DNSDetectorResultClient) Query() *DNSDetectorResultQuery {
 	return &DNSDetectorResultQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeDNSDetectorResult},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -476,6 +629,26 @@ func (c *DNSDetectorResultClient) Hooks() []Hook {
 	return c.hooks.DNSDetectorResult
 }
 
+// Interceptors returns the client interceptors.
+func (c *DNSDetectorResultClient) Interceptors() []Interceptor {
+	return c.inters.DNSDetectorResult
+}
+
+func (c *DNSDetectorResultClient) mutate(ctx context.Context, m *DNSDetectorResultMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DNSDetectorResultCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DNSDetectorResultUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DNSDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DNSDetectorResultDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DNSDetectorResult mutation op: %q", m.Op())
+	}
+}
+
 // DatabaseDetectorClient is a client for the DatabaseDetector schema.
 type DatabaseDetectorClient struct {
 	config
@@ -490,6 +663,12 @@ func NewDatabaseDetectorClient(c config) *DatabaseDetectorClient {
 // A call to `Use(f, g, h)` equals to `databasedetector.Hooks(f(g(h())))`.
 func (c *DatabaseDetectorClient) Use(hooks ...Hook) {
 	c.hooks.DatabaseDetector = append(c.hooks.DatabaseDetector, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `databasedetector.Intercept(f(g(h())))`.
+func (c *DatabaseDetectorClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DatabaseDetector = append(c.inters.DatabaseDetector, interceptors...)
 }
 
 // Create returns a builder for creating a DatabaseDetector entity.
@@ -544,6 +723,8 @@ func (c *DatabaseDetectorClient) DeleteOneID(id int) *DatabaseDetectorDeleteOne 
 func (c *DatabaseDetectorClient) Query() *DatabaseDetectorQuery {
 	return &DatabaseDetectorQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeDatabaseDetector},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -566,6 +747,26 @@ func (c *DatabaseDetectorClient) Hooks() []Hook {
 	return c.hooks.DatabaseDetector
 }
 
+// Interceptors returns the client interceptors.
+func (c *DatabaseDetectorClient) Interceptors() []Interceptor {
+	return c.inters.DatabaseDetector
+}
+
+func (c *DatabaseDetectorClient) mutate(ctx context.Context, m *DatabaseDetectorMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DatabaseDetectorCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DatabaseDetectorUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DatabaseDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DatabaseDetectorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DatabaseDetector mutation op: %q", m.Op())
+	}
+}
+
 // DatabaseDetectorResultClient is a client for the DatabaseDetectorResult schema.
 type DatabaseDetectorResultClient struct {
 	config
@@ -580,6 +781,12 @@ func NewDatabaseDetectorResultClient(c config) *DatabaseDetectorResultClient {
 // A call to `Use(f, g, h)` equals to `databasedetectorresult.Hooks(f(g(h())))`.
 func (c *DatabaseDetectorResultClient) Use(hooks ...Hook) {
 	c.hooks.DatabaseDetectorResult = append(c.hooks.DatabaseDetectorResult, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `databasedetectorresult.Intercept(f(g(h())))`.
+func (c *DatabaseDetectorResultClient) Intercept(interceptors ...Interceptor) {
+	c.inters.DatabaseDetectorResult = append(c.inters.DatabaseDetectorResult, interceptors...)
 }
 
 // Create returns a builder for creating a DatabaseDetectorResult entity.
@@ -634,6 +841,8 @@ func (c *DatabaseDetectorResultClient) DeleteOneID(id int) *DatabaseDetectorResu
 func (c *DatabaseDetectorResultClient) Query() *DatabaseDetectorResultQuery {
 	return &DatabaseDetectorResultQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeDatabaseDetectorResult},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -656,6 +865,26 @@ func (c *DatabaseDetectorResultClient) Hooks() []Hook {
 	return c.hooks.DatabaseDetectorResult
 }
 
+// Interceptors returns the client interceptors.
+func (c *DatabaseDetectorResultClient) Interceptors() []Interceptor {
+	return c.inters.DatabaseDetectorResult
+}
+
+func (c *DatabaseDetectorResultClient) mutate(ctx context.Context, m *DatabaseDetectorResultMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&DatabaseDetectorResultCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&DatabaseDetectorResultUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&DatabaseDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&DatabaseDetectorResultDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown DatabaseDetectorResult mutation op: %q", m.Op())
+	}
+}
+
 // HTTPDetectorClient is a client for the HTTPDetector schema.
 type HTTPDetectorClient struct {
 	config
@@ -670,6 +899,12 @@ func NewHTTPDetectorClient(c config) *HTTPDetectorClient {
 // A call to `Use(f, g, h)` equals to `httpdetector.Hooks(f(g(h())))`.
 func (c *HTTPDetectorClient) Use(hooks ...Hook) {
 	c.hooks.HTTPDetector = append(c.hooks.HTTPDetector, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `httpdetector.Intercept(f(g(h())))`.
+func (c *HTTPDetectorClient) Intercept(interceptors ...Interceptor) {
+	c.inters.HTTPDetector = append(c.inters.HTTPDetector, interceptors...)
 }
 
 // Create returns a builder for creating a HTTPDetector entity.
@@ -724,6 +959,8 @@ func (c *HTTPDetectorClient) DeleteOneID(id int) *HTTPDetectorDeleteOne {
 func (c *HTTPDetectorClient) Query() *HTTPDetectorQuery {
 	return &HTTPDetectorQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeHTTPDetector},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -746,6 +983,26 @@ func (c *HTTPDetectorClient) Hooks() []Hook {
 	return c.hooks.HTTPDetector
 }
 
+// Interceptors returns the client interceptors.
+func (c *HTTPDetectorClient) Interceptors() []Interceptor {
+	return c.inters.HTTPDetector
+}
+
+func (c *HTTPDetectorClient) mutate(ctx context.Context, m *HTTPDetectorMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&HTTPDetectorCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&HTTPDetectorUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&HTTPDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&HTTPDetectorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown HTTPDetector mutation op: %q", m.Op())
+	}
+}
+
 // HTTPDetectorResultClient is a client for the HTTPDetectorResult schema.
 type HTTPDetectorResultClient struct {
 	config
@@ -760,6 +1017,12 @@ func NewHTTPDetectorResultClient(c config) *HTTPDetectorResultClient {
 // A call to `Use(f, g, h)` equals to `httpdetectorresult.Hooks(f(g(h())))`.
 func (c *HTTPDetectorResultClient) Use(hooks ...Hook) {
 	c.hooks.HTTPDetectorResult = append(c.hooks.HTTPDetectorResult, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `httpdetectorresult.Intercept(f(g(h())))`.
+func (c *HTTPDetectorResultClient) Intercept(interceptors ...Interceptor) {
+	c.inters.HTTPDetectorResult = append(c.inters.HTTPDetectorResult, interceptors...)
 }
 
 // Create returns a builder for creating a HTTPDetectorResult entity.
@@ -814,6 +1077,8 @@ func (c *HTTPDetectorResultClient) DeleteOneID(id int) *HTTPDetectorResultDelete
 func (c *HTTPDetectorResultClient) Query() *HTTPDetectorResultQuery {
 	return &HTTPDetectorResultQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeHTTPDetectorResult},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -836,6 +1101,26 @@ func (c *HTTPDetectorResultClient) Hooks() []Hook {
 	return c.hooks.HTTPDetectorResult
 }
 
+// Interceptors returns the client interceptors.
+func (c *HTTPDetectorResultClient) Interceptors() []Interceptor {
+	return c.inters.HTTPDetectorResult
+}
+
+func (c *HTTPDetectorResultClient) mutate(ctx context.Context, m *HTTPDetectorResultMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&HTTPDetectorResultCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&HTTPDetectorResultUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&HTTPDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&HTTPDetectorResultDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown HTTPDetectorResult mutation op: %q", m.Op())
+	}
+}
+
 // PingDetectorClient is a client for the PingDetector schema.
 type PingDetectorClient struct {
 	config
@@ -850,6 +1135,12 @@ func NewPingDetectorClient(c config) *PingDetectorClient {
 // A call to `Use(f, g, h)` equals to `pingdetector.Hooks(f(g(h())))`.
 func (c *PingDetectorClient) Use(hooks ...Hook) {
 	c.hooks.PingDetector = append(c.hooks.PingDetector, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pingdetector.Intercept(f(g(h())))`.
+func (c *PingDetectorClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PingDetector = append(c.inters.PingDetector, interceptors...)
 }
 
 // Create returns a builder for creating a PingDetector entity.
@@ -904,6 +1195,8 @@ func (c *PingDetectorClient) DeleteOneID(id int) *PingDetectorDeleteOne {
 func (c *PingDetectorClient) Query() *PingDetectorQuery {
 	return &PingDetectorQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypePingDetector},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -926,6 +1219,26 @@ func (c *PingDetectorClient) Hooks() []Hook {
 	return c.hooks.PingDetector
 }
 
+// Interceptors returns the client interceptors.
+func (c *PingDetectorClient) Interceptors() []Interceptor {
+	return c.inters.PingDetector
+}
+
+func (c *PingDetectorClient) mutate(ctx context.Context, m *PingDetectorMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PingDetectorCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PingDetectorUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PingDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PingDetectorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PingDetector mutation op: %q", m.Op())
+	}
+}
+
 // PingDetectorResultClient is a client for the PingDetectorResult schema.
 type PingDetectorResultClient struct {
 	config
@@ -940,6 +1253,12 @@ func NewPingDetectorResultClient(c config) *PingDetectorResultClient {
 // A call to `Use(f, g, h)` equals to `pingdetectorresult.Hooks(f(g(h())))`.
 func (c *PingDetectorResultClient) Use(hooks ...Hook) {
 	c.hooks.PingDetectorResult = append(c.hooks.PingDetectorResult, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `pingdetectorresult.Intercept(f(g(h())))`.
+func (c *PingDetectorResultClient) Intercept(interceptors ...Interceptor) {
+	c.inters.PingDetectorResult = append(c.inters.PingDetectorResult, interceptors...)
 }
 
 // Create returns a builder for creating a PingDetectorResult entity.
@@ -994,6 +1313,8 @@ func (c *PingDetectorResultClient) DeleteOneID(id int) *PingDetectorResultDelete
 func (c *PingDetectorResultClient) Query() *PingDetectorResultQuery {
 	return &PingDetectorResultQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypePingDetectorResult},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1016,6 +1337,26 @@ func (c *PingDetectorResultClient) Hooks() []Hook {
 	return c.hooks.PingDetectorResult
 }
 
+// Interceptors returns the client interceptors.
+func (c *PingDetectorResultClient) Interceptors() []Interceptor {
+	return c.inters.PingDetectorResult
+}
+
+func (c *PingDetectorResultClient) mutate(ctx context.Context, m *PingDetectorResultMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PingDetectorResultCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PingDetectorResultUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PingDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PingDetectorResultDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown PingDetectorResult mutation op: %q", m.Op())
+	}
+}
+
 // TCPDetectorClient is a client for the TCPDetector schema.
 type TCPDetectorClient struct {
 	config
@@ -1030,6 +1371,12 @@ func NewTCPDetectorClient(c config) *TCPDetectorClient {
 // A call to `Use(f, g, h)` equals to `tcpdetector.Hooks(f(g(h())))`.
 func (c *TCPDetectorClient) Use(hooks ...Hook) {
 	c.hooks.TCPDetector = append(c.hooks.TCPDetector, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tcpdetector.Intercept(f(g(h())))`.
+func (c *TCPDetectorClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TCPDetector = append(c.inters.TCPDetector, interceptors...)
 }
 
 // Create returns a builder for creating a TCPDetector entity.
@@ -1084,6 +1431,8 @@ func (c *TCPDetectorClient) DeleteOneID(id int) *TCPDetectorDeleteOne {
 func (c *TCPDetectorClient) Query() *TCPDetectorQuery {
 	return &TCPDetectorQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeTCPDetector},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1106,6 +1455,26 @@ func (c *TCPDetectorClient) Hooks() []Hook {
 	return c.hooks.TCPDetector
 }
 
+// Interceptors returns the client interceptors.
+func (c *TCPDetectorClient) Interceptors() []Interceptor {
+	return c.inters.TCPDetector
+}
+
+func (c *TCPDetectorClient) mutate(ctx context.Context, m *TCPDetectorMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TCPDetectorCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TCPDetectorUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TCPDetectorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TCPDetectorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TCPDetector mutation op: %q", m.Op())
+	}
+}
+
 // TCPDetectorResultClient is a client for the TCPDetectorResult schema.
 type TCPDetectorResultClient struct {
 	config
@@ -1120,6 +1489,12 @@ func NewTCPDetectorResultClient(c config) *TCPDetectorResultClient {
 // A call to `Use(f, g, h)` equals to `tcpdetectorresult.Hooks(f(g(h())))`.
 func (c *TCPDetectorResultClient) Use(hooks ...Hook) {
 	c.hooks.TCPDetectorResult = append(c.hooks.TCPDetectorResult, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `tcpdetectorresult.Intercept(f(g(h())))`.
+func (c *TCPDetectorResultClient) Intercept(interceptors ...Interceptor) {
+	c.inters.TCPDetectorResult = append(c.inters.TCPDetectorResult, interceptors...)
 }
 
 // Create returns a builder for creating a TCPDetectorResult entity.
@@ -1174,6 +1549,8 @@ func (c *TCPDetectorResultClient) DeleteOneID(id int) *TCPDetectorResultDeleteOn
 func (c *TCPDetectorResultClient) Query() *TCPDetectorResultQuery {
 	return &TCPDetectorResultQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeTCPDetectorResult},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1196,6 +1573,26 @@ func (c *TCPDetectorResultClient) Hooks() []Hook {
 	return c.hooks.TCPDetectorResult
 }
 
+// Interceptors returns the client interceptors.
+func (c *TCPDetectorResultClient) Interceptors() []Interceptor {
+	return c.inters.TCPDetectorResult
+}
+
+func (c *TCPDetectorResultClient) mutate(ctx context.Context, m *TCPDetectorResultMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TCPDetectorResultCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TCPDetectorResultUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TCPDetectorResultUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TCPDetectorResultDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown TCPDetectorResult mutation op: %q", m.Op())
+	}
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -1210,6 +1607,12 @@ func NewUserClient(c config) *UserClient {
 // A call to `Use(f, g, h)` equals to `user.Hooks(f(g(h())))`.
 func (c *UserClient) Use(hooks ...Hook) {
 	c.hooks.User = append(c.hooks.User, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `user.Intercept(f(g(h())))`.
+func (c *UserClient) Intercept(interceptors ...Interceptor) {
+	c.inters.User = append(c.inters.User, interceptors...)
 }
 
 // Create returns a builder for creating a User entity.
@@ -1264,6 +1667,8 @@ func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
 func (c *UserClient) Query() *UserQuery {
 	return &UserQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUser},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1286,6 +1691,26 @@ func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
 }
 
+// Interceptors returns the client interceptors.
+func (c *UserClient) Interceptors() []Interceptor {
+	return c.inters.User
+}
+
+func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
+	}
+}
+
 // UserLoginClient is a client for the UserLogin schema.
 type UserLoginClient struct {
 	config
@@ -1300,6 +1725,12 @@ func NewUserLoginClient(c config) *UserLoginClient {
 // A call to `Use(f, g, h)` equals to `userlogin.Hooks(f(g(h())))`.
 func (c *UserLoginClient) Use(hooks ...Hook) {
 	c.hooks.UserLogin = append(c.hooks.UserLogin, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userlogin.Intercept(f(g(h())))`.
+func (c *UserLoginClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserLogin = append(c.inters.UserLogin, interceptors...)
 }
 
 // Create returns a builder for creating a UserLogin entity.
@@ -1354,6 +1785,8 @@ func (c *UserLoginClient) DeleteOneID(id int) *UserLoginDeleteOne {
 func (c *UserLoginClient) Query() *UserLoginQuery {
 	return &UserLoginQuery{
 		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserLogin},
+		inters: c.Interceptors(),
 	}
 }
 
@@ -1375,3 +1808,38 @@ func (c *UserLoginClient) GetX(ctx context.Context, id int) *UserLogin {
 func (c *UserLoginClient) Hooks() []Hook {
 	return c.hooks.UserLogin
 }
+
+// Interceptors returns the client interceptors.
+func (c *UserLoginClient) Interceptors() []Interceptor {
+	return c.inters.UserLogin
+}
+
+func (c *UserLoginClient) mutate(ctx context.Context, m *UserLoginMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserLoginCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserLoginUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserLoginUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserLoginDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserLogin mutation op: %q", m.Op())
+	}
+}
+
+// hooks and interceptors per client, for fast access.
+type (
+	hooks struct {
+		Configuration, DNSDetector, DNSDetectorResult, DatabaseDetector,
+		DatabaseDetectorResult, HTTPDetector, HTTPDetectorResult, PingDetector,
+		PingDetectorResult, TCPDetector, TCPDetectorResult, User, UserLogin []ent.Hook
+	}
+	inters struct {
+		Configuration, DNSDetector, DNSDetectorResult, DatabaseDetector,
+		DatabaseDetectorResult, HTTPDetector, HTTPDetectorResult, PingDetector,
+		PingDetectorResult, TCPDetector, TCPDetectorResult, User,
+		UserLogin []ent.Interceptor
+	}
+)

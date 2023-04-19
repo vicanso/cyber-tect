@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/pingdetectorresult"
 	"github.com/vicanso/cybertect/schema"
@@ -33,7 +34,8 @@ type PingDetectorResult struct {
 	// 检测IP
 	Ips []string `json:"ips,omitempty"`
 	// 检测结果列表
-	Results schema.PingDetectorSubResults `json:"results,omitempty"`
+	Results      schema.PingDetectorSubResults `json:"results,omitempty"`
+	selectValues sql.SelectValues
 
 	// 状态描述
 	TaskName string `json:"taskName,omitempty"`
@@ -51,7 +53,7 @@ func (*PingDetectorResult) scanValues(columns []string) ([]any, error) {
 		case pingdetectorresult.FieldCreatedAt, pingdetectorresult.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type PingDetectorResult", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -125,16 +127,24 @@ func (pdr *PingDetectorResult) assignValues(columns []string, values []any) erro
 					return fmt.Errorf("unmarshal field results: %w", err)
 				}
 			}
+		default:
+			pdr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the PingDetectorResult.
+// This includes values selected through modifiers, order, etc.
+func (pdr *PingDetectorResult) Value(name string) (ent.Value, error) {
+	return pdr.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this PingDetectorResult.
 // Note that you need to call PingDetectorResult.Unwrap() before calling this method if this PingDetectorResult
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (pdr *PingDetectorResult) Update() *PingDetectorResultUpdateOne {
-	return (&PingDetectorResultClient{config: pdr.config}).UpdateOne(pdr)
+	return NewPingDetectorResultClient(pdr.config).UpdateOne(pdr)
 }
 
 // Unwrap unwraps the PingDetectorResult entity that was returned from a transaction after it was closed,
@@ -182,9 +192,3 @@ func (pdr *PingDetectorResult) String() string {
 
 // PingDetectorResults is a parsable slice of PingDetectorResult.
 type PingDetectorResults []*PingDetectorResult
-
-func (pdr PingDetectorResults) config(cfg config) {
-	for _i := range pdr {
-		pdr[_i].config = cfg
-	}
-}

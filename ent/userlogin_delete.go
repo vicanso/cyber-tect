@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,34 +27,7 @@ func (uld *UserLoginDelete) Where(ps ...predicate.UserLogin) *UserLoginDelete {
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (uld *UserLoginDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(uld.hooks) == 0 {
-		affected, err = uld.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*UserLoginMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			uld.mutation = mutation
-			affected, err = uld.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(uld.hooks) - 1; i >= 0; i-- {
-			if uld.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = uld.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, uld.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, UserLoginMutation](ctx, uld.sqlExec, uld.mutation, uld.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (uld *UserLoginDelete) ExecX(ctx context.Context) int {
 }
 
 func (uld *UserLoginDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: userlogin.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: userlogin.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(userlogin.Table, sqlgraph.NewFieldSpec(userlogin.FieldID, field.TypeInt))
 	if ps := uld.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (uld *UserLoginDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	uld.mutation.done = true
 	return affected, err
 }
 
 // UserLoginDeleteOne is the builder for deleting a single UserLogin entity.
 type UserLoginDeleteOne struct {
 	uld *UserLoginDelete
+}
+
+// Where appends a list predicates to the UserLoginDelete builder.
+func (uldo *UserLoginDeleteOne) Where(ps ...predicate.UserLogin) *UserLoginDeleteOne {
+	uldo.uld.mutation.Where(ps...)
+	return uldo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (uldo *UserLoginDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (uldo *UserLoginDeleteOne) ExecX(ctx context.Context) {
-	uldo.uld.ExecX(ctx)
+	if err := uldo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

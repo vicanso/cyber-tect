@@ -92,50 +92,8 @@ func (pdrc *PingDetectorResultCreate) Mutation() *PingDetectorResultMutation {
 
 // Save creates the PingDetectorResult in the database.
 func (pdrc *PingDetectorResultCreate) Save(ctx context.Context) (*PingDetectorResult, error) {
-	var (
-		err  error
-		node *PingDetectorResult
-	)
 	pdrc.defaults()
-	if len(pdrc.hooks) == 0 {
-		if err = pdrc.check(); err != nil {
-			return nil, err
-		}
-		node, err = pdrc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PingDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = pdrc.check(); err != nil {
-				return nil, err
-			}
-			pdrc.mutation = mutation
-			if node, err = pdrc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(pdrc.hooks) - 1; i >= 0; i-- {
-			if pdrc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = pdrc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, pdrc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*PingDetectorResult)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from PingDetectorResultMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*PingDetectorResult, PingDetectorResultMutation](ctx, pdrc.sqlSave, pdrc.mutation, pdrc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -207,6 +165,9 @@ func (pdrc *PingDetectorResultCreate) check() error {
 }
 
 func (pdrc *PingDetectorResultCreate) sqlSave(ctx context.Context) (*PingDetectorResult, error) {
+	if err := pdrc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := pdrc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, pdrc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -216,19 +177,15 @@ func (pdrc *PingDetectorResultCreate) sqlSave(ctx context.Context) (*PingDetecto
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	pdrc.mutation.id = &_node.ID
+	pdrc.mutation.done = true
 	return _node, nil
 }
 
 func (pdrc *PingDetectorResultCreate) createSpec() (*PingDetectorResult, *sqlgraph.CreateSpec) {
 	var (
 		_node = &PingDetectorResult{config: pdrc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: pingdetectorresult.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pingdetectorresult.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(pingdetectorresult.Table, sqlgraph.NewFieldSpec(pingdetectorresult.FieldID, field.TypeInt))
 	)
 	if value, ok := pdrc.mutation.CreatedAt(); ok {
 		_spec.SetField(pingdetectorresult.FieldCreatedAt, field.TypeTime, value)
@@ -289,8 +246,8 @@ func (pdrcb *PingDetectorResultCreateBulk) Save(ctx context.Context) ([]*PingDet
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, pdrcb.builders[i+1].mutation)
 				} else {

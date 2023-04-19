@@ -92,50 +92,8 @@ func (ddrc *DNSDetectorResultCreate) Mutation() *DNSDetectorResultMutation {
 
 // Save creates the DNSDetectorResult in the database.
 func (ddrc *DNSDetectorResultCreate) Save(ctx context.Context) (*DNSDetectorResult, error) {
-	var (
-		err  error
-		node *DNSDetectorResult
-	)
 	ddrc.defaults()
-	if len(ddrc.hooks) == 0 {
-		if err = ddrc.check(); err != nil {
-			return nil, err
-		}
-		node, err = ddrc.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DNSDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ddrc.check(); err != nil {
-				return nil, err
-			}
-			ddrc.mutation = mutation
-			if node, err = ddrc.sqlSave(ctx); err != nil {
-				return nil, err
-			}
-			mutation.id = &node.ID
-			mutation.done = true
-			return node, err
-		})
-		for i := len(ddrc.hooks) - 1; i >= 0; i-- {
-			if ddrc.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ddrc.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, ddrc.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*DNSDetectorResult)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from DNSDetectorResultMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*DNSDetectorResult, DNSDetectorResultMutation](ctx, ddrc.sqlSave, ddrc.mutation, ddrc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.
@@ -207,6 +165,9 @@ func (ddrc *DNSDetectorResultCreate) check() error {
 }
 
 func (ddrc *DNSDetectorResultCreate) sqlSave(ctx context.Context) (*DNSDetectorResult, error) {
+	if err := ddrc.check(); err != nil {
+		return nil, err
+	}
 	_node, _spec := ddrc.createSpec()
 	if err := sqlgraph.CreateNode(ctx, ddrc.driver, _spec); err != nil {
 		if sqlgraph.IsConstraintError(err) {
@@ -216,19 +177,15 @@ func (ddrc *DNSDetectorResultCreate) sqlSave(ctx context.Context) (*DNSDetectorR
 	}
 	id := _spec.ID.Value.(int64)
 	_node.ID = int(id)
+	ddrc.mutation.id = &_node.ID
+	ddrc.mutation.done = true
 	return _node, nil
 }
 
 func (ddrc *DNSDetectorResultCreate) createSpec() (*DNSDetectorResult, *sqlgraph.CreateSpec) {
 	var (
 		_node = &DNSDetectorResult{config: ddrc.config}
-		_spec = &sqlgraph.CreateSpec{
-			Table: dnsdetectorresult.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: dnsdetectorresult.FieldID,
-			},
-		}
+		_spec = sqlgraph.NewCreateSpec(dnsdetectorresult.Table, sqlgraph.NewFieldSpec(dnsdetectorresult.FieldID, field.TypeInt))
 	)
 	if value, ok := ddrc.mutation.CreatedAt(); ok {
 		_spec.SetField(dnsdetectorresult.FieldCreatedAt, field.TypeTime, value)
@@ -289,8 +246,8 @@ func (ddrcb *DNSDetectorResultCreateBulk) Save(ctx context.Context) ([]*DNSDetec
 					return nil, err
 				}
 				builder.mutation = mutation
-				nodes[i], specs[i] = builder.createSpec()
 				var err error
+				nodes[i], specs[i] = builder.createSpec()
 				if i < len(mutators)-1 {
 					_, err = mutators[i+1].Mutate(root, ddrcb.builders[i+1].mutation)
 				} else {

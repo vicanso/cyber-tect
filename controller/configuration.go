@@ -170,8 +170,8 @@ func (params *configurationListParmas) queryAll(ctx context.Context) ([]*ent.Con
 	query := getConfigurationClient().Query()
 
 	query = query.Limit(params.GetLimit()).
-		Offset(params.GetOffset()).
-		Order(params.GetOrders()...)
+		Offset(params.GetOffset())
+		// Order(params.GetOrders()...)
 	query = params.where(query)
 
 	return query.All(ctx)

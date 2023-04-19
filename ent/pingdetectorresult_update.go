@@ -112,41 +112,8 @@ func (pdru *PingDetectorResultUpdate) Mutation() *PingDetectorResultMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pdru *PingDetectorResultUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
 	pdru.defaults()
-	if len(pdru.hooks) == 0 {
-		if err = pdru.check(); err != nil {
-			return 0, err
-		}
-		affected, err = pdru.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PingDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = pdru.check(); err != nil {
-				return 0, err
-			}
-			pdru.mutation = mutation
-			affected, err = pdru.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(pdru.hooks) - 1; i >= 0; i-- {
-			if pdru.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = pdru.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, pdru.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, PingDetectorResultMutation](ctx, pdru.sqlSave, pdru.mutation, pdru.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -196,16 +163,10 @@ func (pdru *PingDetectorResultUpdate) Modify(modifiers ...func(u *sql.UpdateBuil
 }
 
 func (pdru *PingDetectorResultUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pingdetectorresult.Table,
-			Columns: pingdetectorresult.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pingdetectorresult.FieldID,
-			},
-		},
+	if err := pdru.check(); err != nil {
+		return n, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(pingdetectorresult.Table, pingdetectorresult.Columns, sqlgraph.NewFieldSpec(pingdetectorresult.FieldID, field.TypeInt))
 	if ps := pdru.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -267,6 +228,7 @@ func (pdru *PingDetectorResultUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 		return 0, err
 	}
+	pdru.mutation.done = true
 	return n, nil
 }
 
@@ -359,6 +321,12 @@ func (pdruo *PingDetectorResultUpdateOne) Mutation() *PingDetectorResultMutation
 	return pdruo.mutation
 }
 
+// Where appends a list predicates to the PingDetectorResultUpdate builder.
+func (pdruo *PingDetectorResultUpdateOne) Where(ps ...predicate.PingDetectorResult) *PingDetectorResultUpdateOne {
+	pdruo.mutation.Where(ps...)
+	return pdruo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (pdruo *PingDetectorResultUpdateOne) Select(field string, fields ...string) *PingDetectorResultUpdateOne {
@@ -368,47 +336,8 @@ func (pdruo *PingDetectorResultUpdateOne) Select(field string, fields ...string)
 
 // Save executes the query and returns the updated PingDetectorResult entity.
 func (pdruo *PingDetectorResultUpdateOne) Save(ctx context.Context) (*PingDetectorResult, error) {
-	var (
-		err  error
-		node *PingDetectorResult
-	)
 	pdruo.defaults()
-	if len(pdruo.hooks) == 0 {
-		if err = pdruo.check(); err != nil {
-			return nil, err
-		}
-		node, err = pdruo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*PingDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = pdruo.check(); err != nil {
-				return nil, err
-			}
-			pdruo.mutation = mutation
-			node, err = pdruo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(pdruo.hooks) - 1; i >= 0; i-- {
-			if pdruo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = pdruo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, pdruo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*PingDetectorResult)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from PingDetectorResultMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*PingDetectorResult, PingDetectorResultMutation](ctx, pdruo.sqlSave, pdruo.mutation, pdruo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -458,16 +387,10 @@ func (pdruo *PingDetectorResultUpdateOne) Modify(modifiers ...func(u *sql.Update
 }
 
 func (pdruo *PingDetectorResultUpdateOne) sqlSave(ctx context.Context) (_node *PingDetectorResult, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   pingdetectorresult.Table,
-			Columns: pingdetectorresult.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: pingdetectorresult.FieldID,
-			},
-		},
+	if err := pdruo.check(); err != nil {
+		return _node, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(pingdetectorresult.Table, pingdetectorresult.Columns, sqlgraph.NewFieldSpec(pingdetectorresult.FieldID, field.TypeInt))
 	id, ok := pdruo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "PingDetectorResult.id" for update`)}
@@ -549,5 +472,6 @@ func (pdruo *PingDetectorResultUpdateOne) sqlSave(ctx context.Context) (_node *P
 		}
 		return nil, err
 	}
+	pdruo.mutation.done = true
 	return _node, nil
 }

@@ -172,41 +172,8 @@ func (ddu *DatabaseDetectorUpdate) Mutation() *DatabaseDetectorMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ddu *DatabaseDetectorUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
 	ddu.defaults()
-	if len(ddu.hooks) == 0 {
-		if err = ddu.check(); err != nil {
-			return 0, err
-		}
-		affected, err = ddu.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DatabaseDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = ddu.check(); err != nil {
-				return 0, err
-			}
-			ddu.mutation = mutation
-			affected, err = ddu.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(ddu.hooks) - 1; i >= 0; i-- {
-			if ddu.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = ddu.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, ddu.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, DatabaseDetectorMutation](ctx, ddu.sqlSave, ddu.mutation, ddu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -266,16 +233,10 @@ func (ddu *DatabaseDetectorUpdate) Modify(modifiers ...func(u *sql.UpdateBuilder
 }
 
 func (ddu *DatabaseDetectorUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   databasedetector.Table,
-			Columns: databasedetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: databasedetector.FieldID,
-			},
-		},
+	if err := ddu.check(); err != nil {
+		return n, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(databasedetector.Table, databasedetector.Columns, sqlgraph.NewFieldSpec(databasedetector.FieldID, field.TypeInt))
 	if ps := ddu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -352,6 +313,7 @@ func (ddu *DatabaseDetectorUpdate) sqlSave(ctx context.Context) (n int, err erro
 		}
 		return 0, err
 	}
+	ddu.mutation.done = true
 	return n, nil
 }
 
@@ -504,6 +466,12 @@ func (dduo *DatabaseDetectorUpdateOne) Mutation() *DatabaseDetectorMutation {
 	return dduo.mutation
 }
 
+// Where appends a list predicates to the DatabaseDetectorUpdate builder.
+func (dduo *DatabaseDetectorUpdateOne) Where(ps ...predicate.DatabaseDetector) *DatabaseDetectorUpdateOne {
+	dduo.mutation.Where(ps...)
+	return dduo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (dduo *DatabaseDetectorUpdateOne) Select(field string, fields ...string) *DatabaseDetectorUpdateOne {
@@ -513,47 +481,8 @@ func (dduo *DatabaseDetectorUpdateOne) Select(field string, fields ...string) *D
 
 // Save executes the query and returns the updated DatabaseDetector entity.
 func (dduo *DatabaseDetectorUpdateOne) Save(ctx context.Context) (*DatabaseDetector, error) {
-	var (
-		err  error
-		node *DatabaseDetector
-	)
 	dduo.defaults()
-	if len(dduo.hooks) == 0 {
-		if err = dduo.check(); err != nil {
-			return nil, err
-		}
-		node, err = dduo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*DatabaseDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = dduo.check(); err != nil {
-				return nil, err
-			}
-			dduo.mutation = mutation
-			node, err = dduo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(dduo.hooks) - 1; i >= 0; i-- {
-			if dduo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = dduo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, dduo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*DatabaseDetector)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from DatabaseDetectorMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*DatabaseDetector, DatabaseDetectorMutation](ctx, dduo.sqlSave, dduo.mutation, dduo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -613,16 +542,10 @@ func (dduo *DatabaseDetectorUpdateOne) Modify(modifiers ...func(u *sql.UpdateBui
 }
 
 func (dduo *DatabaseDetectorUpdateOne) sqlSave(ctx context.Context) (_node *DatabaseDetector, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   databasedetector.Table,
-			Columns: databasedetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: databasedetector.FieldID,
-			},
-		},
+	if err := dduo.check(); err != nil {
+		return _node, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(databasedetector.Table, databasedetector.Columns, sqlgraph.NewFieldSpec(databasedetector.FieldID, field.TypeInt))
 	id, ok := dduo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "DatabaseDetector.id" for update`)}
@@ -719,5 +642,6 @@ func (dduo *DatabaseDetectorUpdateOne) sqlSave(ctx context.Context) (_node *Data
 		}
 		return nil, err
 	}
+	dduo.mutation.done = true
 	return _node, nil
 }

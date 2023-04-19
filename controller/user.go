@@ -401,8 +401,8 @@ func (params *userListParams) queryAll(ctx context.Context) ([]*ent.User, error)
 	query := getUserClient().Query()
 
 	query = query.Limit(params.GetLimit()).
-		Offset(params.GetOffset()).
-		Order(params.GetOrders()...)
+		Offset(params.GetOffset())
+		// Order(params.GetOrders()...)
 	query = params.where(query)
 
 	return query.All(ctx)
@@ -435,8 +435,8 @@ func (params *userLoginListParams) where(query *ent.UserLoginQuery) *ent.UserLog
 func (params *userLoginListParams) queryAll(ctx context.Context) ([]*ent.UserLogin, error) {
 	query := getUserLoginClient().Query()
 	query = query.Limit(params.GetLimit()).
-		Offset(params.GetOffset()).
-		Order(params.GetOrders()...)
+		Offset(params.GetOffset())
+		// Order(params.GetOrders()...)
 	query = params.where(query)
 	return query.All(ctx)
 }
@@ -533,7 +533,8 @@ func (ctrl *userCtrl) updateByID(c *elton.Context) error {
 // 在登录之前需要先调用获取token，此token用于登录时与客户密码sha256生成hash，
 // 保证客户每次登录时的密码均不相同，避免接口重放登录。
 // Responses:
-// 	200: apiUserLoginTokenResponse
+//
+//	200: apiUserLoginTokenResponse
 func (*userCtrl) getLoginToken(c *elton.Context) error {
 	us := getUserSession(c)
 	// 清除当前session id，确保每次登录的用户都是新的session
@@ -560,7 +561,8 @@ func (*userCtrl) getLoginToken(c *elton.Context) error {
 // 若用户登录状态，则返回客户的相关信息。
 // 若用户未登录，仅返回服务器当前时间。
 // Responses:
-// 	200: apiUserInfoResponse
+//
+//	200: apiUserInfoResponse
 func (*userCtrl) me(c *elton.Context) error {
 	cookie, _ := c.Cookie(sessionConfig.TrackKey)
 	if cookie == nil {
@@ -619,7 +621,8 @@ func (*userCtrl) detail(c *elton.Context) error {
 // 在成功注册后返回用户信息。
 // 需注意此时并非登录状态，需要客户自主登录。
 // Responses:
-// 	201: apiUserRegisterResponse
+//
+//	201: apiUserRegisterResponse
 func (*userCtrl) register(c *elton.Context) error {
 	params := userRegisterLoginParams{}
 	err := validate.Do(&params, c.RequestBody)
@@ -651,7 +654,8 @@ func (*userCtrl) register(c *elton.Context) error {
 // 用户登录时需要先获取token，之后使用token与密码sha256后提交，
 // 登录成功后返回用户信息。
 // Responses:
-// 	200: apiUserInfoResponse
+//
+//	200: apiUserInfoResponse
 func (*userCtrl) login(c *elton.Context) error {
 	params := userRegisterLoginParams{}
 	err := validate.Do(&params, c.RequestBody)
@@ -754,7 +758,8 @@ func (*userCtrl) login(c *elton.Context) error {
 //
 // 退出用户当前登录状态，成功时并无内容返回。
 // Responses:
-// 	204: apiNoContentResponse
+//
+//	204: apiNoContentResponse
 func (*userCtrl) logout(c *elton.Context) error {
 	us := getUserSession(c)
 	// 清除session

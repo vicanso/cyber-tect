@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/vicanso/cybertect/ent/httpdetectorresult"
 	"github.com/vicanso/cybertect/schema"
@@ -33,7 +34,8 @@ type HTTPDetectorResult struct {
 	// 检测URL
 	URL string `json:"url,omitempty"`
 	// 检测结果列表
-	Results schema.HTTPDetectorSubResults `json:"results,omitempty"`
+	Results      schema.HTTPDetectorSubResults `json:"results,omitempty"`
+	selectValues sql.SelectValues
 
 	// 状态描述
 	TaskName string `json:"taskName,omitempty"`
@@ -53,7 +55,7 @@ func (*HTTPDetectorResult) scanValues(columns []string) ([]any, error) {
 		case httpdetectorresult.FieldCreatedAt, httpdetectorresult.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		default:
-			return nil, fmt.Errorf("unexpected column %q for type HTTPDetectorResult", columns[i])
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -125,16 +127,24 @@ func (hdr *HTTPDetectorResult) assignValues(columns []string, values []any) erro
 					return fmt.Errorf("unmarshal field results: %w", err)
 				}
 			}
+		default:
+			hdr.selectValues.Set(columns[i], values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the ent.Value that was dynamically selected and assigned to the HTTPDetectorResult.
+// This includes values selected through modifiers, order, etc.
+func (hdr *HTTPDetectorResult) Value(name string) (ent.Value, error) {
+	return hdr.selectValues.Get(name)
 }
 
 // Update returns a builder for updating this HTTPDetectorResult.
 // Note that you need to call HTTPDetectorResult.Unwrap() before calling this method if this HTTPDetectorResult
 // was returned from a transaction, and the transaction was committed or rolled back.
 func (hdr *HTTPDetectorResult) Update() *HTTPDetectorResultUpdateOne {
-	return (&HTTPDetectorResultClient{config: hdr.config}).UpdateOne(hdr)
+	return NewHTTPDetectorResultClient(hdr.config).UpdateOne(hdr)
 }
 
 // Unwrap unwraps the HTTPDetectorResult entity that was returned from a transaction after it was closed,
@@ -182,9 +192,3 @@ func (hdr *HTTPDetectorResult) String() string {
 
 // HTTPDetectorResults is a parsable slice of HTTPDetectorResult.
 type HTTPDetectorResults []*HTTPDetectorResult
-
-func (hdr HTTPDetectorResults) config(cfg config) {
-	for _i := range hdr {
-		hdr[_i].config = cfg
-	}
-}

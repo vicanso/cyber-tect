@@ -106,41 +106,8 @@ func (hdru *HTTPDetectorResultUpdate) Mutation() *HTTPDetectorResultMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (hdru *HTTPDetectorResultUpdate) Save(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
 	hdru.defaults()
-	if len(hdru.hooks) == 0 {
-		if err = hdru.check(); err != nil {
-			return 0, err
-		}
-		affected, err = hdru.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*HTTPDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = hdru.check(); err != nil {
-				return 0, err
-			}
-			hdru.mutation = mutation
-			affected, err = hdru.sqlSave(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(hdru.hooks) - 1; i >= 0; i-- {
-			if hdru.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = hdru.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, hdru.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, HTTPDetectorResultMutation](ctx, hdru.sqlSave, hdru.mutation, hdru.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -190,16 +157,10 @@ func (hdru *HTTPDetectorResultUpdate) Modify(modifiers ...func(u *sql.UpdateBuil
 }
 
 func (hdru *HTTPDetectorResultUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   httpdetectorresult.Table,
-			Columns: httpdetectorresult.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: httpdetectorresult.FieldID,
-			},
-		},
+	if err := hdru.check(); err != nil {
+		return n, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(httpdetectorresult.Table, httpdetectorresult.Columns, sqlgraph.NewFieldSpec(httpdetectorresult.FieldID, field.TypeInt))
 	if ps := hdru.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -256,6 +217,7 @@ func (hdru *HTTPDetectorResultUpdate) sqlSave(ctx context.Context) (n int, err e
 		}
 		return 0, err
 	}
+	hdru.mutation.done = true
 	return n, nil
 }
 
@@ -342,6 +304,12 @@ func (hdruo *HTTPDetectorResultUpdateOne) Mutation() *HTTPDetectorResultMutation
 	return hdruo.mutation
 }
 
+// Where appends a list predicates to the HTTPDetectorResultUpdate builder.
+func (hdruo *HTTPDetectorResultUpdateOne) Where(ps ...predicate.HTTPDetectorResult) *HTTPDetectorResultUpdateOne {
+	hdruo.mutation.Where(ps...)
+	return hdruo
+}
+
 // Select allows selecting one or more fields (columns) of the returned entity.
 // The default is selecting all fields defined in the entity schema.
 func (hdruo *HTTPDetectorResultUpdateOne) Select(field string, fields ...string) *HTTPDetectorResultUpdateOne {
@@ -351,47 +319,8 @@ func (hdruo *HTTPDetectorResultUpdateOne) Select(field string, fields ...string)
 
 // Save executes the query and returns the updated HTTPDetectorResult entity.
 func (hdruo *HTTPDetectorResultUpdateOne) Save(ctx context.Context) (*HTTPDetectorResult, error) {
-	var (
-		err  error
-		node *HTTPDetectorResult
-	)
 	hdruo.defaults()
-	if len(hdruo.hooks) == 0 {
-		if err = hdruo.check(); err != nil {
-			return nil, err
-		}
-		node, err = hdruo.sqlSave(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*HTTPDetectorResultMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			if err = hdruo.check(); err != nil {
-				return nil, err
-			}
-			hdruo.mutation = mutation
-			node, err = hdruo.sqlSave(ctx)
-			mutation.done = true
-			return node, err
-		})
-		for i := len(hdruo.hooks) - 1; i >= 0; i-- {
-			if hdruo.hooks[i] == nil {
-				return nil, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = hdruo.hooks[i](mut)
-		}
-		v, err := mut.Mutate(ctx, hdruo.mutation)
-		if err != nil {
-			return nil, err
-		}
-		nv, ok := v.(*HTTPDetectorResult)
-		if !ok {
-			return nil, fmt.Errorf("unexpected node type %T returned from HTTPDetectorResultMutation", v)
-		}
-		node = nv
-	}
-	return node, err
+	return withHooks[*HTTPDetectorResult, HTTPDetectorResultMutation](ctx, hdruo.sqlSave, hdruo.mutation, hdruo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -441,16 +370,10 @@ func (hdruo *HTTPDetectorResultUpdateOne) Modify(modifiers ...func(u *sql.Update
 }
 
 func (hdruo *HTTPDetectorResultUpdateOne) sqlSave(ctx context.Context) (_node *HTTPDetectorResult, err error) {
-	_spec := &sqlgraph.UpdateSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   httpdetectorresult.Table,
-			Columns: httpdetectorresult.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: httpdetectorresult.FieldID,
-			},
-		},
+	if err := hdruo.check(); err != nil {
+		return _node, err
 	}
+	_spec := sqlgraph.NewUpdateSpec(httpdetectorresult.Table, httpdetectorresult.Columns, sqlgraph.NewFieldSpec(httpdetectorresult.FieldID, field.TypeInt))
 	id, ok := hdruo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "HTTPDetectorResult.id" for update`)}
@@ -527,5 +450,6 @@ func (hdruo *HTTPDetectorResultUpdateOne) sqlSave(ctx context.Context) (_node *H
 		}
 		return nil, err
 	}
+	hdruo.mutation.done = true
 	return _node, nil
 }

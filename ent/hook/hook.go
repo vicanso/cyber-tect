@@ -15,11 +15,10 @@ type ConfigurationFunc func(context.Context, *ent.ConfigurationMutation) (ent.Va
 
 // Mutate calls f(ctx, m).
 func (f ConfigurationFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.ConfigurationMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ConfigurationMutation", m)
+	if mv, ok := m.(*ent.ConfigurationMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ConfigurationMutation", m)
 }
 
 // The DNSDetectorFunc type is an adapter to allow the use of ordinary
@@ -28,11 +27,10 @@ type DNSDetectorFunc func(context.Context, *ent.DNSDetectorMutation) (ent.Value,
 
 // Mutate calls f(ctx, m).
 func (f DNSDetectorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.DNSDetectorMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DNSDetectorMutation", m)
+	if mv, ok := m.(*ent.DNSDetectorMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DNSDetectorMutation", m)
 }
 
 // The DNSDetectorResultFunc type is an adapter to allow the use of ordinary
@@ -41,11 +39,10 @@ type DNSDetectorResultFunc func(context.Context, *ent.DNSDetectorResultMutation)
 
 // Mutate calls f(ctx, m).
 func (f DNSDetectorResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.DNSDetectorResultMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DNSDetectorResultMutation", m)
+	if mv, ok := m.(*ent.DNSDetectorResultMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DNSDetectorResultMutation", m)
 }
 
 // The DatabaseDetectorFunc type is an adapter to allow the use of ordinary
@@ -54,11 +51,10 @@ type DatabaseDetectorFunc func(context.Context, *ent.DatabaseDetectorMutation) (
 
 // Mutate calls f(ctx, m).
 func (f DatabaseDetectorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.DatabaseDetectorMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DatabaseDetectorMutation", m)
+	if mv, ok := m.(*ent.DatabaseDetectorMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DatabaseDetectorMutation", m)
 }
 
 // The DatabaseDetectorResultFunc type is an adapter to allow the use of ordinary
@@ -67,11 +63,10 @@ type DatabaseDetectorResultFunc func(context.Context, *ent.DatabaseDetectorResul
 
 // Mutate calls f(ctx, m).
 func (f DatabaseDetectorResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.DatabaseDetectorResultMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DatabaseDetectorResultMutation", m)
+	if mv, ok := m.(*ent.DatabaseDetectorResultMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.DatabaseDetectorResultMutation", m)
 }
 
 // The HTTPDetectorFunc type is an adapter to allow the use of ordinary
@@ -80,11 +75,10 @@ type HTTPDetectorFunc func(context.Context, *ent.HTTPDetectorMutation) (ent.Valu
 
 // Mutate calls f(ctx, m).
 func (f HTTPDetectorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.HTTPDetectorMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HTTPDetectorMutation", m)
+	if mv, ok := m.(*ent.HTTPDetectorMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HTTPDetectorMutation", m)
 }
 
 // The HTTPDetectorResultFunc type is an adapter to allow the use of ordinary
@@ -93,11 +87,10 @@ type HTTPDetectorResultFunc func(context.Context, *ent.HTTPDetectorResultMutatio
 
 // Mutate calls f(ctx, m).
 func (f HTTPDetectorResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.HTTPDetectorResultMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HTTPDetectorResultMutation", m)
+	if mv, ok := m.(*ent.HTTPDetectorResultMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HTTPDetectorResultMutation", m)
 }
 
 // The PingDetectorFunc type is an adapter to allow the use of ordinary
@@ -106,11 +99,10 @@ type PingDetectorFunc func(context.Context, *ent.PingDetectorMutation) (ent.Valu
 
 // Mutate calls f(ctx, m).
 func (f PingDetectorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.PingDetectorMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PingDetectorMutation", m)
+	if mv, ok := m.(*ent.PingDetectorMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PingDetectorMutation", m)
 }
 
 // The PingDetectorResultFunc type is an adapter to allow the use of ordinary
@@ -119,11 +111,10 @@ type PingDetectorResultFunc func(context.Context, *ent.PingDetectorResultMutatio
 
 // Mutate calls f(ctx, m).
 func (f PingDetectorResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.PingDetectorResultMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PingDetectorResultMutation", m)
+	if mv, ok := m.(*ent.PingDetectorResultMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.PingDetectorResultMutation", m)
 }
 
 // The TCPDetectorFunc type is an adapter to allow the use of ordinary
@@ -132,11 +123,10 @@ type TCPDetectorFunc func(context.Context, *ent.TCPDetectorMutation) (ent.Value,
 
 // Mutate calls f(ctx, m).
 func (f TCPDetectorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TCPDetectorMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TCPDetectorMutation", m)
+	if mv, ok := m.(*ent.TCPDetectorMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TCPDetectorMutation", m)
 }
 
 // The TCPDetectorResultFunc type is an adapter to allow the use of ordinary
@@ -145,11 +135,10 @@ type TCPDetectorResultFunc func(context.Context, *ent.TCPDetectorResultMutation)
 
 // Mutate calls f(ctx, m).
 func (f TCPDetectorResultFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.TCPDetectorResultMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TCPDetectorResultMutation", m)
+	if mv, ok := m.(*ent.TCPDetectorResultMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TCPDetectorResultMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary
@@ -158,11 +147,10 @@ type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
 func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.UserMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+	if mv, ok := m.(*ent.UserMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
 }
 
 // The UserLoginFunc type is an adapter to allow the use of ordinary
@@ -171,11 +159,10 @@ type UserLoginFunc func(context.Context, *ent.UserLoginMutation) (ent.Value, err
 
 // Mutate calls f(ctx, m).
 func (f UserLoginFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.UserLoginMutation)
-	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserLoginMutation", m)
+	if mv, ok := m.(*ent.UserLoginMutation); ok {
+		return f(ctx, mv)
 	}
-	return f(ctx, mv)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserLoginMutation", m)
 }
 
 // Condition is a hook condition function.

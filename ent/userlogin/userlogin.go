@@ -4,6 +4,8 @@ package userlogin
 
 import (
 	"time"
+
+	"entgo.io/ent/dialect/sql"
 )
 
 const (
@@ -76,3 +78,71 @@ var (
 	// AccountValidator is a validator for the "account" field. It is called by the builders before save.
 	AccountValidator func(string) error
 )
+
+// OrderOption defines the ordering options for the UserLogin queries.
+type OrderOption func(*sql.Selector)
+
+// ByID orders the results by the id field.
+func ByID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
+}
+
+// ByAccount orders the results by the account field.
+func ByAccount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccount, opts...).ToFunc()
+}
+
+// ByUserAgent orders the results by the user_agent field.
+func ByUserAgent(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUserAgent, opts...).ToFunc()
+}
+
+// ByIP orders the results by the ip field.
+func ByIP(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIP, opts...).ToFunc()
+}
+
+// ByTrackID orders the results by the track_id field.
+func ByTrackID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldTrackID, opts...).ToFunc()
+}
+
+// BySessionID orders the results by the session_id field.
+func BySessionID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSessionID, opts...).ToFunc()
+}
+
+// ByXForwardedFor orders the results by the x_forwarded_for field.
+func ByXForwardedFor(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldXForwardedFor, opts...).ToFunc()
+}
+
+// ByCountry orders the results by the country field.
+func ByCountry(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCountry, opts...).ToFunc()
+}
+
+// ByProvince orders the results by the province field.
+func ByProvince(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldProvince, opts...).ToFunc()
+}
+
+// ByCity orders the results by the city field.
+func ByCity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCity, opts...).ToFunc()
+}
+
+// ByIsp orders the results by the isp field.
+func ByIsp(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsp, opts...).ToFunc()
+}

@@ -4,7 +4,6 @@ package ent
 
 import (
 	"context"
-	"fmt"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -28,34 +27,7 @@ func (hdd *HTTPDetectorDelete) Where(ps ...predicate.HTTPDetector) *HTTPDetector
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (hdd *HTTPDetectorDelete) Exec(ctx context.Context) (int, error) {
-	var (
-		err      error
-		affected int
-	)
-	if len(hdd.hooks) == 0 {
-		affected, err = hdd.sqlExec(ctx)
-	} else {
-		var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
-			mutation, ok := m.(*HTTPDetectorMutation)
-			if !ok {
-				return nil, fmt.Errorf("unexpected mutation type %T", m)
-			}
-			hdd.mutation = mutation
-			affected, err = hdd.sqlExec(ctx)
-			mutation.done = true
-			return affected, err
-		})
-		for i := len(hdd.hooks) - 1; i >= 0; i-- {
-			if hdd.hooks[i] == nil {
-				return 0, fmt.Errorf("ent: uninitialized hook (forgotten import ent/runtime?)")
-			}
-			mut = hdd.hooks[i](mut)
-		}
-		if _, err := mut.Mutate(ctx, hdd.mutation); err != nil {
-			return 0, err
-		}
-	}
-	return affected, err
+	return withHooks[int, HTTPDetectorMutation](ctx, hdd.sqlExec, hdd.mutation, hdd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.
@@ -68,15 +40,7 @@ func (hdd *HTTPDetectorDelete) ExecX(ctx context.Context) int {
 }
 
 func (hdd *HTTPDetectorDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := &sqlgraph.DeleteSpec{
-		Node: &sqlgraph.NodeSpec{
-			Table: httpdetector.Table,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: httpdetector.FieldID,
-			},
-		},
-	}
+	_spec := sqlgraph.NewDeleteSpec(httpdetector.Table, sqlgraph.NewFieldSpec(httpdetector.FieldID, field.TypeInt))
 	if ps := hdd.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -88,12 +52,19 @@ func (hdd *HTTPDetectorDelete) sqlExec(ctx context.Context) (int, error) {
 	if err != nil && sqlgraph.IsConstraintError(err) {
 		err = &ConstraintError{msg: err.Error(), wrap: err}
 	}
+	hdd.mutation.done = true
 	return affected, err
 }
 
 // HTTPDetectorDeleteOne is the builder for deleting a single HTTPDetector entity.
 type HTTPDetectorDeleteOne struct {
 	hdd *HTTPDetectorDelete
+}
+
+// Where appends a list predicates to the HTTPDetectorDelete builder.
+func (hddo *HTTPDetectorDeleteOne) Where(ps ...predicate.HTTPDetector) *HTTPDetectorDeleteOne {
+	hddo.hdd.mutation.Where(ps...)
+	return hddo
 }
 
 // Exec executes the deletion query.
@@ -111,5 +82,7 @@ func (hddo *HTTPDetectorDeleteOne) Exec(ctx context.Context) error {
 
 // ExecX is like Exec, but panics if an error occurs.
 func (hddo *HTTPDetectorDeleteOne) ExecX(ctx context.Context) {
-	hddo.hdd.ExecX(ctx)
+	if err := hddo.Exec(ctx); err != nil {
+		panic(err)
+	}
 }

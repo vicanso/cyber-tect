@@ -155,8 +155,11 @@ func (listParams *databaseDetectorListParams) count(ctx context.Context) (int, e
 func (listParams *databaseDetectorListParams) queryAll(ctx context.Context) (ent.DatabaseDetectors, error) {
 	query := getDatabaseDetectorClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
+
 	listParams.where(query)
 	return query.All(ctx)
 }
@@ -193,8 +196,10 @@ func (listParams *databaseDetectorResultListParams) count(ctx context.Context) (
 func (listParams *databaseDetectorResultListParams) queryAll(ctx context.Context) (ent.DatabaseDetectorResults, error) {
 	query := getDatabaseDetectorResultClient().Query()
 	query = query.Limit(listParams.GetLimit()).
-		Offset(listParams.GetOffset()).
-		Order(listParams.GetOrders()...)
+		Offset(listParams.GetOffset())
+	for _, fn := range listParams.GetOrders() {
+		query = query.Order(fn)
+	}
 	listParams.where(query)
 	fields := listParams.GetFields()
 	if len(fields) != 0 {

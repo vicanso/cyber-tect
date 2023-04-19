@@ -288,8 +288,8 @@ func (listUserParams *detectorListUserParams) queryAll(ctx context.Context) ([]*
 	query := getUserClient().Query()
 
 	query = query.Limit(listUserParams.GetLimit()).
-		Offset(listUserParams.GetOffset()).
-		Order(listUserParams.GetOrders()...)
+		Offset(listUserParams.GetOffset())
+		// Order(listUserParams.GetOrders()...)
 	if listUserParams.Keyword != "" {
 		query = query.Where(user.AccountContains(listUserParams.Keyword))
 	}

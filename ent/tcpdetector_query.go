@@ -17,11 +17,9 @@ import (
 // TCPDetectorQuery is the builder for querying TCPDetector entities.
 type TCPDetectorQuery struct {
 	config
-	limit      *int
-	offset     *int
-	unique     *bool
-	order      []OrderFunc
-	fields     []string
+	ctx        *QueryContext
+	order      []tcpdetector.OrderOption
+	inters     []Interceptor
 	predicates []predicate.TCPDetector
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -35,27 +33,27 @@ func (tdq *TCPDetectorQuery) Where(ps ...predicate.TCPDetector) *TCPDetectorQuer
 	return tdq
 }
 
-// Limit adds a limit step to the query.
+// Limit the number of records to be returned by this query.
 func (tdq *TCPDetectorQuery) Limit(limit int) *TCPDetectorQuery {
-	tdq.limit = &limit
+	tdq.ctx.Limit = &limit
 	return tdq
 }
 
-// Offset adds an offset step to the query.
+// Offset to start from.
 func (tdq *TCPDetectorQuery) Offset(offset int) *TCPDetectorQuery {
-	tdq.offset = &offset
+	tdq.ctx.Offset = &offset
 	return tdq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
 func (tdq *TCPDetectorQuery) Unique(unique bool) *TCPDetectorQuery {
-	tdq.unique = &unique
+	tdq.ctx.Unique = &unique
 	return tdq
 }
 
-// Order adds an order step to the query.
-func (tdq *TCPDetectorQuery) Order(o ...OrderFunc) *TCPDetectorQuery {
+// Order specifies how the records should be ordered.
+func (tdq *TCPDetectorQuery) Order(o ...tcpdetector.OrderOption) *TCPDetectorQuery {
 	tdq.order = append(tdq.order, o...)
 	return tdq
 }
@@ -63,7 +61,7 @@ func (tdq *TCPDetectorQuery) Order(o ...OrderFunc) *TCPDetectorQuery {
 // First returns the first TCPDetector entity from the query.
 // Returns a *NotFoundError when no TCPDetector was found.
 func (tdq *TCPDetectorQuery) First(ctx context.Context) (*TCPDetector, error) {
-	nodes, err := tdq.Limit(1).All(ctx)
+	nodes, err := tdq.Limit(1).All(setContextOp(ctx, tdq.ctx, "First"))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +84,7 @@ func (tdq *TCPDetectorQuery) FirstX(ctx context.Context) *TCPDetector {
 // Returns a *NotFoundError when no TCPDetector ID was found.
 func (tdq *TCPDetectorQuery) FirstID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = tdq.Limit(1).IDs(ctx); err != nil {
+	if ids, err = tdq.Limit(1).IDs(setContextOp(ctx, tdq.ctx, "FirstID")); err != nil {
 		return
 	}
 	if len(ids) == 0 {
@@ -109,7 +107,7 @@ func (tdq *TCPDetectorQuery) FirstIDX(ctx context.Context) int {
 // Returns a *NotSingularError when more than one TCPDetector entity is found.
 // Returns a *NotFoundError when no TCPDetector entities are found.
 func (tdq *TCPDetectorQuery) Only(ctx context.Context) (*TCPDetector, error) {
-	nodes, err := tdq.Limit(2).All(ctx)
+	nodes, err := tdq.Limit(2).All(setContextOp(ctx, tdq.ctx, "Only"))
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +135,7 @@ func (tdq *TCPDetectorQuery) OnlyX(ctx context.Context) *TCPDetector {
 // Returns a *NotFoundError when no entities are found.
 func (tdq *TCPDetectorQuery) OnlyID(ctx context.Context) (id int, err error) {
 	var ids []int
-	if ids, err = tdq.Limit(2).IDs(ctx); err != nil {
+	if ids, err = tdq.Limit(2).IDs(setContextOp(ctx, tdq.ctx, "OnlyID")); err != nil {
 		return
 	}
 	switch len(ids) {
@@ -162,10 +160,12 @@ func (tdq *TCPDetectorQuery) OnlyIDX(ctx context.Context) int {
 
 // All executes the query and returns a list of TCPDetectors.
 func (tdq *TCPDetectorQuery) All(ctx context.Context) ([]*TCPDetector, error) {
+	ctx = setContextOp(ctx, tdq.ctx, "All")
 	if err := tdq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
-	return tdq.sqlAll(ctx)
+	qr := querierAll[[]*TCPDetector, *TCPDetectorQuery]()
+	return withInterceptors[[]*TCPDetector](ctx, tdq, qr, tdq.inters)
 }
 
 // AllX is like All, but panics if an error occurs.
@@ -178,9 +178,12 @@ func (tdq *TCPDetectorQuery) AllX(ctx context.Context) []*TCPDetector {
 }
 
 // IDs executes the query and returns a list of TCPDetector IDs.
-func (tdq *TCPDetectorQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := tdq.Select(tcpdetector.FieldID).Scan(ctx, &ids); err != nil {
+func (tdq *TCPDetectorQuery) IDs(ctx context.Context) (ids []int, err error) {
+	if tdq.ctx.Unique == nil && tdq.path != nil {
+		tdq.Unique(true)
+	}
+	ctx = setContextOp(ctx, tdq.ctx, "IDs")
+	if err = tdq.Select(tcpdetector.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -197,10 +200,11 @@ func (tdq *TCPDetectorQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (tdq *TCPDetectorQuery) Count(ctx context.Context) (int, error) {
+	ctx = setContextOp(ctx, tdq.ctx, "Count")
 	if err := tdq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
-	return tdq.sqlCount(ctx)
+	return withInterceptors[int](ctx, tdq, querierCount[*TCPDetectorQuery](), tdq.inters)
 }
 
 // CountX is like Count, but panics if an error occurs.
@@ -214,10 +218,15 @@ func (tdq *TCPDetectorQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (tdq *TCPDetectorQuery) Exist(ctx context.Context) (bool, error) {
-	if err := tdq.prepareQuery(ctx); err != nil {
-		return false, err
+	ctx = setContextOp(ctx, tdq.ctx, "Exist")
+	switch _, err := tdq.FirstID(ctx); {
+	case IsNotFound(err):
+		return false, nil
+	case err != nil:
+		return false, fmt.Errorf("ent: check existence: %w", err)
+	default:
+		return true, nil
 	}
-	return tdq.sqlExist(ctx)
 }
 
 // ExistX is like Exist, but panics if an error occurs.
@@ -237,14 +246,13 @@ func (tdq *TCPDetectorQuery) Clone() *TCPDetectorQuery {
 	}
 	return &TCPDetectorQuery{
 		config:     tdq.config,
-		limit:      tdq.limit,
-		offset:     tdq.offset,
-		order:      append([]OrderFunc{}, tdq.order...),
+		ctx:        tdq.ctx.Clone(),
+		order:      append([]tcpdetector.OrderOption{}, tdq.order...),
+		inters:     append([]Interceptor{}, tdq.inters...),
 		predicates: append([]predicate.TCPDetector{}, tdq.predicates...),
 		// clone intermediate query.
-		sql:    tdq.sql.Clone(),
-		path:   tdq.path,
-		unique: tdq.unique,
+		sql:  tdq.sql.Clone(),
+		path: tdq.path,
 	}
 }
 
@@ -263,16 +271,11 @@ func (tdq *TCPDetectorQuery) Clone() *TCPDetectorQuery {
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (tdq *TCPDetectorQuery) GroupBy(field string, fields ...string) *TCPDetectorGroupBy {
-	grbuild := &TCPDetectorGroupBy{config: tdq.config}
-	grbuild.fields = append([]string{field}, fields...)
-	grbuild.path = func(ctx context.Context) (prev *sql.Selector, err error) {
-		if err := tdq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		return tdq.sqlQuery(ctx), nil
-	}
+	tdq.ctx.Fields = append([]string{field}, fields...)
+	grbuild := &TCPDetectorGroupBy{build: tdq}
+	grbuild.flds = &tdq.ctx.Fields
 	grbuild.label = tcpdetector.Label
-	grbuild.flds, grbuild.scan = &grbuild.fields, grbuild.Scan
+	grbuild.scan = grbuild.Scan
 	return grbuild
 }
 
@@ -289,11 +292,11 @@ func (tdq *TCPDetectorQuery) GroupBy(field string, fields ...string) *TCPDetecto
 //		Select(tcpdetector.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (tdq *TCPDetectorQuery) Select(fields ...string) *TCPDetectorSelect {
-	tdq.fields = append(tdq.fields, fields...)
-	selbuild := &TCPDetectorSelect{TCPDetectorQuery: tdq}
-	selbuild.label = tcpdetector.Label
-	selbuild.flds, selbuild.scan = &tdq.fields, selbuild.Scan
-	return selbuild
+	tdq.ctx.Fields = append(tdq.ctx.Fields, fields...)
+	sbuild := &TCPDetectorSelect{TCPDetectorQuery: tdq}
+	sbuild.label = tcpdetector.Label
+	sbuild.flds, sbuild.scan = &tdq.ctx.Fields, sbuild.Scan
+	return sbuild
 }
 
 // Aggregate returns a TCPDetectorSelect configured with the given aggregations.
@@ -302,7 +305,17 @@ func (tdq *TCPDetectorQuery) Aggregate(fns ...AggregateFunc) *TCPDetectorSelect 
 }
 
 func (tdq *TCPDetectorQuery) prepareQuery(ctx context.Context) error {
-	for _, f := range tdq.fields {
+	for _, inter := range tdq.inters {
+		if inter == nil {
+			return fmt.Errorf("ent: uninitialized interceptor (forgotten import ent/runtime?)")
+		}
+		if trv, ok := inter.(Traverser); ok {
+			if err := trv.Traverse(ctx, tdq); err != nil {
+				return err
+			}
+		}
+	}
+	for _, f := range tdq.ctx.Fields {
 		if !tcpdetector.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
@@ -350,41 +363,22 @@ func (tdq *TCPDetectorQuery) sqlCount(ctx context.Context) (int, error) {
 	if len(tdq.modifiers) > 0 {
 		_spec.Modifiers = tdq.modifiers
 	}
-	_spec.Node.Columns = tdq.fields
-	if len(tdq.fields) > 0 {
-		_spec.Unique = tdq.unique != nil && *tdq.unique
+	_spec.Node.Columns = tdq.ctx.Fields
+	if len(tdq.ctx.Fields) > 0 {
+		_spec.Unique = tdq.ctx.Unique != nil && *tdq.ctx.Unique
 	}
 	return sqlgraph.CountNodes(ctx, tdq.driver, _spec)
 }
 
-func (tdq *TCPDetectorQuery) sqlExist(ctx context.Context) (bool, error) {
-	switch _, err := tdq.FirstID(ctx); {
-	case IsNotFound(err):
-		return false, nil
-	case err != nil:
-		return false, fmt.Errorf("ent: check existence: %w", err)
-	default:
-		return true, nil
-	}
-}
-
 func (tdq *TCPDetectorQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := &sqlgraph.QuerySpec{
-		Node: &sqlgraph.NodeSpec{
-			Table:   tcpdetector.Table,
-			Columns: tcpdetector.Columns,
-			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: tcpdetector.FieldID,
-			},
-		},
-		From:   tdq.sql,
-		Unique: true,
-	}
-	if unique := tdq.unique; unique != nil {
+	_spec := sqlgraph.NewQuerySpec(tcpdetector.Table, tcpdetector.Columns, sqlgraph.NewFieldSpec(tcpdetector.FieldID, field.TypeInt))
+	_spec.From = tdq.sql
+	if unique := tdq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
+	} else if tdq.path != nil {
+		_spec.Unique = true
 	}
-	if fields := tdq.fields; len(fields) > 0 {
+	if fields := tdq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
 		_spec.Node.Columns = append(_spec.Node.Columns, tcpdetector.FieldID)
 		for i := range fields {
@@ -400,10 +394,10 @@ func (tdq *TCPDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 			}
 		}
 	}
-	if limit := tdq.limit; limit != nil {
+	if limit := tdq.ctx.Limit; limit != nil {
 		_spec.Limit = *limit
 	}
-	if offset := tdq.offset; offset != nil {
+	if offset := tdq.ctx.Offset; offset != nil {
 		_spec.Offset = *offset
 	}
 	if ps := tdq.order; len(ps) > 0 {
@@ -419,7 +413,7 @@ func (tdq *TCPDetectorQuery) querySpec() *sqlgraph.QuerySpec {
 func (tdq *TCPDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(tdq.driver.Dialect())
 	t1 := builder.Table(tcpdetector.Table)
-	columns := tdq.fields
+	columns := tdq.ctx.Fields
 	if len(columns) == 0 {
 		columns = tcpdetector.Columns
 	}
@@ -428,7 +422,7 @@ func (tdq *TCPDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector = tdq.sql
 		selector.Select(selector.Columns(columns...)...)
 	}
-	if tdq.unique != nil && *tdq.unique {
+	if tdq.ctx.Unique != nil && *tdq.ctx.Unique {
 		selector.Distinct()
 	}
 	for _, m := range tdq.modifiers {
@@ -440,12 +434,12 @@ func (tdq *TCPDetectorQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	for _, p := range tdq.order {
 		p(selector)
 	}
-	if offset := tdq.offset; offset != nil {
+	if offset := tdq.ctx.Offset; offset != nil {
 		// limit is mandatory for offset clause. We start
 		// with default value, and override it below if needed.
 		selector.Offset(*offset).Limit(math.MaxInt32)
 	}
-	if limit := tdq.limit; limit != nil {
+	if limit := tdq.ctx.Limit; limit != nil {
 		selector.Limit(*limit)
 	}
 	return selector
@@ -459,13 +453,8 @@ func (tdq *TCPDetectorQuery) Modify(modifiers ...func(s *sql.Selector)) *TCPDete
 
 // TCPDetectorGroupBy is the group-by builder for TCPDetector entities.
 type TCPDetectorGroupBy struct {
-	config
 	selector
-	fields []string
-	fns    []AggregateFunc
-	// intermediate query (i.e. traversal path).
-	sql  *sql.Selector
-	path func(context.Context) (*sql.Selector, error)
+	build *TCPDetectorQuery
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -474,58 +463,46 @@ func (tdgb *TCPDetectorGroupBy) Aggregate(fns ...AggregateFunc) *TCPDetectorGrou
 	return tdgb
 }
 
-// Scan applies the group-by query and scans the result into the given value.
+// Scan applies the selector query and scans the result into the given value.
 func (tdgb *TCPDetectorGroupBy) Scan(ctx context.Context, v any) error {
-	query, err := tdgb.path(ctx)
-	if err != nil {
+	ctx = setContextOp(ctx, tdgb.build.ctx, "GroupBy")
+	if err := tdgb.build.prepareQuery(ctx); err != nil {
 		return err
 	}
-	tdgb.sql = query
-	return tdgb.sqlScan(ctx, v)
+	return scanWithInterceptors[*TCPDetectorQuery, *TCPDetectorGroupBy](ctx, tdgb.build, tdgb, tdgb.build.inters, v)
 }
 
-func (tdgb *TCPDetectorGroupBy) sqlScan(ctx context.Context, v any) error {
-	for _, f := range tdgb.fields {
-		if !tcpdetector.ValidColumn(f) {
-			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
-		}
+func (tdgb *TCPDetectorGroupBy) sqlScan(ctx context.Context, root *TCPDetectorQuery, v any) error {
+	selector := root.sqlQuery(ctx).Select()
+	aggregation := make([]string, 0, len(tdgb.fns))
+	for _, fn := range tdgb.fns {
+		aggregation = append(aggregation, fn(selector))
 	}
-	selector := tdgb.sqlQuery()
+	if len(selector.SelectedColumns()) == 0 {
+		columns := make([]string, 0, len(*tdgb.flds)+len(tdgb.fns))
+		for _, f := range *tdgb.flds {
+			columns = append(columns, selector.C(f))
+		}
+		columns = append(columns, aggregation...)
+		selector.Select(columns...)
+	}
+	selector.GroupBy(selector.Columns(*tdgb.flds...)...)
 	if err := selector.Err(); err != nil {
 		return err
 	}
 	rows := &sql.Rows{}
 	query, args := selector.Query()
-	if err := tdgb.driver.Query(ctx, query, args, rows); err != nil {
+	if err := tdgb.build.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}
 	defer rows.Close()
 	return sql.ScanSlice(rows, v)
 }
 
-func (tdgb *TCPDetectorGroupBy) sqlQuery() *sql.Selector {
-	selector := tdgb.sql.Select()
-	aggregation := make([]string, 0, len(tdgb.fns))
-	for _, fn := range tdgb.fns {
-		aggregation = append(aggregation, fn(selector))
-	}
-	if len(selector.SelectedColumns()) == 0 {
-		columns := make([]string, 0, len(tdgb.fields)+len(tdgb.fns))
-		for _, f := range tdgb.fields {
-			columns = append(columns, selector.C(f))
-		}
-		columns = append(columns, aggregation...)
-		selector.Select(columns...)
-	}
-	return selector.GroupBy(selector.Columns(tdgb.fields...)...)
-}
-
 // TCPDetectorSelect is the builder for selecting fields of TCPDetector entities.
 type TCPDetectorSelect struct {
 	*TCPDetectorQuery
 	selector
-	// intermediate query (i.e. traversal path).
-	sql *sql.Selector
 }
 
 // Aggregate adds the given aggregation functions to the selector query.
@@ -536,26 +513,27 @@ func (tds *TCPDetectorSelect) Aggregate(fns ...AggregateFunc) *TCPDetectorSelect
 
 // Scan applies the selector query and scans the result into the given value.
 func (tds *TCPDetectorSelect) Scan(ctx context.Context, v any) error {
+	ctx = setContextOp(ctx, tds.ctx, "Select")
 	if err := tds.prepareQuery(ctx); err != nil {
 		return err
 	}
-	tds.sql = tds.TCPDetectorQuery.sqlQuery(ctx)
-	return tds.sqlScan(ctx, v)
+	return scanWithInterceptors[*TCPDetectorQuery, *TCPDetectorSelect](ctx, tds.TCPDetectorQuery, tds, tds.inters, v)
 }
 
-func (tds *TCPDetectorSelect) sqlScan(ctx context.Context, v any) error {
+func (tds *TCPDetectorSelect) sqlScan(ctx context.Context, root *TCPDetectorQuery, v any) error {
+	selector := root.sqlQuery(ctx)
 	aggregation := make([]string, 0, len(tds.fns))
 	for _, fn := range tds.fns {
-		aggregation = append(aggregation, fn(tds.sql))
+		aggregation = append(aggregation, fn(selector))
 	}
 	switch n := len(*tds.selector.flds); {
 	case n == 0 && len(aggregation) > 0:
-		tds.sql.Select(aggregation...)
+		selector.Select(aggregation...)
 	case n != 0 && len(aggregation) > 0:
-		tds.sql.AppendSelect(aggregation...)
+		selector.AppendSelect(aggregation...)
 	}
 	rows := &sql.Rows{}
-	query, args := tds.sql.Query()
+	query, args := selector.Query()
 	if err := tds.driver.Query(ctx, query, args, rows); err != nil {
 		return err
 	}

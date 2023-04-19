@@ -24,9 +24,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/go-sql-driver/mysql"
 	"github.com/jackc/pgx/v4"
+	"github.com/redis/go-redis/v9"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/databasedetector"
 	"github.com/vicanso/cybertect/log"

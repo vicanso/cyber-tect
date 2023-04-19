@@ -115,6 +115,8 @@ const (
 
 // int 类型
 const (
+	// FieldLatency 耗时
+	FieldLatency = "latency"
 	// FieldMaxConcurrency 限制的最大并发数
 	FieldMaxConcurrency = "maxConcurrency"
 	// FieldProcessing 正在处理请求数

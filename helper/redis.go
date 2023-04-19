@@ -16,11 +16,12 @@ package helper
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/vicanso/cybertect/config"
 	"github.com/vicanso/cybertect/cs"
 	"github.com/vicanso/cybertect/log"
@@ -69,6 +70,10 @@ func mustNewRedisClient() (redis.UniversalClient, *redisHook) {
 	log.Info(context.Background()).
 		Strs("addr", redisConfig.Addrs).
 		Msg("connect to redis")
+	slow := redisConfig.Slow
+	if slow < time.Millisecond {
+		slow = 100 * time.Millisecond
+	}
 	hook := &redisHook{
 		slow:          redisConfig.Slow,
 		maxProcessing: redisConfig.MaxProcessing,
@@ -86,8 +91,9 @@ func mustNewRedisClient() (redis.UniversalClient, *redisHook) {
 		PoolSize:         redisConfig.PoolSize,
 		OnConnect: func(ctx context.Context, cn *redis.Conn) error {
 			log.Info(ctx).Msg("redis new connection is established")
-			GetInfluxDB().Write(cs.MeasurementRedisConn, nil, map[string]interface{}{
+			GetInfluxDB().Write(cs.MeasurementRedisConn, nil, map[string]any{
 				cs.FieldCount: 1,
+				cs.FieldAddr:  cn.String(),
 			})
 			return nil
 		},
@@ -119,10 +125,85 @@ func mustNewRedisClient() (redis.UniversalClient, *redisHook) {
 	return c, hook
 }
 
-// 对于慢或出错请求输出日志并写入influxdb
-func (rh *redisHook) logSlowOrError(ctx context.Context, cmd, err string) {
-	t := ctx.Value(startedAtKey).(*time.Time)
-	d := time.Since(*t)
+// DialHook redis连接时的hook
+func (rh *redisHook) DialHook(next redis.DialHook) redis.DialHook {
+	return func(ctx context.Context, network, addr string) (net.Conn, error) {
+		return next(ctx, network, addr)
+	}
+}
+
+// ProcessHook redis 命令执行时的hook
+func (rh *redisHook) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
+	return func(ctx context.Context, cmd redis.Cmder) error {
+		t := time.Now()
+		v := rh.processing.Inc()
+		rh.gauge.SetMax(int64(v))
+		rh.total.Inc()
+		err := next(ctx, cmd)
+		d := time.Since(t)
+		message := ""
+		if err != nil {
+			message = err.Error()
+		}
+		rh.addStats(ctx, cmd.FullName(), message, d)
+		rh.processing.Dec()
+		if log.DebugEnabled() {
+			// 由于redis是较频繁的操作
+			// 由于cmd string的执行也有耗时，因此判断是否启用debug再输出
+			log.Debug(ctx).
+				Str("category", "redisProcess").
+				Str("message", message).
+				Msg(cmd.String())
+		}
+		return err
+	}
+}
+
+// ProcessPipelineHook redis pipeline 执行时的hook
+func (rh *redisHook) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
+	return func(ctx context.Context, cmds []redis.Cmder) error {
+		t := time.Now()
+		v := rh.pipeProcessing.Inc()
+		rh.pipeGauge.SetMax(int64(v))
+		rh.total.Inc()
+		fullNameList := new(strings.Builder)
+		for index, cmd := range cmds {
+			if index != 0 {
+				fullNameList.WriteString(",")
+			}
+			fullNameList.WriteString(cmd.FullName())
+		}
+
+		err := next(ctx, cmds)
+		d := time.Since(t)
+		message := ""
+
+		if err != nil {
+			message = err.Error()
+		}
+		rh.addStats(ctx, fullNameList.String(), message, d)
+		rh.pipeProcessing.Dec()
+		if log.DebugEnabled() {
+			// 由于redis是较频繁的操作
+			// 由于cmd string的执行也有耗时，因此判断是否启用debug再输出
+			cmdList := new(strings.Builder)
+			for index, cmd := range cmds {
+				if index != 0 {
+					cmdList.WriteString(",")
+				}
+				cmdList.WriteString(cmd.String())
+			}
+			log.Debug(ctx).
+				Str("category", "redisProcess").
+				Str("message", message).
+				Msg(cmdList.String())
+		}
+		return err
+	}
+}
+
+// 添加统计至influxdb
+func (rh *redisHook) addStats(ctx context.Context, cmd, err string, d time.Duration) {
 	if d > rh.slow || err != "" {
 		log.Info(ctx).
 			Str("category", "redisSlowOrErr").
@@ -130,73 +211,18 @@ func (rh *redisHook) logSlowOrError(ctx context.Context, cmd, err string) {
 			Str("use", d.String()).
 			Str("error", err).
 			Msg("")
-		tags := map[string]string{
-			cs.TagOP: cmd,
-		}
-		fields := map[string]interface{}{
-			cs.FieldUse:   int(d.Milliseconds()),
-			cs.FieldError: err,
-		}
-		GetInfluxDB().Write(cs.MeasurementRedisOP, tags, fields)
 	}
-}
 
-// BeforeProcess redis处理命令前的hook函数
-func (rh *redisHook) BeforeProcess(ctx context.Context, cmd redis.Cmder) (context.Context, error) {
-	t := time.Now()
-	ctx = context.WithValue(ctx, startedAtKey, &t)
-	v := rh.processing.Inc()
-	rh.gauge.SetMax(int64(v))
-	rh.total.Inc()
-	return ctx, nil
-}
-
-// AfterProcess redis处理命令后的hook函数
-func (rh *redisHook) AfterProcess(ctx context.Context, cmd redis.Cmder) error {
-	// allow返回error时也触发
-	message := ""
-	err := cmd.Err()
-	if err != nil {
-		message = err.Error()
+	tags := map[string]string{
+		cs.TagOP: cmd,
 	}
-	rh.logSlowOrError(ctx, cmd.FullName(), message)
-	rh.processing.Dec()
-	if log.DebugEnabled() {
-		// 由于redis是较频繁的操作
-		// 由于cmd string的执行也有耗时，因此判断是否启用debug再输出
-		log.Debug(ctx).Msg(cmd.String())
+	fields := map[string]any{
+		cs.FieldLatency: int(d.Milliseconds()),
 	}
-	return nil
-}
-
-// BeforeProcessPipeline redis pipeline命令前的hook函数
-func (rh *redisHook) BeforeProcessPipeline(ctx context.Context, cmds []redis.Cmder) (context.Context, error) {
-	// allow返回error时也触发
-	t := time.Now()
-	ctx = context.WithValue(ctx, startedAtKey, &t)
-	v := rh.pipeProcessing.Inc()
-	rh.pipeGauge.SetMax(int64(v))
-	rh.total.Inc()
-	return ctx, nil
-}
-
-// AfterProcessPipeline redis pipeline命令后的hook函数
-func (rh *redisHook) AfterProcessPipeline(ctx context.Context, cmds []redis.Cmder) error {
-	cmdSb := new(strings.Builder)
-	message := ""
-	for index, cmd := range cmds {
-		if index != 0 {
-			cmdSb.WriteString(",")
-		}
-		cmdSb.WriteString(cmd.Name())
-		err := cmd.Err()
-		if err != nil {
-			message += err.Error()
-		}
+	if len(err) != 0 {
+		fields[cs.FieldError] = err
 	}
-	rh.logSlowOrError(ctx, cmdSb.String(), message)
-	rh.pipeProcessing.Dec()
-	return nil
+	GetInfluxDB().Write(cs.MeasurementRedisOP, tags, fields)
 }
 
 // getProcessingAndTotal 获取正在处理中的请求与总请求量
@@ -219,13 +245,14 @@ func (rh *redisHook) Allow() error {
 // ReportResult 记录结果
 func (*redisHook) ReportResult(result error) {
 	// 仅是调用redis完成时触发
-	// 如allow返回出错的不会触发
+	// 需要注意，只有allow通过后才会触发
+	// 仅仅nil error则忽略
 	if result != nil && !RedisIsNilError(result) {
 		log.Error(context.Background()).
 			Str("category", "redisProcessFail").
 			Err(result).
 			Msg("")
-		GetInfluxDB().Write(cs.MeasurementRedisError, nil, map[string]interface{}{
+		GetInfluxDB().Write(cs.MeasurementRedisError, nil, map[string]any{
 			cs.FieldError: result.Error(),
 		})
 	}
@@ -242,10 +269,10 @@ func RedisIsNilError(err error) bool {
 }
 
 // RedisStats 获取redis的性能统计
-func RedisStats() map[string]interface{} {
+func RedisStats() map[string]any {
 	stats := RedisGetClient().PoolStats()
 	processing, pipeProcessing, total := defaultRedisHook.getProcessingAndTotal()
-	return map[string]interface{}{
+	return map[string]any{
 		cs.FieldHits:          int(stats.Hits),
 		cs.FieldMisses:        int(stats.Misses),
 		cs.FieldTimeouts:      int(stats.Timeouts),

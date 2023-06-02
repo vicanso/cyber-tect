@@ -20,8 +20,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vicanso/elton"
 	"github.com/vicanso/cybertect/service"
+	"github.com/vicanso/elton"
 	"github.com/vicanso/hes"
 )
 
@@ -50,7 +50,7 @@ func TestCommonCtrl(t *testing.T) {
 		assert.Nil(err)
 		info, ok := c.Body.(*applicationInfoResp)
 		assert.True(ok)
-		assert.True(strings.HasPrefix(info.GO, "go1.1"))
+		assert.True(strings.HasPrefix(info.GO, "go1."))
 		assert.Equal("public, max-age=60", c.Header().Get(elton.HeaderCacheControl))
 	})
 

@@ -121,7 +121,9 @@ func mustNewRedisClient() (redis.UniversalClient, *redisHook) {
 		c = redis.NewClient(simpleOpts)
 		hook.poolSize = simpleOpts.PoolSize
 	}
-	c.AddHook(hook)
+	// https://github.com/redis/go-redis/issues/2453
+	// race condition
+	// c.AddHook(hook)
 	return c, hook
 }
 

@@ -216,7 +216,7 @@ func (ulu *UserLoginUpdate) Mutation() *UserLoginMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ulu *UserLoginUpdate) Save(ctx context.Context) (int, error) {
 	ulu.defaults()
-	return withHooks[int, UserLoginMutation](ctx, ulu.sqlSave, ulu.mutation, ulu.hooks)
+	return withHooks(ctx, ulu.sqlSave, ulu.mutation, ulu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -544,7 +544,7 @@ func (uluo *UserLoginUpdateOne) Select(field string, fields ...string) *UserLogi
 // Save executes the query and returns the updated UserLogin entity.
 func (uluo *UserLoginUpdateOne) Save(ctx context.Context) (*UserLogin, error) {
 	uluo.defaults()
-	return withHooks[*UserLogin, UserLoginMutation](ctx, uluo.sqlSave, uluo.mutation, uluo.hooks)
+	return withHooks(ctx, uluo.sqlSave, uluo.mutation, uluo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

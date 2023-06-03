@@ -161,7 +161,7 @@ func (hdc *HTTPDetectorCreate) Mutation() *HTTPDetectorMutation {
 // Save creates the HTTPDetector in the database.
 func (hdc *HTTPDetectorCreate) Save(ctx context.Context) (*HTTPDetector, error) {
 	hdc.defaults()
-	return withHooks[*HTTPDetector, HTTPDetectorMutation](ctx, hdc.sqlSave, hdc.mutation, hdc.hooks)
+	return withHooks(ctx, hdc.sqlSave, hdc.mutation, hdc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

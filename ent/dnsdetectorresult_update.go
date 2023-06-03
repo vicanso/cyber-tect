@@ -107,7 +107,7 @@ func (ddru *DNSDetectorResultUpdate) Mutation() *DNSDetectorResultMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ddru *DNSDetectorResultUpdate) Save(ctx context.Context) (int, error) {
 	ddru.defaults()
-	return withHooks[int, DNSDetectorResultMutation](ctx, ddru.sqlSave, ddru.mutation, ddru.hooks)
+	return withHooks(ctx, ddru.sqlSave, ddru.mutation, ddru.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -320,7 +320,7 @@ func (ddruo *DNSDetectorResultUpdateOne) Select(field string, fields ...string) 
 // Save executes the query and returns the updated DNSDetectorResult entity.
 func (ddruo *DNSDetectorResultUpdateOne) Save(ctx context.Context) (*DNSDetectorResult, error) {
 	ddruo.defaults()
-	return withHooks[*DNSDetectorResult, DNSDetectorResultMutation](ctx, ddruo.sqlSave, ddruo.mutation, ddruo.hooks)
+	return withHooks(ctx, ddruo.sqlSave, ddruo.mutation, ddruo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

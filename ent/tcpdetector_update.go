@@ -133,7 +133,7 @@ func (tdu *TCPDetectorUpdate) Mutation() *TCPDetectorMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tdu *TCPDetectorUpdate) Save(ctx context.Context) (int, error) {
 	tdu.defaults()
-	return withHooks[int, TCPDetectorMutation](ctx, tdu.sqlSave, tdu.mutation, tdu.hooks)
+	return withHooks(ctx, tdu.sqlSave, tdu.mutation, tdu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -390,7 +390,7 @@ func (tduo *TCPDetectorUpdateOne) Select(field string, fields ...string) *TCPDet
 // Save executes the query and returns the updated TCPDetector entity.
 func (tduo *TCPDetectorUpdateOne) Save(ctx context.Context) (*TCPDetector, error) {
 	tduo.defaults()
-	return withHooks[*TCPDetector, TCPDetectorMutation](ctx, tduo.sqlSave, tduo.mutation, tduo.hooks)
+	return withHooks(ctx, tduo.sqlSave, tduo.mutation, tduo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

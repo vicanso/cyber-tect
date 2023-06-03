@@ -107,7 +107,7 @@ func (hdru *HTTPDetectorResultUpdate) Mutation() *HTTPDetectorResultMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (hdru *HTTPDetectorResultUpdate) Save(ctx context.Context) (int, error) {
 	hdru.defaults()
-	return withHooks[int, HTTPDetectorResultMutation](ctx, hdru.sqlSave, hdru.mutation, hdru.hooks)
+	return withHooks(ctx, hdru.sqlSave, hdru.mutation, hdru.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -320,7 +320,7 @@ func (hdruo *HTTPDetectorResultUpdateOne) Select(field string, fields ...string)
 // Save executes the query and returns the updated HTTPDetectorResult entity.
 func (hdruo *HTTPDetectorResultUpdateOne) Save(ctx context.Context) (*HTTPDetectorResult, error) {
 	hdruo.defaults()
-	return withHooks[*HTTPDetectorResult, HTTPDetectorResultMutation](ctx, hdruo.sqlSave, hdruo.mutation, hdruo.hooks)
+	return withHooks(ctx, hdruo.sqlSave, hdruo.mutation, hdruo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

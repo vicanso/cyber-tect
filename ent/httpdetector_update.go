@@ -204,7 +204,7 @@ func (hdu *HTTPDetectorUpdate) Mutation() *HTTPDetectorMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (hdu *HTTPDetectorUpdate) Save(ctx context.Context) (int, error) {
 	hdu.defaults()
-	return withHooks[int, HTTPDetectorMutation](ctx, hdu.sqlSave, hdu.mutation, hdu.hooks)
+	return withHooks(ctx, hdu.sqlSave, hdu.mutation, hdu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -566,7 +566,7 @@ func (hduo *HTTPDetectorUpdateOne) Select(field string, fields ...string) *HTTPD
 // Save executes the query and returns the updated HTTPDetector entity.
 func (hduo *HTTPDetectorUpdateOne) Save(ctx context.Context) (*HTTPDetector, error) {
 	hduo.defaults()
-	return withHooks[*HTTPDetector, HTTPDetectorMutation](ctx, hduo.sqlSave, hduo.mutation, hduo.hooks)
+	return withHooks(ctx, hduo.sqlSave, hduo.mutation, hduo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

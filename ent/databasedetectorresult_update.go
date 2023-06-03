@@ -113,7 +113,7 @@ func (ddru *DatabaseDetectorResultUpdate) Mutation() *DatabaseDetectorResultMuta
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ddru *DatabaseDetectorResultUpdate) Save(ctx context.Context) (int, error) {
 	ddru.defaults()
-	return withHooks[int, DatabaseDetectorResultMutation](ctx, ddru.sqlSave, ddru.mutation, ddru.hooks)
+	return withHooks(ctx, ddru.sqlSave, ddru.mutation, ddru.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -337,7 +337,7 @@ func (ddruo *DatabaseDetectorResultUpdateOne) Select(field string, fields ...str
 // Save executes the query and returns the updated DatabaseDetectorResult entity.
 func (ddruo *DatabaseDetectorResultUpdateOne) Save(ctx context.Context) (*DatabaseDetectorResult, error) {
 	ddruo.defaults()
-	return withHooks[*DatabaseDetectorResult, DatabaseDetectorResultMutation](ctx, ddruo.sqlSave, ddruo.mutation, ddruo.hooks)
+	return withHooks(ctx, ddruo.sqlSave, ddruo.mutation, ddruo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

@@ -27,7 +27,7 @@ func (hdrd *HTTPDetectorResultDelete) Where(ps ...predicate.HTTPDetectorResult) 
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (hdrd *HTTPDetectorResultDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, HTTPDetectorResultMutation](ctx, hdrd.sqlExec, hdrd.mutation, hdrd.hooks)
+	return withHooks(ctx, hdrd.sqlExec, hdrd.mutation, hdrd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

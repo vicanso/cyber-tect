@@ -27,7 +27,7 @@ func (tdd *TCPDetectorDelete) Where(ps ...predicate.TCPDetector) *TCPDetectorDel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (tdd *TCPDetectorDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, TCPDetectorMutation](ctx, tdd.sqlExec, tdd.mutation, tdd.hooks)
+	return withHooks(ctx, tdd.sqlExec, tdd.mutation, tdd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

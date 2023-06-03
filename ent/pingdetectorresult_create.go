@@ -93,7 +93,7 @@ func (pdrc *PingDetectorResultCreate) Mutation() *PingDetectorResultMutation {
 // Save creates the PingDetectorResult in the database.
 func (pdrc *PingDetectorResultCreate) Save(ctx context.Context) (*PingDetectorResult, error) {
 	pdrc.defaults()
-	return withHooks[*PingDetectorResult, PingDetectorResultMutation](ctx, pdrc.sqlSave, pdrc.mutation, pdrc.hooks)
+	return withHooks(ctx, pdrc.sqlSave, pdrc.mutation, pdrc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

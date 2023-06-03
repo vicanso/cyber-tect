@@ -188,7 +188,7 @@ func (ulc *UserLoginCreate) Mutation() *UserLoginMutation {
 // Save creates the UserLogin in the database.
 func (ulc *UserLoginCreate) Save(ctx context.Context) (*UserLogin, error) {
 	ulc.defaults()
-	return withHooks[*UserLogin, UserLoginMutation](ctx, ulc.sqlSave, ulc.mutation, ulc.hooks)
+	return withHooks(ctx, ulc.sqlSave, ulc.mutation, ulc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

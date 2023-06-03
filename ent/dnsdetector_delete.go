@@ -27,7 +27,7 @@ func (ddd *DNSDetectorDelete) Where(ps ...predicate.DNSDetector) *DNSDetectorDel
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ddd *DNSDetectorDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, DNSDetectorMutation](ctx, ddd.sqlExec, ddd.mutation, ddd.hooks)
+	return withHooks(ctx, ddd.sqlExec, ddd.mutation, ddd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

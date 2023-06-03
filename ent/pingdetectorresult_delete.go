@@ -27,7 +27,7 @@ func (pdrd *PingDetectorResultDelete) Where(ps ...predicate.PingDetectorResult) 
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (pdrd *PingDetectorResultDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, PingDetectorResultMutation](ctx, pdrd.sqlExec, pdrd.mutation, pdrd.hooks)
+	return withHooks(ctx, pdrd.sqlExec, pdrd.mutation, pdrd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

@@ -121,7 +121,7 @@ func (tdc *TCPDetectorCreate) Mutation() *TCPDetectorMutation {
 // Save creates the TCPDetector in the database.
 func (tdc *TCPDetectorCreate) Save(ctx context.Context) (*TCPDetector, error) {
 	tdc.defaults()
-	return withHooks[*TCPDetector, TCPDetectorMutation](ctx, tdc.sqlSave, tdc.mutation, tdc.hooks)
+	return withHooks(ctx, tdc.sqlSave, tdc.mutation, tdc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

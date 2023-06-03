@@ -245,22 +245,21 @@ func getDetectorTaskInfosByReceiver(ctx context.Context, category string, us *se
 	funk.ForEach(arr, func(item interface{}) {
 		task := &detectorTask{}
 		switch data := item.(type) {
-		case *ent.DatabaseDetector:
-			task.ID = data.ID
-			task.Name = data.Name
-
-		case *ent.HTTPDetector:
-			task.ID = data.ID
-			task.Name = data.Name
-		case *ent.DNSDetector:
-			task.ID = data.ID
-			task.Name = data.Name
-		case *ent.PingDetector:
-			task.ID = data.ID
-			task.Name = data.Name
-		case *ent.TCPDetector:
-			task.ID = data.ID
-			task.Name = data.Name
+		case **ent.DatabaseDetector:
+			task.ID = (*data).ID
+			task.Name = (*data).Name
+		case **ent.HTTPDetector:
+			task.ID = (*data).ID
+			task.Name = (*data).Name
+		case **ent.DNSDetector:
+			task.ID = (*data).ID
+			task.Name = (*data).Name
+		case **ent.PingDetector:
+			task.ID = (*data).ID
+			task.Name = (*data).Name
+		case **ent.TCPDetector:
+			task.ID = (*data).ID
+			task.Name = (*data).Name
 		}
 		if task.ID > 0 {
 			tasks = append(tasks, task)

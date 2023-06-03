@@ -115,7 +115,7 @@ func (cu *ConfigurationUpdate) Mutation() *ConfigurationMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (cu *ConfigurationUpdate) Save(ctx context.Context) (int, error) {
 	cu.defaults()
-	return withHooks[int, ConfigurationMutation](ctx, cu.sqlSave, cu.mutation, cu.hooks)
+	return withHooks(ctx, cu.sqlSave, cu.mutation, cu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -349,7 +349,7 @@ func (cuo *ConfigurationUpdateOne) Select(field string, fields ...string) *Confi
 // Save executes the query and returns the updated Configuration entity.
 func (cuo *ConfigurationUpdateOne) Save(ctx context.Context) (*Configuration, error) {
 	cuo.defaults()
-	return withHooks[*Configuration, ConfigurationMutation](ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
+	return withHooks(ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

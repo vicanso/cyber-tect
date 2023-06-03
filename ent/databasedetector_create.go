@@ -149,7 +149,7 @@ func (ddc *DatabaseDetectorCreate) Mutation() *DatabaseDetectorMutation {
 // Save creates the DatabaseDetector in the database.
 func (ddc *DatabaseDetectorCreate) Save(ctx context.Context) (*DatabaseDetector, error) {
 	ddc.defaults()
-	return withHooks[*DatabaseDetector, DatabaseDetectorMutation](ctx, ddc.sqlSave, ddc.mutation, ddc.hooks)
+	return withHooks(ctx, ddc.sqlSave, ddc.mutation, ddc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

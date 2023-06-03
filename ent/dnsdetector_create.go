@@ -133,7 +133,7 @@ func (ddc *DNSDetectorCreate) Mutation() *DNSDetectorMutation {
 // Save creates the DNSDetector in the database.
 func (ddc *DNSDetectorCreate) Save(ctx context.Context) (*DNSDetector, error) {
 	ddc.defaults()
-	return withHooks[*DNSDetector, DNSDetectorMutation](ctx, ddc.sqlSave, ddc.mutation, ddc.hooks)
+	return withHooks(ctx, ddc.sqlSave, ddc.mutation, ddc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

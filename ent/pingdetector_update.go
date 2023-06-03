@@ -133,7 +133,7 @@ func (pdu *PingDetectorUpdate) Mutation() *PingDetectorMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (pdu *PingDetectorUpdate) Save(ctx context.Context) (int, error) {
 	pdu.defaults()
-	return withHooks[int, PingDetectorMutation](ctx, pdu.sqlSave, pdu.mutation, pdu.hooks)
+	return withHooks(ctx, pdu.sqlSave, pdu.mutation, pdu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -390,7 +390,7 @@ func (pduo *PingDetectorUpdateOne) Select(field string, fields ...string) *PingD
 // Save executes the query and returns the updated PingDetector entity.
 func (pduo *PingDetectorUpdateOne) Save(ctx context.Context) (*PingDetector, error) {
 	pduo.defaults()
-	return withHooks[*PingDetector, PingDetectorMutation](ctx, pduo.sqlSave, pduo.mutation, pduo.hooks)
+	return withHooks(ctx, pduo.sqlSave, pduo.mutation, pduo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

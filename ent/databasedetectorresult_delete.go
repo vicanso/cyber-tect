@@ -27,7 +27,7 @@ func (ddrd *DatabaseDetectorResultDelete) Where(ps ...predicate.DatabaseDetector
 
 // Exec executes the deletion query and returns how many vertices were deleted.
 func (ddrd *DatabaseDetectorResultDelete) Exec(ctx context.Context) (int, error) {
-	return withHooks[int, DatabaseDetectorResultMutation](ctx, ddrd.sqlExec, ddrd.mutation, ddrd.hooks)
+	return withHooks(ctx, ddrd.sqlExec, ddrd.mutation, ddrd.hooks)
 }
 
 // ExecX is like Exec, but panics if an error occurs.

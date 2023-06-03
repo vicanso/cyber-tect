@@ -173,7 +173,7 @@ func (ddu *DatabaseDetectorUpdate) Mutation() *DatabaseDetectorMutation {
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ddu *DatabaseDetectorUpdate) Save(ctx context.Context) (int, error) {
 	ddu.defaults()
-	return withHooks[int, DatabaseDetectorMutation](ctx, ddu.sqlSave, ddu.mutation, ddu.hooks)
+	return withHooks(ctx, ddu.sqlSave, ddu.mutation, ddu.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.
@@ -482,7 +482,7 @@ func (dduo *DatabaseDetectorUpdateOne) Select(field string, fields ...string) *D
 // Save executes the query and returns the updated DatabaseDetector entity.
 func (dduo *DatabaseDetectorUpdateOne) Save(ctx context.Context) (*DatabaseDetector, error) {
 	dduo.defaults()
-	return withHooks[*DatabaseDetector, DatabaseDetectorMutation](ctx, dduo.sqlSave, dduo.mutation, dduo.hooks)
+	return withHooks(ctx, dduo.sqlSave, dduo.mutation, dduo.hooks)
 }
 
 // SaveX is like Save, but panics if an error occurs.

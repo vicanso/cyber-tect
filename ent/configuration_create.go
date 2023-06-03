@@ -121,7 +121,7 @@ func (cc *ConfigurationCreate) Mutation() *ConfigurationMutation {
 // Save creates the Configuration in the database.
 func (cc *ConfigurationCreate) Save(ctx context.Context) (*Configuration, error) {
 	cc.defaults()
-	return withHooks[*Configuration, ConfigurationMutation](ctx, cc.sqlSave, cc.mutation, cc.hooks)
+	return withHooks(ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
 // SaveX calls Save and panics if Save returns an error.

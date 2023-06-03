@@ -1,0 +1,1 @@
+import{d as t,N as s,c as o}from"./ui-32540f7e.js";import{s as n}from"./naive-094f875f.js";const a="s5jcqi3",r="l53tqur",u=t({name:"ExLoading",props:{style:{type:Object,default:()=>({marginTop:"60px"})}},render(){const{style:e}=this.$props;return s("div",{style:e,class:r},[s(n,{size:"small",class:a},null),o("正在加载中，请稍候...")])}});export{u as E};

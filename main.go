@@ -61,7 +61,6 @@ import (
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/log"
 	"github.com/vicanso/cybertect/middleware"
-	"github.com/vicanso/cybertect/profiler"
 	"github.com/vicanso/cybertect/router"
 	routerconcurrency "github.com/vicanso/cybertect/router_concurrency"
 	routermock "github.com/vicanso/cybertect/router_mock"
@@ -240,7 +239,6 @@ func newOnErrorHandler(e *elton.Elton) {
 
 func main() {
 	defer config.RedisServerClose()
-	profiler.MustStartPyroscope()
 	e := elton.New()
 	// 记录server中连接的状态变化
 	e.Server.ConnState = service.GetHTTPServerConnState()

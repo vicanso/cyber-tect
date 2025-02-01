@@ -1,8 +1,6 @@
 module github.com/vicanso/cybertect
 
-go 1.23.0
-
-toolchain go1.23.4
+go 1.23.4
 
 require (
 	entgo.io/ent v0.14.1

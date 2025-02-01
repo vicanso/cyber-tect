@@ -157,7 +157,7 @@ func TestNewNotFoundHandler(t *testing.T) {
 	fn(resp, req)
 	assert.Equal(404, resp.Code)
 	assert.Equal(elton.MIMEApplicationJSON, resp.Header().Get(elton.HeaderContentType))
-	assert.Equal(`{"statusCode":404,"category":"defaultNotFound","subCategory":"","message":"Not Found"}`, resp.Body.String())
+	assert.Equal(`{"statusCode":404,"category":"defaultNotFound","message":"Not Found"}`, resp.Body.String())
 }
 
 func TestNewMethodNotAllowedHandler(t *testing.T) {
@@ -169,5 +169,5 @@ func TestNewMethodNotAllowedHandler(t *testing.T) {
 	fn(resp, req)
 	assert.Equal(405, resp.Code)
 	assert.Equal(elton.MIMEApplicationJSON, resp.Header().Get(elton.HeaderContentType))
-	assert.Equal(`{"statusCode":405,"category":"defaultMethodNotAllowed","subCategory":"","message":"Method Not Allowed"}`, resp.Body.String())
+	assert.Equal(`{"statusCode":405,"category":"defaultMethodNotAllowed","message":"Method Not Allowed"}`, resp.Body.String())
 }

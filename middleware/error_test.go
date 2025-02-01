@@ -45,7 +45,7 @@ func TestNewError(t *testing.T) {
 	err = fn(c)
 	assert.Nil(err)
 	assert.Equal(500, c.StatusCode)
-	assert.Equal(`{"statusCode":500,"subCategory":"","message":"abc","exception":true,"extra":{"route":"/"}}`, c.BodyBuffer.String())
+	assert.Equal(`{"statusCode":500,"message":"abc","exception":true,"extra":{"route":"/"}}`, c.BodyBuffer.String())
 
 	// 自定义的hes出错
 	c.Next = func() error {
@@ -54,5 +54,5 @@ func TestNewError(t *testing.T) {
 	err = fn(c)
 	assert.Nil(err)
 	assert.Equal(400, c.StatusCode)
-	assert.Equal(`{"statusCode":400,"subCategory":"","message":"abc","extra":{"route":"/"}}`, c.BodyBuffer.String())
+	assert.Equal(`{"statusCode":400,"message":"abc","extra":{"route":"/"}}`, c.BodyBuffer.String())
 }

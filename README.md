@@ -39,14 +39,14 @@ docker run -d --restart=always \
 用户信息及检测配置、结果等数据保存在postgres中，若无现成的postgres可使用以下脚本启动实例：
 
 ```
-docker pull postgres:15-alpine
+docker pull postgres:17
 
 docker run -d --restart=always \
   -v $PWD/data:/var/lib/postgresql/data \
   -e POSTGRES_PASSWORD=A123456 \
   -p 5432:5432 \
   --name=cybertect-postgres \
-  postgres:15-alpine
+  postgres:17
 
 docker exec -it cybertect-postgres sh
 

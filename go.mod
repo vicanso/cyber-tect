@@ -10,7 +10,6 @@ require (
 	github.com/dustin/go-humanize v1.0.1
 	github.com/felixge/fgprof v0.9.5
 	github.com/fogleman/gg v1.3.0
-	github.com/go-ping/ping v1.2.0
 	github.com/go-playground/validator/v10 v10.24.0
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
@@ -22,6 +21,7 @@ require (
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/minio/minio-go/v7 v7.0.84
 	github.com/mozillazg/go-pinyin v0.20.0
+	github.com/prometheus-community/pro-bing v0.6.0
 	github.com/prometheus/client_golang v1.20.5
 	github.com/prometheus/common v0.62.0
 	github.com/redis/go-redis/v9 v9.7.0

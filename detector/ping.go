@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/go-ping/ping"
+	probing "github.com/prometheus-community/pro-bing"
 	"github.com/vicanso/cybertect/ent"
 	"github.com/vicanso/cybertect/ent/pingdetector"
 	"github.com/vicanso/cybertect/schema"
@@ -33,7 +33,7 @@ type (
 
 // check ping check
 func (srv *PingSrv) check(ctx context.Context, ip string, timeout time.Duration) (err error) {
-	pinger, err := ping.NewPinger(ip)
+	pinger, err := probing.NewPinger(ip)
 	if err != nil {
 		return
 	}

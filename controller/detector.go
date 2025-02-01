@@ -561,7 +561,7 @@ func (*detectorCtrl) listMetrics(c *elton.Context) error {
 	}
 
 	buffer := bytes.Buffer{}
-	enc := expfmt.NewEncoder(&buffer, expfmt.FmtText)
+	enc := expfmt.NewEncoder(&buffer, expfmt.NewFormat(expfmt.TypeTextPlain))
 	for _, v := range gather {
 		err = enc.Encode(v)
 		if err != nil {

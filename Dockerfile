@@ -4,8 +4,8 @@ COPY . /cybertect
 RUN apk update \
   && apk add make \
   && cd /cybertect/web \
-  && npm install \
-  && npm run build \
+  && yarn \
+  && yarn build \
   && rm -rf node_modules
 
 FROM golang:1.23-alpine as builder
@@ -19,7 +19,6 @@ RUN apk update \
   && cp -rf web/dist asset/ \
   && make install \
   && make generate \
-  && ./download-swagger.sh \
   && make build
 
 FROM alpine 

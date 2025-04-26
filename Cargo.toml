@@ -16,6 +16,7 @@ shuttle-runtime = "0.52.0"
 tokio = "1.28.2"
 tower-http = { version = "0.5.0", features = ["fs"] }
 pin-project-lite = "0.2"
-hyper = { version = "0.14", features = ["full"] }
+hyper = { version = "1.6.0", features = ["full"] }
 hyper-tls = "0.5"
 tower = "0.4"
+hyper-util = { version = "0.1.10", features = ["full"] }

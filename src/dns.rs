@@ -1,4 +1,3 @@
-use hyper::client::connect::dns::Name;
 use std::future::Future;
 use std::io;
 use std::net::SocketAddr;
@@ -8,7 +7,7 @@ use tokio::net::lookup_host;
 use tower::Service;
 
 /// 自定义DNS解析器
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct CustomResolver;
 
 impl CustomResolver {
@@ -18,7 +17,7 @@ impl CustomResolver {
     }
 }
 
-impl Service<Name> for CustomResolver {
+impl Service<String> for CustomResolver {
     type Response = std::vec::IntoIter<SocketAddr>;
     type Error = io::Error;
     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>> + Send>>;
@@ -27,13 +26,12 @@ impl Service<Name> for CustomResolver {
         Poll::Ready(Ok(()))
     }
 
-    fn call(&mut self, name: Name) -> Self::Future {
+    fn call(&mut self, name: String) -> Self::Future {
         Box::pin(async move {
             let host = name.as_str();
-            println!("Resolving host: {}", host);
-            let addrs = lookup_host((host, 0)).await?.collect::<Vec<_>>();
-            println!("Resolved addresses: {:?}", addrs);
-            Ok(addrs.into_iter())
+            let port = 0;
+            let socket_addrs = lookup_host((host, port)).await?;
+            Ok(socket_addrs.collect::<Vec<_>>().into_iter())
         })
     }
 }

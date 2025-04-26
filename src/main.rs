@@ -1,6 +1,7 @@
 use axum::{routing::get, Router};
-use hyper::{client::HttpConnector, Body, Client};
+use hyper::{Body, Request};
 use hyper_tls::HttpsConnector;
+use hyper_util::client::legacy::{Client, HttpConnector};
 use std::sync::Arc;
 use std::time::Instant;
 use tower_http::services::ServeDir;
@@ -21,13 +22,18 @@ async fn hello_world() -> String {
     let traced_connector = TracingConnector::new(https);
 
     // 使用 hyper::Client 替代 reqwest::Client
-    let client: Client<_, Body> = Client::builder().build(traced_connector);
+    let client = Client::builder().build(traced_connector);
 
     println!("Client creation took: {:?}", start_time.elapsed());
 
     // 发送请求
     let res = client
-        .get("https://www.baidu.com".parse().unwrap())
+        .request(
+            hyper::Request::builder()
+                .uri("https://www.baidu.com")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
 

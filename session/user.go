@@ -22,7 +22,6 @@ import (
 	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
 	"github.com/vicanso/elton"
-	se "github.com/vicanso/elton-session"
 	session "github.com/vicanso/elton-session"
 )
 
@@ -52,7 +51,7 @@ type (
 	// UserSession 用户session
 	UserSession struct {
 		unmarshalDone bool
-		se            *se.Session
+		se            *session.Session
 		info          UserInfo
 	}
 )

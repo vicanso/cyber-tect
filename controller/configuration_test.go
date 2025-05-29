@@ -21,7 +21,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/vicanso/cybertect/ent/configuration"
-	confSchema "github.com/vicanso/cybertect/ent/configuration"
 	"github.com/vicanso/cybertect/helper"
 	"github.com/vicanso/cybertect/schema"
 	"github.com/vicanso/cybertect/util"
@@ -38,7 +37,7 @@ func TestConfigurationParams(t *testing.T) {
 	}
 
 	name := util.RandomString(8)
-	category := confSchema.CategoryBlockIP
+	category := configuration.CategoryBlockIP
 	defer func() {
 		_, _ = getConfigurationClient().Delete().Where(configuration.Name(name)).Exec(context.Background())
 	}()
@@ -83,9 +82,11 @@ func TestConfigurationParams(t *testing.T) {
 	t.Run("query by category", func(t *testing.T) {
 		params := configurationListParmas{
 			Category: category,
+			listParams: listParams{
+				Order: "-created_at",
+				Limit: 1,
+			},
 		}
-		params.listParams.Order = "-created_at"
-		params.listParams.Limit = 1
 		configs, err := params.queryAll(context.Background())
 		assert.Nil(err)
 		assert.Equal(1, len(configs))
@@ -102,7 +103,7 @@ func TestConfigurationParams(t *testing.T) {
 	t.Run("update", func(t *testing.T) {
 		newTime := now()
 		status := schema.StatusEnabled
-		category := confSchema.CategoryMockTime
+		category := configuration.CategoryMockTime
 		data := "mock time"
 		params := configurationUpdateParams{
 			StartedAt: newTime,

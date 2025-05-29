@@ -161,6 +161,9 @@ func doAlarm(ctx context.Context, detail alarmDetail) {
 					t, _ := util.ChinaNow()
 
 					content := fmt.Sprintf("时间：%s\n标题：%s", t, title)
+					if len(content) > 1000 {
+						content = content[:1000]
+					}
 					conf.Body = map[string]interface{}{
 						"msgtype": "markdown",
 						"markdown": map[string]string{

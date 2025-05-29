@@ -69,6 +69,8 @@ func (srv *HTTPSrv) check(ctx context.Context, params httpCheckParams) (result *
 	ip := params.ip
 	requestURL := params.url
 	timeout := params.timeout
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 	var dialContext func(ctx context.Context, network, addr string) (net.Conn, error)
 	// 自定义dns解析（更新为0.0.0.0)表示不指定IP
 	if ip != "" && ip != nilIPAddr {
